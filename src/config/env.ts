@@ -13,6 +13,7 @@ const envSchema = z.object({
 
   // Database (Supabase PostgreSQL)
   DATABASE_URL: z.string().url(),
+  DIRECT_URL: z.string().url(),
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_SERVICE_KEY: z.string().optional(),
 
@@ -21,6 +22,7 @@ const envSchema = z.object({
 
   // AI / LLM
   OPENAI_API_KEY: z.string().min(1),
+  OPENAI_BASE_URL: z.string().url().optional(),
   SUPERMEMORY_API_KEY: z.string().min(1).optional(),
   SUPERMEMORY_BASE_URL: z.string().url().optional(),
 
@@ -88,6 +90,7 @@ export const config = {
   },
   ai: {
     openaiApiKey: env.OPENAI_API_KEY,
+    openaiBaseUrl: env.OPENAI_BASE_URL,
     supermemoryApiKey: env.SUPERMEMORY_API_KEY,
     supermemoryBaseUrl: env.SUPERMEMORY_BASE_URL || 'https://api.supermemory.ai/v1/https/api.openai.com/v1',
     jinaApiKey: env.JINA_API_KEY,

@@ -8,10 +8,8 @@ import { logger } from '../utils/logger.js';
 
 export const openai = new OpenAI({
   apiKey: config.ai.openaiApiKey,
-  // Use Supermemory base URL if configured, otherwise use standard OpenAI
-  ...(config.ai.supermemoryBaseUrl && {
-    baseURL: config.ai.supermemoryBaseUrl,
-  }),
+  baseURL: config.ai.openaiBaseUrl || config.ai.supermemoryBaseUrl,
+  // Use Supermemory headers if configured
   ...(config.ai.supermemoryApiKey && {
     defaultHeaders: {
       'x-sm-api-key': config.ai.supermemoryApiKey,
