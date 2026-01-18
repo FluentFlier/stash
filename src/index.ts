@@ -21,6 +21,7 @@ import { reminderRoutes } from './routes/reminders.js';
 import { collectionRoutes } from './routes/collections.js';
 import { calendarRoutes } from './routes/calendar.js';
 import { voiceRoutes } from './routes/voice.js';
+import { webhookRoutes } from './routes/webhooks.js';
 
 /**
  * Build Fastify server
@@ -76,6 +77,7 @@ async function buildServer() {
   await fastify.register(collectionRoutes);
   await fastify.register(calendarRoutes);
   await fastify.register(voiceRoutes);
+  await fastify.register(webhookRoutes);
 
   // Error handlers
   fastify.setErrorHandler(errorHandler);

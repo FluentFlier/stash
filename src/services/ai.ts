@@ -141,6 +141,54 @@ export async function analyzeImage(
 }
 
 /**
+ * Analyze multiple frames (images) with GPT-4 Vision
+ */
+export async function analyzeFrames(
+  frames: Array<{ type: 'base64' | 'url'; data: string }>,
+  prompt: string,
+  userId: string
+): Promise<string> {
+  try {
+    const content: any[] = [{ type: 'text', text: prompt }];
+
+    frames.forEach((frame) => {
+      if (frame.type === 'base64') {
+        content.push({
+          type: 'image_url',
+          image_url: { url: `data:image/jpeg;base64,${frame.data}` },
+        });
+      } else {
+        content.push({
+          type: 'image_url',
+          image_url: { url: frame.data },
+        });
+      }
+    });
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4-vision-preview',
+      messages: [
+        {
+          role: 'user',
+          content: content,
+        },
+      ],
+      max_tokens: 2000,
+      ...(config.ai.supermemoryApiKey && {
+        headers: {
+          'x-sm-user-id': userId,
+        },
+      }),
+    });
+
+    return response.choices[0]?.message?.content || '';
+  } catch (error: any) {
+    logger.error('[AI] Frames analysis error:', error);
+    throw new Error(`Failed to analyze frames: ${error.message}`);
+  }
+}
+
+/**
  * Chat with memory - uses Supermemory to maintain context
  */
 export async function chatWithMemory(

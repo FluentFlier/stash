@@ -9,7 +9,7 @@ export interface DeepAnalysis {
   title: string;
   description: string;
   fullContent: string;
-  contentType: 'article' | 'video' | 'pdf' | 'documentation' | 'social' | 'other';
+  contentType: 'article' | 'video' | 'pdf' | 'documentation' | 'social' | 'image' | 'other';
   topics: string[];
   entities: {
     people: string[];
