@@ -8,10 +8,8 @@ import { logger } from '../utils/logger.js';
 
 export const openai = new OpenAI({
   apiKey: config.ai.openaiApiKey,
-  // Use Supermemory base URL if configured, otherwise use standard OpenAI
-  ...(config.ai.supermemoryBaseUrl && {
-    baseURL: config.ai.supermemoryBaseUrl,
-  }),
+  baseURL: config.ai.openaiBaseUrl || config.ai.supermemoryBaseUrl,
+  // Use Supermemory headers if configured
   ...(config.ai.supermemoryApiKey && {
     defaultHeaders: {
       'x-sm-api-key': config.ai.supermemoryApiKey,
@@ -139,6 +137,54 @@ export async function analyzeImage(
   } catch (error: any) {
     logger.error('[AI] Image analysis error:', error);
     throw new Error(`Failed to analyze image: ${error.message}`);
+  }
+}
+
+/**
+ * Analyze multiple frames (images) with GPT-4 Vision
+ */
+export async function analyzeFrames(
+  frames: Array<{ type: 'base64' | 'url'; data: string }>,
+  prompt: string,
+  userId: string
+): Promise<string> {
+  try {
+    const content: any[] = [{ type: 'text', text: prompt }];
+
+    frames.forEach((frame) => {
+      if (frame.type === 'base64') {
+        content.push({
+          type: 'image_url',
+          image_url: { url: `data:image/jpeg;base64,${frame.data}` },
+        });
+      } else {
+        content.push({
+          type: 'image_url',
+          image_url: { url: frame.data },
+        });
+      }
+    });
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4-vision-preview',
+      messages: [
+        {
+          role: 'user',
+          content: content,
+        },
+      ],
+      max_tokens: 2000,
+      ...(config.ai.supermemoryApiKey && {
+        headers: {
+          'x-sm-user-id': userId,
+        },
+      }),
+    });
+
+    return response.choices[0]?.message?.content || '';
+  } catch (error: any) {
+    logger.error('[AI] Frames analysis error:', error);
+    throw new Error(`Failed to analyze frames: ${error.message}`);
   }
 }
 

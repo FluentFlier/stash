@@ -84,9 +84,9 @@ export class AgentCoordinator {
             entities: analysis.contentAnalysis.entities,
             keyTakeaways: analysis.contentAnalysis.keyTakeaways,
             actionItems: analysis.contentAnalysis.actionItems,
-            intent: analysis.intent,
+            intent: analysis.intent as any,
             relatedCount: analysis.relatedCount,
-          },
+          } as any,
           processingStatus: 'COMPLETED',
         },
       });

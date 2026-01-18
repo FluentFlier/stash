@@ -50,6 +50,7 @@
     "googleapis": "^130.0.0",
     "ioredis": "^5.3.2",
     "jsdom": "^27.4.0",
+    "isomorphic-dompurify": "^2.35.0",
     "jsonwebtoken": "^9.0.2",
     "livekit-server-sdk": "^1.2.7",
     "nanoid": "^5.0.4",
@@ -65,6 +66,8 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/dompurify": "^3.0.5",
+    "@types/fluent-ffmpeg": "^2.1.28",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/node": "^20.10.6",
     "@types/node-cron": "^3.0.11",

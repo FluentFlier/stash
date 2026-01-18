@@ -7,7 +7,7 @@ export async function voiceRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/api/voice/room',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
     async (request, reply) => {
       const userId = request.user.id;

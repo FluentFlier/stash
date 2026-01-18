@@ -51,11 +51,11 @@ export async function sendNotification(
           : {}),
       },
       android: {
-        priority: (payload.priority || 'normal') as 'high' | 'normal',
+        priority: (payload.priority || 'normal') as any,
         notification: {
           channelId: 'stash-default',
           sound: 'default',
-          priority: (payload.priority || 'normal') as 'high' | 'normal',
+          priority: (payload.priority || 'normal') as any,
         },
       },
       apns: {

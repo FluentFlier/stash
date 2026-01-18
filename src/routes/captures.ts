@@ -3,15 +3,16 @@ import { prisma } from '../config/database.js';
 import { logger } from '../utils/logger.js';
 import { createCaptureSchema, getCapturesQuerySchema } from '../utils/validators.js';
 import { addCaptureJob } from '../services/queue.js';
+import { searchRateLimit } from '../utils/rate-limiting.js';
 
 export async function captureRoutes(fastify: FastifyInstance) {
   // CREATE CAPTURE - Main entry point for the agentic system
   fastify.post(
     '/api/captures',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const userId = request.user.id;
 
       try {
@@ -54,9 +55,9 @@ export async function captureRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/api/captures',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const userId = request.user.id;
 
       try {
@@ -105,7 +106,7 @@ export async function captureRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/api/captures/:id',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
     async (request, reply) => {
       const { id } = request.params as { id: string };
@@ -143,7 +144,7 @@ export async function captureRoutes(fastify: FastifyInstance) {
   fastify.delete(
     '/api/captures/:id',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
     async (request, reply) => {
       const { id } = request.params as { id: string };
@@ -184,7 +185,7 @@ export async function captureRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/api/captures/search',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(req: any, rep: any) => (fastify as any).authenticate(req, rep), searchRateLimit],
     },
     async (request, reply) => {
       const userId = request.user.id;

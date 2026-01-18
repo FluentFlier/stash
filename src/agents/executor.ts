@@ -317,7 +317,7 @@ export class ExecutorAgent {
   /**
    * Extract and save entities
    */
-  private async executeExtractEntities(data: any, captureId: string): Promise<ExecutionResult> {
+  private async executeExtractEntities(_data: any, _captureId: string): Promise<ExecutionResult> {
     try {
       // Entities are already extracted during analysis
       // This is a placeholder for future entity-specific actions
