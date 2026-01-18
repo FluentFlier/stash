@@ -1,36 +1,13 @@
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    TouchableWithoutFeedback,
-    Keyboard,
-    TextInput,
-    Pressable,
-} from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard, TextInput, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Mail, Lock, Chrome, AlertCircle } from 'lucide-react-native';
+import { ArrowLeft, Mail, Lock, AlertCircle, Chrome } from 'lucide-react-native';
 import { ButtonNew } from '../components/ui';
+import { theme } from '../theme';
 import type { RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
-
-// Unified color constants - softer dark theme
-const colors = {
-    bg: '#121218',           // soft dark slate
-    bgSecondary: '#1c1c24',  // elevated surface
-    bgTertiary: '#252530',   // input backgrounds
-    primary: '#6366f1',
-    text: '#f4f4f5',
-    textMuted: '#a1a1aa',
-    textSubtle: '#71717a',
-    border: '#3a3a48',
-    error: '#ef4444',
-    errorBg: 'rgba(239, 68, 68, 0.1)',
-};
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     const [email, setEmail] = useState('');
@@ -61,7 +38,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <View style={{ flex: 1, backgroundColor: theme.bg }}>
             <SafeAreaView style={{ flex: 1 }}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -84,22 +61,22 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
                                     gap: 6,
                                 }}
                             >
-                                <ArrowLeft size={20} color={colors.text} />
-                                <Text style={{ color: colors.text, fontSize: 14 }}>Back</Text>
+                                <ArrowLeft size={20} color={theme.text} />
+                                <Text style={{ color: theme.text, fontSize: 14 }}>Back</Text>
                             </Pressable>
 
                             <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
                                 <Text style={{
                                     fontSize: 28,
                                     fontWeight: '700',
-                                    color: colors.text,
+                                    color: theme.text,
                                     marginBottom: 8,
                                 }}>
                                     Welcome Back
                                 </Text>
                                 <Text style={{
                                     fontSize: 15,
-                                    color: colors.textMuted,
+                                    color: theme.textMuted,
                                     marginBottom: 32,
                                 }}>
                                     Sign in to continue
@@ -107,38 +84,38 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
                                 {/* Form Card */}
                                 <View style={{
-                                    backgroundColor: colors.bgSecondary,
+                                    backgroundColor: theme.bgSecondary,
                                     borderRadius: 12,
                                     padding: 20,
                                     borderWidth: 1,
-                                    borderColor: colors.border,
+                                    borderColor: theme.border,
                                     gap: 16,
                                 }}>
                                     {/* Email Input */}
                                     <View style={{ gap: 6 }}>
-                                        <Text style={{ fontSize: 13, color: colors.textMuted, fontWeight: '500' }}>
+                                        <Text style={{ fontSize: 13, color: theme.textMuted, fontWeight: '500' }}>
                                             Email
                                         </Text>
                                         <View style={{
                                             flexDirection: 'row',
                                             alignItems: 'center',
-                                            backgroundColor: colors.bgTertiary,
+                                            backgroundColor: theme.bgTertiary,
                                             borderRadius: 8,
                                             borderWidth: 1,
-                                            borderColor: colors.border,
+                                            borderColor: theme.border,
                                             paddingHorizontal: 12,
                                         }}>
-                                            <Mail size={18} color={colors.textSubtle} />
+                                            <Mail size={18} color={theme.textSubtle} />
                                             <TextInput
                                                 style={{
                                                     flex: 1,
                                                     paddingVertical: 12,
                                                     paddingHorizontal: 10,
                                                     fontSize: 15,
-                                                    color: colors.text,
+                                                    color: theme.text,
                                                 }}
                                                 placeholder="your@email.com"
-                                                placeholderTextColor={colors.textSubtle}
+                                                placeholderTextColor={theme.textSubtle}
                                                 value={email}
                                                 onChangeText={setEmail}
                                                 keyboardType="email-address"
@@ -149,29 +126,29 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
                                     {/* Password Input */}
                                     <View style={{ gap: 6 }}>
-                                        <Text style={{ fontSize: 13, color: colors.textMuted, fontWeight: '500' }}>
+                                        <Text style={{ fontSize: 13, color: theme.textMuted, fontWeight: '500' }}>
                                             Password
                                         </Text>
                                         <View style={{
                                             flexDirection: 'row',
                                             alignItems: 'center',
-                                            backgroundColor: colors.bgTertiary,
+                                            backgroundColor: theme.bgTertiary,
                                             borderRadius: 8,
                                             borderWidth: 1,
-                                            borderColor: colors.border,
+                                            borderColor: theme.border,
                                             paddingHorizontal: 12,
                                         }}>
-                                            <Lock size={18} color={colors.textSubtle} />
+                                            <Lock size={18} color={theme.textSubtle} />
                                             <TextInput
                                                 style={{
                                                     flex: 1,
                                                     paddingVertical: 12,
                                                     paddingHorizontal: 10,
                                                     fontSize: 15,
-                                                    color: colors.text,
+                                                    color: theme.text,
                                                 }}
                                                 placeholder="••••••••"
-                                                placeholderTextColor={colors.textSubtle}
+                                                placeholderTextColor={theme.textSubtle}
                                                 value={password}
                                                 onChangeText={setPassword}
                                                 secureTextEntry
@@ -185,12 +162,12 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
                                             flexDirection: 'row',
                                             alignItems: 'center',
                                             gap: 8,
-                                            backgroundColor: colors.errorBg,
+                                            backgroundColor: theme.errorMuted,
                                             padding: 12,
                                             borderRadius: 8,
                                         }}>
-                                            <AlertCircle size={16} color={colors.error} />
-                                            <Text style={{ fontSize: 13, color: colors.error }}>
+                                            <AlertCircle size={16} color={theme.error} />
+                                            <Text style={{ fontSize: 13, color: theme.error }}>
                                                 {error}
                                             </Text>
                                         </View>
@@ -207,16 +184,16 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
                                     {/* Divider */}
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                        <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
-                                        <Text style={{ fontSize: 12, color: colors.textSubtle }}>OR</Text>
-                                        <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
+                                        <View style={{ flex: 1, height: 1, backgroundColor: theme.border }} />
+                                        <Text style={{ fontSize: 12, color: theme.textSubtle }}>OR</Text>
+                                        <View style={{ flex: 1, height: 1, backgroundColor: theme.border }} />
                                     </View>
 
                                     {/* Google Button */}
                                     <ButtonNew
                                         variant="outline"
                                         size="lg"
-                                        leftIcon={<Chrome size={18} color={colors.text} />}
+                                        leftIcon={<Chrome size={18} color={theme.text} />}
                                         onPress={handleGoogleLogin}
                                     >
                                         Continue with Google
@@ -228,9 +205,9 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
                                     onPress={() => navigation.navigate('SignUp')}
                                     style={{ marginTop: 24, alignItems: 'center' }}
                                 >
-                                    <Text style={{ fontSize: 14, color: colors.textMuted }}>
+                                    <Text style={{ fontSize: 14, color: theme.textMuted }}>
                                         Don't have an account?{' '}
-                                        <Text style={{ color: colors.primary, fontWeight: '500' }}>Sign Up</Text>
+                                        <Text style={{ color: theme.primary, fontWeight: '500' }}>Sign Up</Text>
                                     </Text>
                                 </Pressable>
                             </View>

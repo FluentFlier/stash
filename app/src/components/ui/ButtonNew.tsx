@@ -5,8 +5,11 @@ import {
     ActivityIndicator,
     View,
     PressableProps,
+    StyleProp,
+    ViewStyle,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { theme, buttonColors } from '../../theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -19,22 +22,8 @@ interface ButtonProps extends Omit<PressableProps, 'style'> {
     rightIcon?: React.ReactNode;
     children: React.ReactNode;
     className?: string;
+    style?: StyleProp<ViewStyle>;
 }
-
-// Color scheme based on user's theme
-const colors = {
-    primary: '#6366f1',      // accent - indigo
-    primaryContent: '#ffffff',
-    secondary: '#52525b',    // neutral gray
-    secondaryContent: '#fafafa',
-    accent: '#6366f1',       // indigo
-    neutral: '#27272a',      // dark neutral for backgrounds
-    neutralContent: '#fafafa',
-    error: '#ef4444',
-    errorContent: '#ffffff',
-    border: '#3f3f46',       // zinc-700
-    textMuted: '#a1a1aa',    // zinc-400
-};
 
 export const ButtonNew: React.FC<ButtonProps> = ({
     variant = 'primary',
@@ -46,6 +35,7 @@ export const ButtonNew: React.FC<ButtonProps> = ({
     children,
     onPress,
     className = '',
+    style,
     ...props
 }) => {
     const handlePressIn = () => {
@@ -69,25 +59,25 @@ export const ButtonNew: React.FC<ButtonProps> = ({
     const getBackgroundStyle = () => {
         switch (variant) {
             case 'primary':
-                return { backgroundColor: colors.primary };
+                return { backgroundColor: buttonColors.primary };
             case 'secondary':
-                return { backgroundColor: colors.secondary };
+                return { backgroundColor: buttonColors.secondary };
             case 'outline':
                 return {
                     backgroundColor: 'transparent',
                     borderWidth: 1,
-                    borderColor: colors.border
+                    borderColor: buttonColors.outline.border
                 };
             case 'ghost':
                 return { backgroundColor: 'transparent' };
             case 'destructive':
-                return { backgroundColor: colors.error };
+                return { backgroundColor: buttonColors.error };
             default:
-                return { backgroundColor: colors.primary };
+                return { backgroundColor: buttonColors.primary };
         }
     };
 
-    // Size styles - smaller, more refined
+    // Size styles
     const getSizeStyle = () => {
         switch (size) {
             case 'sm':
@@ -106,19 +96,19 @@ export const ButtonNew: React.FC<ButtonProps> = ({
         switch (variant) {
             case 'primary':
             case 'destructive':
-                return colors.primaryContent;
+                return buttonColors.primaryContent;
             case 'secondary':
-                return colors.secondaryContent;
+                return buttonColors.secondaryContent;
             case 'outline':
-                return colors.neutralContent;
+                return buttonColors.outline.text;
             case 'ghost':
-                return colors.textMuted;
+                return buttonColors.ghost.text;
             default:
-                return colors.primaryContent;
+                return buttonColors.primaryContent;
         }
     };
 
-    // Text size - smaller for cleaner look
+    // Text size
     const getTextSize = () => {
         switch (size) {
             case 'sm':
@@ -148,6 +138,7 @@ export const ButtonNew: React.FC<ButtonProps> = ({
                 },
                 getBackgroundStyle(),
                 getSizeStyle(),
+                style,
             ]}
             accessibilityRole="button"
             accessibilityState={{ disabled: disabled || loading }}
@@ -157,8 +148,8 @@ export const ButtonNew: React.FC<ButtonProps> = ({
                 <ActivityIndicator
                     color={
                         variant === 'outline' || variant === 'ghost'
-                            ? colors.textMuted
-                            : colors.primaryContent
+                            ? theme.textMuted
+                            : buttonColors.primaryContent
                     }
                     size="small"
                 />

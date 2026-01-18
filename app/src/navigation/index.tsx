@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { NavigationContainer, useNavigationContainerRef, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef, DarkTheme } from '@react-navigation/native';
 import { useShareIntent } from 'expo-share-intent';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MessageCircle, Plus, User } from 'lucide-react-native';
 import type { RootStackParamList, MainTabParamList } from '../types';
+import { theme } from '../theme';
 
 // Import screens
 import { LandingScreen } from '../screens/LandingScreen';
@@ -15,17 +16,17 @@ import { ChatScreen } from '../screens/ChatScreen';
 import { AddContextScreen } from '../screens/AddContextScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 
-// Custom dark theme - softer dark palette
+// Custom dark theme using shared colors
 const CustomDarkTheme = {
     ...DarkTheme,
     colors: {
         ...DarkTheme.colors,
-        primary: '#6366f1', // indigo-500
-        background: '#121218', // soft dark slate
-        card: '#1c1c24', // elevated surface
-        text: '#f4f4f5',
-        border: '#2d2d38',
-        notification: '#6366f1',
+        primary: theme.primary,
+        background: theme.bg,
+        card: theme.bgSecondary,
+        text: theme.text,
+        border: theme.borderLight,
+        notification: theme.primary,
     },
 };
 
@@ -38,8 +39,8 @@ function MainTabs() {
             screenOptions={{
                 headerShown: false,
                 tabBarStyle: {
-                    backgroundColor: '#121218', // soft dark slate
-                    borderTopColor: '#2d2d38',
+                    backgroundColor: theme.bg,
+                    borderTopColor: theme.borderLight,
                     borderTopWidth: 1,
                     paddingBottom: 28,
                     paddingTop: 10,
@@ -47,8 +48,8 @@ function MainTabs() {
                     elevation: 0,
                     shadowOpacity: 0,
                 },
-                tabBarActiveTintColor: '#6366f1', // indigo-500
-                tabBarInactiveTintColor: '#71717a', // zinc-500
+                tabBarActiveTintColor: theme.primary,
+                tabBarInactiveTintColor: theme.textSubtle,
                 tabBarLabelStyle: {
                     fontSize: 11,
                     fontWeight: '500' as '500',

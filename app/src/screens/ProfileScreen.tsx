@@ -17,26 +17,10 @@ import {
     X,
 } from 'lucide-react-native';
 import { ButtonNew } from '../components/ui';
+import { theme } from '../theme';
 import type { RootStackParamList } from '../types';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
-// Unified color constants - softer dark theme
-const colors = {
-    bg: '#121218',           // soft dark slate
-    bgSecondary: '#1c1c24',  // elevated surface
-    bgTertiary: '#252530',   // input backgrounds
-    primary: '#6366f1',
-    primaryMuted: 'rgba(99, 102, 241, 0.12)',
-    text: '#f4f4f5',
-    textMuted: '#a1a1aa',
-    textSubtle: '#71717a',
-    border: '#3a3a48',
-    borderLight: '#2d2d38',
-    success: '#22c55e',
-    accent: '#3b82f6',
-    error: '#ef4444',
-};
 
 export const ProfileScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProp>();
@@ -82,7 +66,7 @@ export const ProfileScreen: React.FC = () => {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <View style={{ flex: 1, backgroundColor: theme.bg }}>
             <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
                 <ScrollView
                     style={{ flex: 1 }}
@@ -90,10 +74,10 @@ export const ProfileScreen: React.FC = () => {
                 >
                     {/* Profile Header */}
                     <View style={{
-                        backgroundColor: colors.bgSecondary,
+                        backgroundColor: theme.bgSecondary,
                         borderRadius: 12,
                         borderWidth: 1,
-                        borderColor: colors.borderLight,
+                        borderColor: theme.borderLight,
                         padding: 16,
                         flexDirection: 'row',
                         alignItems: 'center',
@@ -102,7 +86,7 @@ export const ProfileScreen: React.FC = () => {
                         <View style={{
                             width: 56,
                             height: 56,
-                            backgroundColor: colors.primary,
+                            backgroundColor: theme.primary,
                             borderRadius: 14,
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -112,15 +96,15 @@ export const ProfileScreen: React.FC = () => {
                             </Text>
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text }}>
+                            <Text style={{ fontSize: 18, fontWeight: '600', color: theme.text }}>
                                 {name}
                             </Text>
-                            <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 2 }}>
+                            <Text style={{ fontSize: 14, color: theme.textMuted, marginTop: 2 }}>
                                 john@example.com
                             </Text>
                         </View>
                         <Pressable onPress={() => handleEdit('name')}>
-                            <Edit2 size={18} color={colors.primary} />
+                            <Edit2 size={18} color={theme.primary} />
                         </Pressable>
                     </View>
 
@@ -128,57 +112,57 @@ export const ProfileScreen: React.FC = () => {
                     <View style={{ flexDirection: 'row', gap: 10 }}>
                         <View style={{
                             flex: 1,
-                            backgroundColor: colors.bgSecondary,
+                            backgroundColor: theme.bgSecondary,
                             borderRadius: 10,
                             borderWidth: 1,
-                            borderColor: colors.borderLight,
+                            borderColor: theme.borderLight,
                             padding: 14,
                             alignItems: 'center',
                             gap: 6,
                         }}>
-                            <Package size={20} color={colors.primary} />
-                            <Text style={{ fontSize: 22, fontWeight: '700', color: colors.text }}>
+                            <Package size={20} color={theme.primary} />
+                            <Text style={{ fontSize: 22, fontWeight: '700', color: theme.text }}>
                                 127
                             </Text>
-                            <Text style={{ fontSize: 11, color: colors.textSubtle }}>
+                            <Text style={{ fontSize: 11, color: theme.textSubtle }}>
                                 Items
                             </Text>
                         </View>
 
                         <View style={{
                             flex: 1,
-                            backgroundColor: colors.bgSecondary,
+                            backgroundColor: theme.bgSecondary,
                             borderRadius: 10,
                             borderWidth: 1,
-                            borderColor: colors.borderLight,
+                            borderColor: theme.borderLight,
                             padding: 14,
                             alignItems: 'center',
                             gap: 6,
                         }}>
-                            <MessageCircle size={20} color={colors.accent} />
-                            <Text style={{ fontSize: 22, fontWeight: '700', color: colors.text }}>
+                            <MessageCircle size={20} color={theme.accent} />
+                            <Text style={{ fontSize: 22, fontWeight: '700', color: theme.text }}>
                                 43
                             </Text>
-                            <Text style={{ fontSize: 11, color: colors.textSubtle }}>
+                            <Text style={{ fontSize: 11, color: theme.textSubtle }}>
                                 Chats
                             </Text>
                         </View>
 
                         <View style={{
                             flex: 1,
-                            backgroundColor: colors.bgSecondary,
+                            backgroundColor: theme.bgSecondary,
                             borderRadius: 10,
                             borderWidth: 1,
-                            borderColor: colors.borderLight,
+                            borderColor: theme.borderLight,
                             padding: 14,
                             alignItems: 'center',
                             gap: 6,
                         }}>
-                            <TrendingUp size={20} color={colors.success} />
-                            <Text style={{ fontSize: 22, fontWeight: '700', color: colors.text }}>
+                            <TrendingUp size={20} color={theme.success} />
+                            <Text style={{ fontSize: 22, fontWeight: '700', color: theme.text }}>
                                 +24%
                             </Text>
-                            <Text style={{ fontSize: 11, color: colors.textSubtle }}>
+                            <Text style={{ fontSize: 11, color: theme.textSubtle }}>
                                 Growth
                             </Text>
                         </View>
@@ -186,13 +170,13 @@ export const ProfileScreen: React.FC = () => {
 
                     {/* Personal Information */}
                     <View style={{
-                        backgroundColor: colors.bgSecondary,
+                        backgroundColor: theme.bgSecondary,
                         borderRadius: 10,
                         borderWidth: 1,
-                        borderColor: colors.borderLight,
+                        borderColor: theme.borderLight,
                         padding: 14,
                     }}>
-                        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text, marginBottom: 12 }}>
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: theme.text, marginBottom: 12 }}>
                             Personal Information
                         </Text>
 
@@ -204,15 +188,15 @@ export const ProfileScreen: React.FC = () => {
                                 paddingVertical: 12,
                                 gap: 12,
                                 borderBottomWidth: 1,
-                                borderBottomColor: colors.borderLight,
+                                borderBottomColor: theme.borderLight,
                             }}
                         >
-                            <User size={18} color={colors.textSubtle} />
+                            <User size={18} color={theme.textSubtle} />
                             <View style={{ flex: 1 }}>
-                                <Text style={{ fontSize: 13, color: colors.textSubtle }}>Name</Text>
-                                <Text style={{ fontSize: 14, color: colors.text, marginTop: 2 }}>{name}</Text>
+                                <Text style={{ fontSize: 13, color: theme.textSubtle }}>Name</Text>
+                                <Text style={{ fontSize: 14, color: theme.text, marginTop: 2 }}>{name}</Text>
                             </View>
-                            <ChevronRight size={16} color={colors.textSubtle} />
+                            <ChevronRight size={16} color={theme.textSubtle} />
                         </Pressable>
 
                         <Pressable
@@ -223,15 +207,15 @@ export const ProfileScreen: React.FC = () => {
                                 paddingVertical: 12,
                                 gap: 12,
                                 borderBottomWidth: 1,
-                                borderBottomColor: colors.borderLight,
+                                borderBottomColor: theme.borderLight,
                             }}
                         >
-                            <Settings size={18} color={colors.textSubtle} />
+                            <Settings size={18} color={theme.textSubtle} />
                             <View style={{ flex: 1 }}>
-                                <Text style={{ fontSize: 13, color: colors.textSubtle }}>Role</Text>
-                                <Text style={{ fontSize: 14, color: colors.text, marginTop: 2 }}>{role}</Text>
+                                <Text style={{ fontSize: 13, color: theme.textSubtle }}>Role</Text>
+                                <Text style={{ fontSize: 14, color: theme.text, marginTop: 2 }}>{role}</Text>
                             </View>
-                            <ChevronRight size={16} color={colors.textSubtle} />
+                            <ChevronRight size={16} color={theme.textSubtle} />
                         </Pressable>
 
                         <Pressable
@@ -243,24 +227,24 @@ export const ProfileScreen: React.FC = () => {
                                 gap: 12,
                             }}
                         >
-                            <User size={18} color={colors.textSubtle} />
+                            <User size={18} color={theme.textSubtle} />
                             <View style={{ flex: 1 }}>
-                                <Text style={{ fontSize: 13, color: colors.textSubtle }}>Age</Text>
-                                <Text style={{ fontSize: 14, color: colors.text, marginTop: 2 }}>{age}</Text>
+                                <Text style={{ fontSize: 13, color: theme.textSubtle }}>Age</Text>
+                                <Text style={{ fontSize: 14, color: theme.text, marginTop: 2 }}>{age}</Text>
                             </View>
-                            <ChevronRight size={16} color={colors.textSubtle} />
+                            <ChevronRight size={16} color={theme.textSubtle} />
                         </Pressable>
                     </View>
 
                     {/* Integrations */}
                     <View style={{
-                        backgroundColor: colors.bgSecondary,
+                        backgroundColor: theme.bgSecondary,
                         borderRadius: 10,
                         borderWidth: 1,
-                        borderColor: colors.borderLight,
+                        borderColor: theme.borderLight,
                         padding: 14,
                     }}>
-                        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text, marginBottom: 12 }}>
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: theme.text, marginBottom: 12 }}>
                             Integrations
                         </Text>
                         <View style={{
@@ -268,10 +252,10 @@ export const ProfileScreen: React.FC = () => {
                             alignItems: 'center',
                             gap: 12,
                         }}>
-                            <Calendar size={18} color={colors.primary} />
+                            <Calendar size={18} color={theme.primary} />
                             <View style={{ flex: 1 }}>
-                                <Text style={{ fontSize: 14, color: colors.text }}>Google Calendar</Text>
-                                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.success }}>Connected</Text>
+                                <Text style={{ fontSize: 14, color: theme.text }}>Google Calendar</Text>
+                                <Text style={{ fontSize: 12, fontWeight: '500', color: theme.success }}>Connected</Text>
                             </View>
                             <ButtonNew variant="outline" size="sm">
                                 Manage
@@ -281,13 +265,13 @@ export const ProfileScreen: React.FC = () => {
 
                     {/* Settings */}
                     <View style={{
-                        backgroundColor: colors.bgSecondary,
+                        backgroundColor: theme.bgSecondary,
                         borderRadius: 10,
                         borderWidth: 1,
-                        borderColor: colors.borderLight,
+                        borderColor: theme.borderLight,
                         padding: 14,
                     }}>
-                        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text, marginBottom: 12 }}>
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: theme.text, marginBottom: 12 }}>
                             Settings
                         </Text>
                         <View style={{
@@ -295,17 +279,17 @@ export const ProfileScreen: React.FC = () => {
                             alignItems: 'center',
                             gap: 12,
                         }}>
-                            <Bell size={18} color={colors.textSubtle} />
+                            <Bell size={18} color={theme.textSubtle} />
                             <View style={{ flex: 1 }}>
-                                <Text style={{ fontSize: 14, color: colors.text }}>Push Notifications</Text>
-                                <Text style={{ fontSize: 12, color: colors.textSubtle }}>Get reminders and updates</Text>
+                                <Text style={{ fontSize: 14, color: theme.text }}>Push Notifications</Text>
+                                <Text style={{ fontSize: 12, color: theme.textSubtle }}>Get reminders and updates</Text>
                             </View>
                             <Switch
                                 value={notificationsEnabled}
                                 onValueChange={setNotificationsEnabled}
                                 trackColor={{
-                                    false: colors.bgTertiary,
-                                    true: colors.primary,
+                                    false: theme.bgTertiary,
+                                    true: theme.primary,
                                 }}
                                 thumbColor="#ffffff"
                             />
@@ -338,7 +322,7 @@ export const ProfileScreen: React.FC = () => {
                         padding: 24,
                     }}>
                         <View style={{
-                            backgroundColor: colors.bgSecondary,
+                            backgroundColor: theme.bgSecondary,
                             borderRadius: 12,
                             padding: 20,
                             width: '100%',
@@ -346,27 +330,27 @@ export const ProfileScreen: React.FC = () => {
                             gap: 16,
                         }}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text }}>
+                                <Text style={{ fontSize: 18, fontWeight: '600', color: theme.text }}>
                                     Edit {editField ? editField.charAt(0).toUpperCase() + editField.slice(1) : ''}
                                 </Text>
                                 <Pressable onPress={() => setEditModalVisible(false)}>
-                                    <X size={20} color={colors.textSubtle} />
+                                    <X size={20} color={theme.textSubtle} />
                                 </Pressable>
                             </View>
 
                             <TextInput
                                 style={{
-                                    backgroundColor: colors.bgTertiary,
+                                    backgroundColor: theme.bgTertiary,
                                     borderRadius: 8,
                                     borderWidth: 1,
-                                    borderColor: colors.border,
+                                    borderColor: theme.border,
                                     paddingHorizontal: 14,
                                     paddingVertical: 12,
                                     fontSize: 14,
-                                    color: colors.text,
+                                    color: theme.text,
                                 }}
                                 placeholder={`Enter your ${editField}`}
-                                placeholderTextColor={colors.textSubtle}
+                                placeholderTextColor={theme.textSubtle}
                                 value={editValue}
                                 onChangeText={setEditValue}
                                 keyboardType={editField === 'age' ? 'number-pad' : 'default'}
@@ -377,14 +361,14 @@ export const ProfileScreen: React.FC = () => {
                                 <ButtonNew
                                     variant="outline"
                                     onPress={() => setEditModalVisible(false)}
-                                    className="flex-1"
+                                    style={{ flex: 1 }}
                                 >
                                     Cancel
                                 </ButtonNew>
                                 <ButtonNew
                                     variant="primary"
                                     onPress={handleSave}
-                                    className="flex-1"
+                                    style={{ flex: 1 }}
                                 >
                                     Save
                                 </ButtonNew>

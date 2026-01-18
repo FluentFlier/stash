@@ -11,28 +11,11 @@ import {
     CheckCircle,
     Share2,
     Image as ImageIcon,
+    Plus,
+    Sparkles,
 } from 'lucide-react-native';
 import { ButtonNew } from '../components/ui';
-
-// Unified color constants - softer dark theme
-const colors = {
-    bg: '#121218',           // soft dark slate
-    bgSecondary: '#1c1c24',  // elevated surface
-    bgTertiary: '#252530',   // input backgrounds
-    primary: '#6366f1',
-    primaryMuted: 'rgba(99, 102, 241, 0.12)',
-    text: '#f4f4f5',
-    textMuted: '#a1a1aa',
-    textSubtle: '#71717a',
-    border: '#3a3a48',
-    borderLight: '#2d2d38',
-    success: '#22c55e',
-    successMuted: 'rgba(34, 197, 94, 0.12)',
-    accent: '#3b82f6',
-    accentMuted: 'rgba(59, 130, 246, 0.12)',
-    warning: '#f97316',
-    warningMuted: 'rgba(249, 115, 22, 0.12)',
-};
+import { theme } from '../theme';
 
 export const AddContextScreen: React.FC = () => {
     const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
@@ -98,246 +81,181 @@ export const AddContextScreen: React.FC = () => {
         { id: '3', type: 'video', title: 'Product demo', time: '1d ago', status: 'processing' },
     ];
 
+    const captureOptions = [
+        { type: 'link' as const, icon: LinkIcon, label: 'Link', description: 'Save a URL', color: theme.success, bgColor: theme.successMuted },
+        { type: 'text' as const, icon: FileText, label: 'Note', description: 'Quick thought', color: theme.warning, bgColor: theme.warningMuted },
+        { type: 'image' as const, icon: Camera, label: 'Photo', description: 'From gallery', color: theme.primary, bgColor: theme.primaryMuted },
+        { type: 'video' as const, icon: Video, label: 'Video', description: 'Record or pick', color: theme.accent, bgColor: theme.accentMuted },
+    ];
+
     return (
-        <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <View style={{ flex: 1, backgroundColor: theme.bg }}>
             <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
                 {/* Header */}
-                <View style={{ paddingHorizontal: 20, paddingVertical: 16 }}>
-                    <Text style={{ fontSize: 24, fontWeight: '700', color: colors.text }}>
-                        Add to Stash
-                    </Text>
-                    <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
-                        Capture anything, remember everything
-                    </Text>
+                <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                        <View style={{
+                            width: 44,
+                            height: 44,
+                            backgroundColor: theme.primary,
+                            borderRadius: 12,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                            <Plus size={22} color="#ffffff" strokeWidth={2.5} />
+                        </View>
+                        <View>
+                            <Text style={{ fontSize: 22, fontWeight: '700', color: theme.text }}>
+                                Add to Stash
+                            </Text>
+                            <Text style={{ fontSize: 13, color: theme.textMuted, marginTop: 2 }}>
+                                Capture anything, remember everything
+                            </Text>
+                        </View>
+                    </View>
                 </View>
 
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <ScrollView
                         style={{ flex: 1 }}
-                        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, gap: 16 }}
+                        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, gap: 20 }}
                         keyboardShouldPersistTaps="handled"
                     >
                         {/* Share Intent Banner */}
                         {hasShareIntent && !selectedType && (
                             <View style={{
-                                backgroundColor: colors.primaryMuted,
+                                backgroundColor: theme.primaryMuted,
                                 borderWidth: 1,
-                                borderColor: 'rgba(99, 102, 241, 0.25)',
-                                borderRadius: 10,
-                                padding: 14,
+                                borderColor: 'rgba(6, 182, 212, 0.25)',
+                                borderRadius: 12,
+                                padding: 16,
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                                gap: 12,
+                                gap: 14,
                             }}>
-                                <Share2 size={20} color={colors.primary} />
+                                <View style={{
+                                    width: 40,
+                                    height: 40,
+                                    backgroundColor: theme.primary,
+                                    borderRadius: 10,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}>
+                                    <Share2 size={20} color="#ffffff" />
+                                </View>
                                 <View style={{ flex: 1 }}>
-                                    <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
+                                    <Text style={{ fontSize: 15, fontWeight: '600', color: theme.text }}>
                                         Shared Content Detected
                                     </Text>
-                                    <Text style={{ fontSize: 12, color: colors.textMuted }}>
+                                    <Text style={{ fontSize: 13, color: theme.textMuted, marginTop: 2 }}>
                                         Ready to save to your stash
                                     </Text>
                                 </View>
                             </View>
                         )}
 
-                        {/* Type Selection */}
+                        {/* Quick Capture Grid */}
                         {!selectedType && (
-                            <View style={{ gap: 10 }}>
-                                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 4 }}>
-                                    What do you want to save?
-                                </Text>
+                            <View style={{ gap: 12 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <Sparkles size={16} color={theme.primary} />
+                                    <Text style={{ fontSize: 14, fontWeight: '600', color: theme.text }}>
+                                        Quick Capture
+                                    </Text>
+                                </View>
 
-                                {/* Link Option */}
-                                <Pressable
-                                    onPress={() => setSelectedType('link')}
-                                    style={{
-                                        backgroundColor: colors.bgSecondary,
-                                        borderWidth: 1,
-                                        borderColor: colors.borderLight,
-                                        borderRadius: 10,
-                                        padding: 14,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        gap: 12,
-                                    }}
-                                >
-                                    <View style={{
-                                        width: 36,
-                                        height: 36,
-                                        backgroundColor: colors.successMuted,
-                                        borderRadius: 8,
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}>
-                                        <LinkIcon size={18} color={colors.success} />
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                                            Save a Link
-                                        </Text>
-                                        <Text style={{ fontSize: 12, color: colors.textSubtle }}>
-                                            URLs, articles, websites
-                                        </Text>
-                                    </View>
-                                </Pressable>
-
-                                {/* Note Option */}
-                                <Pressable
-                                    onPress={() => setSelectedType('text')}
-                                    style={{
-                                        backgroundColor: colors.bgSecondary,
-                                        borderWidth: 1,
-                                        borderColor: colors.borderLight,
-                                        borderRadius: 10,
-                                        padding: 14,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        gap: 12,
-                                    }}
-                                >
-                                    <View style={{
-                                        width: 36,
-                                        height: 36,
-                                        backgroundColor: colors.warningMuted,
-                                        borderRadius: 8,
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}>
-                                        <FileText size={18} color={colors.warning} />
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                                            Write a Note
-                                        </Text>
-                                        <Text style={{ fontSize: 12, color: colors.textSubtle }}>
-                                            Quick thoughts and ideas
-                                        </Text>
-                                    </View>
-                                </Pressable>
-
-                                {/* Photo Option */}
-                                <Pressable
-                                    onPress={() => setSelectedType('image')}
-                                    style={{
-                                        backgroundColor: colors.bgSecondary,
-                                        borderWidth: 1,
-                                        borderColor: colors.borderLight,
-                                        borderRadius: 10,
-                                        padding: 14,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        gap: 12,
-                                    }}
-                                >
-                                    <View style={{
-                                        width: 36,
-                                        height: 36,
-                                        backgroundColor: colors.primaryMuted,
-                                        borderRadius: 8,
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}>
-                                        <Camera size={18} color={colors.primary} />
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                                            Add a Photo
-                                        </Text>
-                                        <Text style={{ fontSize: 12, color: colors.textSubtle }}>
-                                            Gallery or camera
-                                        </Text>
-                                    </View>
-                                </Pressable>
-
-                                {/* Video Option */}
-                                <Pressable
-                                    onPress={() => setSelectedType('video')}
-                                    style={{
-                                        backgroundColor: colors.bgSecondary,
-                                        borderWidth: 1,
-                                        borderColor: colors.borderLight,
-                                        borderRadius: 10,
-                                        padding: 14,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        gap: 12,
-                                    }}
-                                >
-                                    <View style={{
-                                        width: 36,
-                                        height: 36,
-                                        backgroundColor: colors.accentMuted,
-                                        borderRadius: 8,
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}>
-                                        <Video size={18} color={colors.accent} />
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
-                                            Add a Video
-                                        </Text>
-                                        <Text style={{ fontSize: 12, color: colors.textSubtle }}>
-                                            Library or record new
-                                        </Text>
-                                    </View>
-                                </Pressable>
+                                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+                                    {captureOptions.map((option) => (
+                                        <Pressable
+                                            key={option.type}
+                                            onPress={() => setSelectedType(option.type)}
+                                            style={{
+                                                width: '47%',
+                                                backgroundColor: theme.bgSecondary,
+                                                borderWidth: 1,
+                                                borderColor: theme.borderLight,
+                                                borderRadius: 14,
+                                                padding: 16,
+                                                gap: 12,
+                                            }}
+                                        >
+                                            <View style={{
+                                                width: 44,
+                                                height: 44,
+                                                backgroundColor: option.bgColor,
+                                                borderRadius: 12,
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}>
+                                                <option.icon size={22} color={option.color} />
+                                            </View>
+                                            <View>
+                                                <Text style={{ fontSize: 15, fontWeight: '600', color: theme.text }}>
+                                                    {option.label}
+                                                </Text>
+                                                <Text style={{ fontSize: 12, color: theme.textSubtle, marginTop: 2 }}>
+                                                    {option.description}
+                                                </Text>
+                                            </View>
+                                        </Pressable>
+                                    ))}
+                                </View>
                             </View>
                         )}
 
                         {/* Link Input Form */}
                         {selectedType === 'link' && (
                             <View style={{
-                                backgroundColor: colors.bgSecondary,
+                                backgroundColor: theme.bgSecondary,
                                 borderWidth: 1,
-                                borderColor: colors.borderLight,
-                                borderRadius: 10,
-                                padding: 16,
-                                gap: 14,
+                                borderColor: theme.borderLight,
+                                borderRadius: 14,
+                                padding: 20,
+                                gap: 16,
                             }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                                     <View style={{
-                                        width: 32,
-                                        height: 32,
-                                        backgroundColor: colors.successMuted,
-                                        borderRadius: 6,
+                                        width: 40,
+                                        height: 40,
+                                        backgroundColor: theme.successMuted,
+                                        borderRadius: 10,
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                     }}>
-                                        <LinkIcon size={16} color={colors.success} />
+                                        <LinkIcon size={20} color={theme.success} />
                                     </View>
-                                    <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
+                                    <Text style={{ fontSize: 17, fontWeight: '600', color: theme.text }}>
                                         Save Link
                                     </Text>
                                 </View>
 
                                 <TextInput
                                     style={{
-                                        backgroundColor: colors.bgTertiary,
-                                        borderRadius: 8,
+                                        backgroundColor: theme.bgTertiary,
+                                        borderRadius: 10,
                                         borderWidth: 1,
-                                        borderColor: colors.border,
-                                        paddingHorizontal: 14,
-                                        paddingVertical: 12,
-                                        fontSize: 14,
-                                        color: colors.text,
+                                        borderColor: theme.border,
+                                        paddingHorizontal: 16,
+                                        paddingVertical: 14,
+                                        fontSize: 15,
+                                        color: theme.text,
                                     }}
                                     placeholder="https://example.com"
-                                    placeholderTextColor={colors.textSubtle}
+                                    placeholderTextColor={theme.textSubtle}
                                     value={linkUrl}
                                     onChangeText={setLinkUrl}
                                     keyboardType="url"
                                     autoCapitalize="none"
                                     autoCorrect={false}
+                                    autoFocus
                                 />
 
-                                <View style={{ flexDirection: 'row', gap: 10 }}>
-                                    <ButtonNew variant="outline" className="flex-1" onPress={handleCancel}>
+                                <View style={{ flexDirection: 'row', gap: 12 }}>
+                                    <ButtonNew variant="outline" size="lg" onPress={handleCancel} style={{ flex: 1 }}>
                                         Cancel
                                     </ButtonNew>
-                                    <ButtonNew variant="primary" className="flex-1" onPress={handleSave}>
-                                        Save
+                                    <ButtonNew variant="primary" size="lg" onPress={handleSave} style={{ flex: 1 }}>
+                                        Save Link
                                     </ButtonNew>
                                 </View>
                             </View>
@@ -346,56 +264,56 @@ export const AddContextScreen: React.FC = () => {
                         {/* Text Note Form */}
                         {selectedType === 'text' && (
                             <View style={{
-                                backgroundColor: colors.bgSecondary,
+                                backgroundColor: theme.bgSecondary,
                                 borderWidth: 1,
-                                borderColor: colors.borderLight,
-                                borderRadius: 10,
-                                padding: 16,
-                                gap: 14,
+                                borderColor: theme.borderLight,
+                                borderRadius: 14,
+                                padding: 20,
+                                gap: 16,
                             }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                                     <View style={{
-                                        width: 32,
-                                        height: 32,
-                                        backgroundColor: colors.warningMuted,
-                                        borderRadius: 6,
+                                        width: 40,
+                                        height: 40,
+                                        backgroundColor: theme.warningMuted,
+                                        borderRadius: 10,
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                     }}>
-                                        <FileText size={16} color={colors.warning} />
+                                        <FileText size={20} color={theme.warning} />
                                     </View>
-                                    <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
-                                        Write Note
+                                    <Text style={{ fontSize: 17, fontWeight: '600', color: theme.text }}>
+                                        Quick Note
                                     </Text>
                                 </View>
 
                                 <TextInput
                                     style={{
-                                        backgroundColor: colors.bgTertiary,
-                                        borderRadius: 8,
+                                        backgroundColor: theme.bgTertiary,
+                                        borderRadius: 10,
                                         borderWidth: 1,
-                                        borderColor: colors.border,
-                                        paddingHorizontal: 14,
-                                        paddingVertical: 12,
-                                        fontSize: 14,
-                                        color: colors.text,
-                                        minHeight: 120,
+                                        borderColor: theme.border,
+                                        paddingHorizontal: 16,
+                                        paddingVertical: 14,
+                                        fontSize: 15,
+                                        color: theme.text,
+                                        minHeight: 140,
                                         textAlignVertical: 'top',
                                     }}
                                     placeholder="Write something..."
-                                    placeholderTextColor={colors.textSubtle}
+                                    placeholderTextColor={theme.textSubtle}
                                     value={textNote}
                                     onChangeText={setTextNote}
                                     multiline
-                                    numberOfLines={5}
+                                    autoFocus
                                 />
 
-                                <View style={{ flexDirection: 'row', gap: 10 }}>
-                                    <ButtonNew variant="outline" className="flex-1" onPress={handleCancel}>
+                                <View style={{ flexDirection: 'row', gap: 12 }}>
+                                    <ButtonNew variant="outline" size="lg" onPress={handleCancel} style={{ flex: 1 }}>
                                         Cancel
                                     </ButtonNew>
-                                    <ButtonNew variant="primary" className="flex-1" onPress={handleSave}>
-                                        Save
+                                    <ButtonNew variant="primary" size="lg" onPress={handleSave} style={{ flex: 1 }}>
+                                        Save Note
                                     </ButtonNew>
                                 </View>
                             </View>
@@ -404,36 +322,36 @@ export const AddContextScreen: React.FC = () => {
                         {/* Image Form */}
                         {selectedType === 'image' && (
                             <View style={{
-                                backgroundColor: colors.bgSecondary,
+                                backgroundColor: theme.bgSecondary,
                                 borderWidth: 1,
-                                borderColor: colors.borderLight,
-                                borderRadius: 10,
-                                padding: 16,
-                                gap: 14,
+                                borderColor: theme.borderLight,
+                                borderRadius: 14,
+                                padding: 20,
+                                gap: 16,
                             }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                                     <View style={{
-                                        width: 32,
-                                        height: 32,
-                                        backgroundColor: colors.primaryMuted,
-                                        borderRadius: 6,
+                                        width: 40,
+                                        height: 40,
+                                        backgroundColor: theme.primaryMuted,
+                                        borderRadius: 10,
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                     }}>
-                                        <Camera size={16} color={colors.primary} />
+                                        <Camera size={20} color={theme.primary} />
                                     </View>
-                                    <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
+                                    <Text style={{ fontSize: 17, fontWeight: '600', color: theme.text }}>
                                         {sharedMediaUri ? 'Shared Photo' : 'Add Photo'}
                                     </Text>
                                 </View>
 
                                 {sharedMediaUri ? (
-                                    <View style={{ gap: 10 }}>
+                                    <View style={{ gap: 12 }}>
                                         <View style={{
-                                            backgroundColor: colors.bgTertiary,
-                                            borderRadius: 8,
+                                            backgroundColor: theme.bgTertiary,
+                                            borderRadius: 12,
                                             overflow: 'hidden',
-                                            height: 180,
+                                            height: 200,
                                         }}>
                                             <Image
                                                 source={{ uri: sharedMediaUri }}
@@ -441,46 +359,47 @@ export const AddContextScreen: React.FC = () => {
                                                 resizeMode="cover"
                                             />
                                         </View>
-                                        <Text style={{ fontSize: 12, color: colors.textSubtle, textAlign: 'center' }}>
+                                        <Text style={{ fontSize: 12, color: theme.textSubtle, textAlign: 'center' }}>
                                             {sharedMediaName}
                                         </Text>
                                     </View>
                                 ) : (
-                                    <View style={{
-                                        backgroundColor: colors.bgTertiary,
-                                        borderRadius: 8,
-                                        borderWidth: 1,
-                                        borderStyle: 'dashed',
-                                        borderColor: colors.border,
-                                        paddingVertical: 32,
-                                        alignItems: 'center',
-                                        gap: 8,
-                                    }}>
-                                        <ImageIcon size={32} color={colors.textSubtle} />
-                                        <Text style={{ fontSize: 13, color: colors.textSubtle }}>
-                                            Select from gallery or take a photo
+                                    <Pressable
+                                        onPress={() => Alert.alert('Gallery', 'Coming soon')}
+                                        style={{
+                                            backgroundColor: theme.bgTertiary,
+                                            borderRadius: 12,
+                                            borderWidth: 2,
+                                            borderStyle: 'dashed',
+                                            borderColor: theme.border,
+                                            paddingVertical: 40,
+                                            alignItems: 'center',
+                                            gap: 12,
+                                        }}
+                                    >
+                                        <View style={{
+                                            width: 56,
+                                            height: 56,
+                                            backgroundColor: theme.primaryMuted,
+                                            borderRadius: 14,
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}>
+                                            <ImageIcon size={28} color={theme.primary} />
+                                        </View>
+                                        <Text style={{ fontSize: 14, color: theme.textMuted }}>
+                                            Tap to select a photo
                                         </Text>
-                                    </View>
+                                    </Pressable>
                                 )}
 
-                                <View style={{ flexDirection: 'row', gap: 10 }}>
-                                    <ButtonNew variant="outline" className="flex-1" onPress={handleCancel}>
+                                <View style={{ flexDirection: 'row', gap: 12 }}>
+                                    <ButtonNew variant="outline" size="lg" onPress={handleCancel} style={{ flex: 1 }}>
                                         Cancel
                                     </ButtonNew>
-                                    {sharedMediaUri ? (
-                                        <ButtonNew variant="primary" className="flex-1" onPress={handleSave}>
-                                            Save
-                                        </ButtonNew>
-                                    ) : (
-                                        <>
-                                            <ButtonNew variant="outline" className="flex-1" onPress={() => Alert.alert('Gallery', 'Coming soon')}>
-                                                Gallery
-                                            </ButtonNew>
-                                            <ButtonNew variant="primary" className="flex-1" onPress={() => Alert.alert('Camera', 'Coming soon')}>
-                                                Camera
-                                            </ButtonNew>
-                                        </>
-                                    )}
+                                    <ButtonNew variant="primary" size="lg" onPress={handleSave} style={{ flex: 1 }}>
+                                        {sharedMediaUri ? 'Save Photo' : 'Take Photo'}
+                                    </ButtonNew>
                                 </View>
                             </View>
                         )}
@@ -488,133 +407,134 @@ export const AddContextScreen: React.FC = () => {
                         {/* Video Form */}
                         {selectedType === 'video' && (
                             <View style={{
-                                backgroundColor: colors.bgSecondary,
+                                backgroundColor: theme.bgSecondary,
                                 borderWidth: 1,
-                                borderColor: colors.borderLight,
-                                borderRadius: 10,
-                                padding: 16,
-                                gap: 14,
+                                borderColor: theme.borderLight,
+                                borderRadius: 14,
+                                padding: 20,
+                                gap: 16,
                             }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                                     <View style={{
-                                        width: 32,
-                                        height: 32,
-                                        backgroundColor: colors.accentMuted,
-                                        borderRadius: 6,
+                                        width: 40,
+                                        height: 40,
+                                        backgroundColor: theme.accentMuted,
+                                        borderRadius: 10,
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                     }}>
-                                        <Video size={16} color={colors.accent} />
+                                        <Video size={20} color={theme.accent} />
                                     </View>
-                                    <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
+                                    <Text style={{ fontSize: 17, fontWeight: '600', color: theme.text }}>
                                         {sharedMediaUri ? 'Shared Video' : 'Add Video'}
                                     </Text>
                                 </View>
 
                                 {sharedMediaUri ? (
-                                    <View style={{ gap: 10 }}>
+                                    <View style={{ gap: 12 }}>
                                         <View style={{
-                                            backgroundColor: colors.bgTertiary,
-                                            borderRadius: 8,
-                                            paddingVertical: 32,
+                                            backgroundColor: theme.bgTertiary,
+                                            borderRadius: 12,
+                                            paddingVertical: 40,
                                             alignItems: 'center',
                                         }}>
-                                            <Video size={40} color={colors.accent} />
-                                            <Text style={{ fontSize: 14, color: colors.text, marginTop: 8, fontWeight: '500' }}>
+                                            <Video size={48} color={theme.accent} />
+                                            <Text style={{ fontSize: 15, color: theme.text, marginTop: 12, fontWeight: '500' }}>
                                                 Video ready to save
                                             </Text>
                                         </View>
-                                        <Text style={{ fontSize: 12, color: colors.textSubtle, textAlign: 'center' }}>
+                                        <Text style={{ fontSize: 12, color: theme.textSubtle, textAlign: 'center' }}>
                                             {sharedMediaName}
                                         </Text>
                                     </View>
                                 ) : (
-                                    <View style={{
-                                        backgroundColor: colors.bgTertiary,
-                                        borderRadius: 8,
-                                        borderWidth: 1,
-                                        borderStyle: 'dashed',
-                                        borderColor: colors.border,
-                                        paddingVertical: 32,
-                                        alignItems: 'center',
-                                        gap: 8,
-                                    }}>
-                                        <Video size={32} color={colors.textSubtle} />
-                                        <Text style={{ fontSize: 13, color: colors.textSubtle }}>
-                                            Select from library or record a video
+                                    <Pressable
+                                        onPress={() => Alert.alert('Library', 'Coming soon')}
+                                        style={{
+                                            backgroundColor: theme.bgTertiary,
+                                            borderRadius: 12,
+                                            borderWidth: 2,
+                                            borderStyle: 'dashed',
+                                            borderColor: theme.border,
+                                            paddingVertical: 40,
+                                            alignItems: 'center',
+                                            gap: 12,
+                                        }}
+                                    >
+                                        <View style={{
+                                            width: 56,
+                                            height: 56,
+                                            backgroundColor: theme.accentMuted,
+                                            borderRadius: 14,
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}>
+                                            <Video size={28} color={theme.accent} />
+                                        </View>
+                                        <Text style={{ fontSize: 14, color: theme.textMuted }}>
+                                            Tap to select a video
                                         </Text>
-                                    </View>
+                                    </Pressable>
                                 )}
 
-                                <View style={{ flexDirection: 'row', gap: 10 }}>
-                                    <ButtonNew variant="outline" className="flex-1" onPress={handleCancel}>
+                                <View style={{ flexDirection: 'row', gap: 12 }}>
+                                    <ButtonNew variant="outline" size="lg" onPress={handleCancel} style={{ flex: 1 }}>
                                         Cancel
                                     </ButtonNew>
-                                    {sharedMediaUri ? (
-                                        <ButtonNew variant="primary" className="flex-1" onPress={handleSave}>
-                                            Save
-                                        </ButtonNew>
-                                    ) : (
-                                        <>
-                                            <ButtonNew variant="outline" className="flex-1" onPress={() => Alert.alert('Library', 'Coming soon')}>
-                                                Library
-                                            </ButtonNew>
-                                            <ButtonNew variant="primary" className="flex-1" onPress={() => Alert.alert('Record', 'Coming soon')}>
-                                                Record
-                                            </ButtonNew>
-                                        </>
-                                    )}
+                                    <ButtonNew variant="primary" size="lg" onPress={handleSave} style={{ flex: 1 }}>
+                                        {sharedMediaUri ? 'Save Video' : 'Record'}
+                                    </ButtonNew>
                                 </View>
                             </View>
                         )}
 
-                        {/* Recent Captures */}
+                        {/* Recent Section */}
                         {!selectedType && (
-                            <View style={{ gap: 10, marginTop: 8 }}>
-                                <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
+                            <View style={{ gap: 12 }}>
+                                <Text style={{ fontSize: 14, fontWeight: '600', color: theme.text }}>
                                     Recent
                                 </Text>
                                 {recentCaptures.map((item) => (
                                     <Pressable
                                         key={item.id}
                                         style={{
-                                            backgroundColor: colors.bgSecondary,
+                                            backgroundColor: theme.bgSecondary,
                                             borderWidth: 1,
-                                            borderColor: colors.borderLight,
-                                            borderRadius: 10,
-                                            padding: 12,
+                                            borderColor: theme.borderLight,
+                                            borderRadius: 12,
+                                            padding: 14,
                                             flexDirection: 'row',
                                             alignItems: 'center',
-                                            gap: 10,
+                                            gap: 12,
                                         }}
                                     >
                                         <View style={{
-                                            width: 32,
-                                            height: 32,
-                                            backgroundColor: colors.bgTertiary,
-                                            borderRadius: 6,
+                                            width: 40,
+                                            height: 40,
+                                            backgroundColor: theme.bgTertiary,
+                                            borderRadius: 10,
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                         }}>
-                                            {item.type === 'image' && <Camera size={16} color={colors.primary} />}
-                                            {item.type === 'link' && <LinkIcon size={16} color={colors.success} />}
-                                            {item.type === 'video' && <Video size={16} color={colors.accent} />}
+                                            {item.type === 'image' && <Camera size={18} color={theme.primary} />}
+                                            {item.type === 'link' && <LinkIcon size={18} color={theme.success} />}
+                                            {item.type === 'video' && <Video size={18} color={theme.accent} />}
                                         </View>
                                         <View style={{ flex: 1 }}>
-                                            <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>
+                                            <Text style={{ fontSize: 14, fontWeight: '500', color: theme.text }}>
                                                 {item.title}
                                             </Text>
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-                                                <Clock size={11} color={colors.textSubtle} />
-                                                <Text style={{ fontSize: 12, color: colors.textSubtle }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                                                <Clock size={12} color={theme.textSubtle} />
+                                                <Text style={{ fontSize: 12, color: theme.textSubtle }}>
                                                     {item.time}
                                                 </Text>
                                             </View>
                                         </View>
                                         {item.status === 'ready' ? (
-                                            <CheckCircle size={16} color={colors.success} />
+                                            <CheckCircle size={18} color={theme.success} />
                                         ) : (
-                                            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.warning }} />
+                                            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: theme.warning }} />
                                         )}
                                     </Pressable>
                                 ))}

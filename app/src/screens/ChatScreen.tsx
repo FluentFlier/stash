@@ -13,22 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Send, Sparkles, TrendingUp, Clock, Zap } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-
-// Unified color constants - softer dark theme
-const colors = {
-    bg: '#121218',           // soft dark slate
-    bgSecondary: '#1c1c24',  // elevated surface
-    bgTertiary: '#252530',   // input backgrounds
-    primary: '#6366f1',
-    primaryMuted: 'rgba(99, 102, 241, 0.12)',
-    text: '#f4f4f5',
-    textMuted: '#a1a1aa',
-    textSubtle: '#71717a',
-    border: '#3a3a48',
-    borderLight: '#2d2d38',
-    success: '#22c55e',
-    accent: '#3b82f6',
-};
+import { theme } from '../theme';
 
 type Message = {
     id: string;
@@ -92,7 +77,7 @@ export const ChatScreen: React.FC = () => {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        <View style={{ flex: 1, backgroundColor: theme.bg }}>
             <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
                 {/* Header */}
                 <View style={{
@@ -102,26 +87,26 @@ export const ChatScreen: React.FC = () => {
                     paddingHorizontal: 20,
                     paddingVertical: 14,
                     borderBottomWidth: 1,
-                    borderBottomColor: colors.borderLight,
+                    borderBottomColor: theme.borderLight,
                 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                         <View style={{
                             width: 36,
                             height: 36,
-                            backgroundColor: colors.primaryMuted,
+                            backgroundColor: theme.primaryMuted,
                             borderRadius: 10,
                             alignItems: 'center',
                             justifyContent: 'center',
                         }}>
-                            <Sparkles size={18} color={colors.primary} />
+                            <Sparkles size={18} color={theme.primary} />
                         </View>
                         <View>
-                            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
+                            <Text style={{ fontSize: 16, fontWeight: '600', color: theme.text }}>
                                 AI Assistant
                             </Text>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.success }} />
-                                <Text style={{ fontSize: 12, color: colors.textSubtle }}>Online</Text>
+                                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: theme.success }} />
+                                <Text style={{ fontSize: 12, color: theme.textSubtle }}>Online</Text>
                             </View>
                         </View>
                     </View>
@@ -130,31 +115,31 @@ export const ChatScreen: React.FC = () => {
                 {/* Summary Card */}
                 <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
                     <View style={{
-                        backgroundColor: colors.bgSecondary,
+                        backgroundColor: theme.bgSecondary,
                         borderRadius: 10,
                         borderWidth: 1,
-                        borderColor: colors.borderLight,
+                        borderColor: theme.borderLight,
                         padding: 14,
                     }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                            <Zap size={14} color={colors.accent} />
-                            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>
+                            <Zap size={14} color={theme.accent} />
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: theme.text }}>
                                 Daily Summary
                             </Text>
                         </View>
-                        <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 10 }}>
+                        <Text style={{ fontSize: 13, color: theme.textMuted, marginBottom: 10 }}>
                             You've saved 12 items this week. 3 upcoming events detected.
                         </Text>
                         <View style={{ flexDirection: 'row', gap: 16 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                <TrendingUp size={12} color={colors.success} />
-                                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.textMuted }}>
+                                <TrendingUp size={12} color={theme.success} />
+                                <Text style={{ fontSize: 12, fontWeight: '500', color: theme.textMuted }}>
                                     +24%
                                 </Text>
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                <Clock size={12} color={colors.textSubtle} />
-                                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.textMuted }}>
+                                <Clock size={12} color={theme.textSubtle} />
+                                <Text style={{ fontSize: 12, fontWeight: '500', color: theme.textMuted }}>
                                     2h saved
                                 </Text>
                             </View>
@@ -184,16 +169,16 @@ export const ChatScreen: React.FC = () => {
                                     }}
                                 >
                                     <View style={{
-                                        backgroundColor: msg.role === 'user' ? colors.primary : colors.bgSecondary,
+                                        backgroundColor: msg.role === 'user' ? theme.primary : theme.bgSecondary,
                                         borderRadius: 12,
                                         borderWidth: msg.role === 'user' ? 0 : 1,
-                                        borderColor: colors.borderLight,
+                                        borderColor: theme.borderLight,
                                         paddingHorizontal: 14,
                                         paddingVertical: 10,
                                     }}>
                                         <Text style={{
                                             fontSize: 14,
-                                            color: colors.text,
+                                            color: theme.text,
                                             lineHeight: 20,
                                         }}>
                                             {msg.content}
@@ -202,7 +187,7 @@ export const ChatScreen: React.FC = () => {
                                     {msg.timestamp && (
                                         <Text style={{
                                             fontSize: 10,
-                                            color: colors.textSubtle,
+                                            color: theme.textSubtle,
                                             marginTop: 4,
                                             alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                                             marginHorizontal: 4,
@@ -221,25 +206,25 @@ export const ChatScreen: React.FC = () => {
                         paddingVertical: 12,
                         paddingBottom: 20,
                         borderTopWidth: 1,
-                        borderTopColor: colors.borderLight,
-                        backgroundColor: colors.bg,
+                        borderTopColor: theme.borderLight,
+                        backgroundColor: theme.bg,
                     }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                             <TextInput
                                 style={{
                                     flex: 1,
-                                    backgroundColor: colors.bgTertiary,
+                                    backgroundColor: theme.bgTertiary,
                                     borderRadius: 12,
                                     borderWidth: 1,
-                                    borderColor: colors.border,
+                                    borderColor: theme.border,
                                     paddingHorizontal: 14,
                                     paddingVertical: 12,
                                     fontSize: 14,
-                                    color: colors.text,
+                                    color: theme.text,
                                     maxHeight: 100,
                                 }}
                                 placeholder="Ask me anything..."
-                                placeholderTextColor={colors.textSubtle}
+                                placeholderTextColor={theme.textSubtle}
                                 value={message}
                                 onChangeText={setMessage}
                                 multiline
@@ -252,12 +237,12 @@ export const ChatScreen: React.FC = () => {
                                     width: 44,
                                     height: 44,
                                     borderRadius: 12,
-                                    backgroundColor: message.trim() ? colors.primary : colors.bgTertiary,
+                                    backgroundColor: message.trim() ? theme.primary : theme.bgTertiary,
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                 }}
                             >
-                                <Send size={18} color={message.trim() ? '#ffffff' : colors.textSubtle} />
+                                <Send size={18} color={message.trim() ? '#ffffff' : theme.textSubtle} />
                             </Pressable>
                         </View>
                     </View>
