@@ -56,6 +56,7 @@ interface SearchResponse {
 // Supermemory Service
 // ============================================
 
+// Use direct Supermemory API, not the proxy pattern
 const SUPERMEMORY_API_URL = 'https://api.supermemory.ai/v3';
 
 /**
@@ -136,7 +137,7 @@ export async function addMemory(params: AddMemoryParams): Promise<AddDocumentRes
     try {
         const response = await supermemoryRequest<AddDocumentResponse>('POST', '/documents', {
             content,
-            containerTag: userId, // User isolation
+            containerTags: [userId], // User isolation (array per API docs)
             customId: captureId,  // Link to our capture
             metadata: {
                 ...metadata,
@@ -175,8 +176,8 @@ export async function searchMemories(params: SearchMemoryParams): Promise<Memory
 
     try {
         const response = await supermemoryRequest<SearchResponse>('POST', '/search', {
-            query,
-            containerTag: userId,
+            q: query,  // Supermemory uses 'q' not 'query'
+            containerTags: [userId],  // Array format per API docs
             limit,
             ...filters,
         });
