@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { crypto } from '../utils/crypto.js';
 import { logger } from '../utils/logger.js';
+import { supabaseAdmin } from '../config/supabase.js';
 
 export interface JWTPayload {
   sub: string; // Supabase User ID
@@ -46,23 +47,46 @@ export async function authenticateJWT(
       });
     }
 
-    // Verify token using Supabase JWT secret
-    const payload = crypto.verifyToken<JWTPayload>(token);
+    // Fast path: verify token using configured SUPABASE_JWT_SECRET
+    // NOTE: In production, "Invalid token" is commonly caused by SUPABASE_JWT_SECRET not matching
+    // the Supabase project issuing the tokens. To make this more robust, we fall back to
+    // Supabase's server-side token validation via auth.getUser(token) when verification fails.
+    try {
+      const payload = crypto.verifyToken<JWTPayload>(token);
 
-    // Verify audience
-    if (payload.aud !== 'authenticated') {
-      return reply.code(401).send({
-        success: false,
-        error: 'Invalid token audience',
-      });
+      // Verify audience
+      if (payload.aud !== 'authenticated') {
+        return reply.code(401).send({
+          success: false,
+          error: 'Invalid token audience',
+        });
+      }
+
+      // Attach user from token payload (no DB lookup needed)
+      request.user = {
+        id: payload.sub,
+        email: payload.email || '',
+        name: payload.user_metadata?.name,
+      };
+      return;
+    } catch (verifyError: any) {
+      // Fallback: ask Supabase to validate token (avoids JWT secret mismatch issues)
+      if (!supabaseAdmin) {
+        throw verifyError;
+      }
+
+      const { data, error } = await supabaseAdmin.auth.getUser(token);
+      if (error || !data?.user) {
+        throw verifyError;
+      }
+
+      request.user = {
+        id: data.user.id,
+        email: data.user.email || '',
+        name: (data.user.user_metadata as any)?.name,
+      };
+      return;
     }
-
-    // Attach user from token payload (no DB lookup needed)
-    request.user = {
-      id: payload.sub,
-      email: payload.email || '',
-      name: payload.user_metadata?.name,
-    };
   } catch (error: any) {
     console.error('[Auth] Raw Error:', error);
     logger.error('[Auth] Authentication error:', error);
