@@ -107,6 +107,8 @@ export const ButtonNew: React.FC<ButtonProps> = ({
             disabled={disabled || loading}
             className={buttonClasses}
             style={buttonStyle}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: disabled || loading }}
             {...props}
         >
             {loading ? (

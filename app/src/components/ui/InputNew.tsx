@@ -48,6 +48,8 @@ export const InputNew: React.FC<InputProps> = ({
                     placeholderTextColor="#a3a3a3"
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
+                    accessibilityLabel={label}
+                    accessibilityHint={error}
                     {...props}
                 />
                 {rightIcon && (

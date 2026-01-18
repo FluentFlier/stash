@@ -39,7 +39,7 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
         switch (step) {
             case 1:
                 return (
-                    <View className="flex-1 gap-6 items-center">
+                    <View className="flex-1 gap-6 items-center justify-center">
                         <Text className="text-3xl font-bold text-neutral-50 text-center">
                             What's your name?
                         </Text>
@@ -61,9 +61,8 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
                 );
 
             case 2:
-                const roles = ['Student', 'Professional', 'Creative', 'Other'];
                 return (
-                    <View className="flex-1 gap-6 items-center">
+                    <View className="flex-1 gap-6 items-center justify-center">
                         <Text className="text-3xl font-bold text-neutral-50 text-center">
                             What do you do?
                         </Text>
@@ -72,28 +71,13 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
                         </Text>
                         <CardNew variant="glass" className="w-full mt-4">
                             <CardNew.Content>
-                                <View className="flex-row flex-wrap gap-3">
-                                    {roles.map((r) => (
-                                        <Pressable
-                                            key={r}
-                                            onPress={() => setRole(r)}
-                                            className={`flex-grow items-center justify-center px-6 py-3 min-h-[48px] ${
-                                                role === r
-                                                    ? 'bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500'
-                                                    : 'bg-transparent border-2 border-primary-500'
-                                            }`}
-                                            style={{ borderRadius: 20 }}
-                                        >
-                                            <Text
-                                                className={`font-semibold text-base ${
-                                                    role === r ? 'text-white' : 'text-primary-500'
-                                                }`}
-                                            >
-                                                {r}
-                                            </Text>
-                                        </Pressable>
-                                    ))}
-                                </View>
+                                <InputNew
+                                    label="Role"
+                                    placeholder="e.g., Student, Professional, Creative"
+                                    value={role}
+                                    onChangeText={setRole}
+                                    leftIcon={<User size={20} color="#a3a3a3" />}
+                                />
                             </CardNew.Content>
                         </CardNew>
                     </View>
@@ -101,7 +85,7 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
 
             case 3:
                 return (
-                    <View className="flex-1 gap-6 items-center">
+                    <View className="flex-1 gap-6 items-center justify-center">
                         <Text className="text-3xl font-bold text-neutral-50 text-center">
                             How old are you?
                         </Text>
