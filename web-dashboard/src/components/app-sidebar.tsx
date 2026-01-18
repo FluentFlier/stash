@@ -53,7 +53,7 @@ const items = [
 export function AppSidebar() {
   const pathname = usePathname()
   return (
-    <Sidebar className="border-r">
+    <Sidebar className="border-r" collapsible="icon" variant="inset">
       <SidebarContent className="gap-2">
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground">
@@ -63,13 +63,12 @@ export function AppSidebar() {
             <SidebarMenu className="gap-1">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
+                  <SidebarMenuButton
                     asChild
-                    className={`rounded-md transition-colors duration-150 ${
-                      pathname === item.url
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                        : "hover:bg-accent/50"
-                    }`}
+                    className={`rounded-md transition-colors duration-150 ${pathname === item.url
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                      : "hover:bg-accent/50"
+                      }`}
                   >
                     <Link href={item.url} aria-current={pathname === item.url ? "page" : undefined}>
                       <item.icon className="size-4" />
@@ -83,23 +82,22 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-         <SidebarMenu>
-            <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild
-                  className={`rounded-md transition-colors duration-150 ${
-                    pathname === "/settings"
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                      : "hover:bg-accent/50"
-                  }`}
-                >
-                    <Link href="/settings" aria-current={pathname === "/settings" ? "page" : undefined}>
-                        <Settings className="size-4" />
-                        <span className="font-medium">Settings</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-         </SidebarMenu>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className={`rounded-md transition-colors duration-150 ${pathname === "/settings"
+                ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                : "hover:bg-accent/50"
+                }`}
+            >
+              <Link href="/settings" aria-current={pathname === "/settings" ? "page" : undefined}>
+                <Settings className="size-4" />
+                <span className="font-medium">Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   )
