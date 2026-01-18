@@ -65,9 +65,16 @@ This isn't a typical CRUD API. When you save content, the system:
 
 ### 2. Install Dependencies
 
+**Backend (TypeScript/Node.js):**
 ```bash
 npm install
 ```
+
+**Python Downloader Tool (optional):**
+```bash
+pip install -r requirements.txt
+```
+See `download_test/README.md` for more details on the media downloader and AI processor.
 
 ### 3. Environment Variables
 

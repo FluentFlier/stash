@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Overshoot Video Analysis</title>
+</head>
+<body>
+    <div id="status">Loading SDK...</div>
+    <div id="results"></div>
+    
+    <script type="module">
+        import { RealtimeVision } from "https://esm.sh/@overshoot/sdk";
+        
+        window.RealtimeVision = RealtimeVision;
+        window.sdkReady = true;
+        document.getElementById("status").textContent = "SDK Ready";
+        console.log("Overshoot SDK loaded successfully");
+    </script>
+    
+    <script>
+        window.analysisResults = {
+            topic: [],
+            summary: [],
+            done: false,
+            error: null,
+            resultCount: 0
+        };
+        
+        window.analyzeVideo = async function(config) {
+            var statusEl = document.getElementById("status");
+            var videoBase64 = config.videoBase64;
+            var apiKey = config.apiKey;
+            var apiUrl = config.apiUrl;
+            var prompt = config.prompt;
+            
+            try {
+                statusEl.textContent = "Waiting for SDK to load...";
+                
+                var waitCount = 0;
+                while (!window.sdkReady && waitCount < 300) {
+                    await new Promise(function(r) { setTimeout(r, 100); });
+                    waitCount++;
+                }
+                
+                if (!window.RealtimeVision) {
+                    throw new Error("SDK failed to load");
+                }
+                
+                statusEl.textContent = "Converting video...";
+                console.log("Converting base64 to File object...");
+                
+                var binaryString = atob(videoBase64);
+                var bytes = new Uint8Array(binaryString.length);
+                for (var i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                var blob = new Blob([bytes], { type: "video/mp4" });
+                var file = new File([blob], "video.mp4", { type: "video/mp4" });
+                
+                console.log("File created:", file.size, "bytes");
+                
+                var videoEl = document.createElement("video");
+                videoEl.preload = "metadata";
+                var duration = await new Promise(function(resolve) {
+                    videoEl.onloadedmetadata = function() { resolve(videoEl.duration); };
+                    videoEl.onerror = function() { resolve(60); };
+                    videoEl.src = URL.createObjectURL(blob);
+                });
+                console.log("Video duration:", duration, "seconds");
+                
+                statusEl.textContent = "Starting analysis...";
+                
+                var timeoutMs = Math.max((duration + 60) * 1000, 120000);
+                console.log("Timeout set to:", timeoutMs, "ms (", timeoutMs/1000, "seconds)");
+                var vision = null;
+                var startTime = Date.now();
+                
+                await new Promise(function(resolve) {
+                    var timeout = setTimeout(function() {
+                        var elapsed = (Date.now() - startTime) / 1000;
+                        console.log("Analysis timeout after", elapsed, "seconds");
+                        if (vision) {
+                            try { vision.stop(); } catch(e) {}
+                        }
+                        resolve();
+                    }, timeoutMs);
+                    
+                    console.log("Creating RealtimeVision instance...");
+                    vision = new window.RealtimeVision({
+                        apiUrl: apiUrl,
+                        apiKey: apiKey,
+                        prompt: prompt,
+                        source: { type: "video", file: file },
+                        debug: true,
+                        onResult: function(r) {
+                            window.analysisResults.resultCount++;
+                            console.log("Result #" + window.analysisResults.resultCount);
+                            statusEl.textContent = "Got result #" + window.analysisResults.resultCount;
+                            
+                            if (r.result) {
+                                if (window.analysisResults.topic.length === 0) {
+                                    var firstPart = r.result.split(".")[0].trim();
+                                    window.analysisResults.topic.push(firstPart);
+                                }
+                                window.analysisResults.summary.push(r.result);
+                            }
+                        },
+                        onError: function(e) {
+                            var msg = (e && e.message) ? e.message : String(e);
+                            console.error("Error:", msg);
+                            window.analysisResults.error = msg;
+                        },
+                        onEnd: function() {
+                            clearTimeout(timeout);
+                            console.log("Analysis completed");
+                            statusEl.textContent = "Analysis complete";
+                            resolve();
+                        }
+                    });
+                    
+                    console.log("Starting vision.start()...");
+                    vision.start().catch(function(err) {
+                        console.error("Start error:", err);
+                        window.analysisResults.error = (err && err.message) ? err.message : String(err);
+                        clearTimeout(timeout);
+                        resolve();
+                    });
+                });
+                
+                window.analysisResults.done = true;
+                console.log("Done! Results:", window.analysisResults.resultCount);
+                
+            } catch (e) {
+                console.error("Error:", e);
+                window.analysisResults.error = e.message || String(e);
+                window.analysisResults.done = true;
+            }
+            
+            return window.analysisResults;
+        };
+    </script>
+</body>
+</html>
