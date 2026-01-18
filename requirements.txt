@@ -15,6 +15,17 @@ IPython>=9.9.0  # Required for Python 3.13 compatibility (fixes "List is not sub
 PyPDF2>=3.0.0
 # pdfplumber>=0.9.0  # Alternative PDF extractor
 
+# ============================================================================
+# Auto-Folder System Dependencies
+# ============================================================================
+
+# NumPy for vector operations
+numpy>=1.24.0
+
+# Supabase client (optional, for production database)
+# Enable with DATABASE_BACKEND=supabase in .env
+supabase>=2.0.0
+
 # NOTE: Python 3.13 Compatibility
 # If you encounter "TypeError: type 'List' is not subscriptable" errors:
 # - Upgrade IPython: pip install --upgrade IPython>=8.30.0
