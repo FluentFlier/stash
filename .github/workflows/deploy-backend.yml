@@ -34,12 +34,12 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker
-        run: gcloud auth configure-docker
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
       - name: Build and Push Docker Image
         run: |
           cd backend
-          IMAGE_URI="gcr.io/${{ env.PROJECT_ID }}/stash-backend:${{ github.sha }}"
+          IMAGE_URI="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/stash-repo/stash-backend:${{ github.sha }}"
           docker build -t $IMAGE_URI -f Dockerfile ..
           docker push $IMAGE_URI
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
