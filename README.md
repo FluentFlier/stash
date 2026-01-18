@@ -74,7 +74,7 @@ npm install
 ```bash
 pip install -r requirements.txt
 ```
-See `download_test/README.md` for more details on the media downloader and AI processor.
+See `processes/README.md` for more details on the media downloader and AI processor.
 
 ### 3. Environment Variables
 
