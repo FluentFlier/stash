@@ -1,0 +1,47 @@
+# Media Downloader & AI Processor - Dependencies
+
+# HTTP requests for API calls
+requests>=2.28.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Google Gemini AI for NON-VIDEO processing (documents, images, text)
+# Note: Requires compatible IPython for Python 3.13
+google-generativeai>=0.3.0
+IPython>=9.9.0  # Required for Python 3.13 compatibility (fixes "List is not subscriptable" error)
+
+# PDF text extraction (optional, for document processing)
+PyPDF2>=3.0.0
+# pdfplumber>=0.9.0  # Alternative PDF extractor
+
+# NOTE: Python 3.13 Compatibility
+# If you encounter "TypeError: type 'List' is not subscriptable" errors:
+# - Upgrade IPython: pip install --upgrade IPython>=8.30.0
+# - Or use Python 3.12 or earlier (recommended for stability)
+
+# ============================================================================
+# REQUIRED: Node.js for Overshoot AI (Video Processing)
+# ============================================================================
+# Overshoot AI SDK requires Node.js (NOT a Python package - system dependency)
+#
+# INSTALLATION STEPS:
+#   1. Download and install Node.js from: https://nodejs.org/
+#      - Recommended: LTS version (20.x or later)
+#      - Make sure to check "Add to PATH" during installation
+#
+#   2. Verify installation:
+#      - Open terminal/command prompt
+#      - Run: node --version
+#      - Run: npm --version
+#      - Both should show version numbers
+#
+#   3. Install Overshoot SDK:
+#      - Run: npm install -g @overshoot/sdk
+#      - Or from this directory: npm install @overshoot/sdk
+#
+#   4. The Python code will automatically call the Node.js SDK via subprocess
+#
+# NOTE: Without Node.js, video processing will fail. Non-video files will
+#       still work with Gemini API.
+# ============================================================================
