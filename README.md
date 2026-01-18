@@ -1,14 +1,15 @@
 # Stash
 
-An autonomous AI system for content management built in 24 hours at NexHacks 2026. Save links, notes, and media - the AI analyzes content, creates collections, sets reminders, and sends notifications automatically.
+An autonomous AI system for content management built in 24 hours at NexHacks 2026. Save any link and the AI extracts everything - full articles, videos, transcripts, metadata. It analyzes content, creates collections, sets reminders, and sends notifications automatically.
 
 ## What It Does
 
 When you save content, the system:
-1. Fetches and analyzes full content (topics, entities, key insights)
-2. Plans actions based on analysis and your patterns
-3. Executes autonomously (creates collections, tags, reminders, notifications)
-4. Learns from outcomes to improve future decisions
+1. Extracts everything from the link (full text, videos, transcripts, metadata) using RapidAPI and Oversight
+2. Analyzes content deeply (topics, entities, key insights) with GPT-4
+3. Plans actions based on analysis and your patterns
+4. Executes autonomously (creates collections, tags, reminders, notifications)
+5. Learns from outcomes to improve future decisions
 
 ## Architecture
 
@@ -31,6 +32,7 @@ Content → API → Queue → Analyzer → Planner → Executor → Learner
 - Redis + Bull
 - GPT-4 via Supermemory
 - Jina AI Reader
+- RapidAPI + Oversight SDK (video download & analysis)
 - Firebase FCM
 - Google Calendar API
 - LiveKit
@@ -139,7 +141,13 @@ See `.env.example` for complete list.
 ## How It Works
 
 ### 1. Content Analysis
-Extracts full content, topics, entities, key insights, dates, and action items using Jina AI Reader and GPT-4.
+Give it any link and it extracts everything:
+- **Articles**: Full text, metadata, images
+- **Videos**: Downloads via RapidAPI, extracts transcripts, thumbnails, and metadata
+- **Any URL**: Full content extraction using Jina AI Reader and Oversight SDK
+- **AI Analysis**: Topics, entities, key insights, dates, and action items via GPT-4
+
+The system can pull all data from any link you provide - articles, YouTube videos, social media posts, PDFs, and more.
 
 ### 2. Action Planning
 Creates action plan based on:
