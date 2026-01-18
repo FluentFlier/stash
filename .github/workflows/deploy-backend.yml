@@ -42,8 +42,9 @@ jobs:
           cp -r prisma backend/prisma
           cd backend
           IMAGE_URI="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/stash-repo/stash-backend:${{ github.sha }}"
-          docker build -t $IMAGE_URI .
+          docker build --no-cache -t $IMAGE_URI .
           docker push $IMAGE_URI
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
       - name: Deploy to Cloud Run
