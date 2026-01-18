@@ -10,8 +10,8 @@ export async function requestLogger(
 ): Promise<void> {
   const start = Date.now();
 
-  // Log response using reply.raw
-  reply.raw.on('finish', () => {
+  // Log response after it's sent
+  const onResponse = () => {
     const duration = Date.now() - start;
     logger.info(`[Response] ${request.method} ${request.url}`, {
       statusCode: reply.statusCode,
@@ -20,5 +20,7 @@ export async function requestLogger(
       ip: request.ip,
       userAgent: request.headers['user-agent'],
     });
-  });
+  };
+
+  reply.raw.on('finish', onResponse);
 }

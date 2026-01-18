@@ -148,7 +148,17 @@ async function buildServer() {
     });
   });
 
-  // API routes (register before hooks to avoid type conflicts)
+  // Root endpoint
+  fastify.get('/', async (_request, reply) => {
+    return reply.send({
+      success: true,
+      message: 'Stash Backend - Autonomous AI Agent System',
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  // API routes
   await fastify.register(authRoutes);
   await fastify.register(captureRoutes);
   await fastify.register(chatRoutes);
