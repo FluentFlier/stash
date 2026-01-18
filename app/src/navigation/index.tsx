@@ -38,18 +38,15 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 // Custom tab button component with full touch area
-const CustomTabButton = ({
-    children,
-    onPress,
-    accessibilityState,
-    style,
-}: BottomTabBarButtonProps) => {
+const CustomTabButton = (props: BottomTabBarButtonProps) => {
+    const { children, onPress, accessibilityState, style } = props;
     const focused = accessibilityState?.selected || false;
 
     return (
         <Pressable
             onPress={onPress}
             style={[
+                style,
                 {
                     flex: 1,
                     alignItems: 'center',
@@ -60,8 +57,12 @@ const CustomTabButton = ({
                     marginHorizontal: 4,
                 },
             ]}
+            android_ripple={{ color: theme.primaryMuted, borderless: false }}
+            accessibilityState={accessibilityState}
         >
-            {children}
+            <View style={{ alignItems: 'center', width: '100%' }} pointerEvents="none">
+                {children}
+            </View>
         </Pressable>
     );
 };

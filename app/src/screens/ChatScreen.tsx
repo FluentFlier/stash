@@ -178,7 +178,7 @@ export const ChatScreen: React.FC = () => {
                                     }}>
                                         <Text style={{
                                             fontSize: 14,
-                                            color: theme.text,
+                                            color: msg.role === 'user' ? theme.white : theme.text,
                                             lineHeight: 20,
                                         }}>
                                             {msg.content}
