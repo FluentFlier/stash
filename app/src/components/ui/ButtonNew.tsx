@@ -34,18 +34,26 @@ export const ButtonNew: React.FC<ButtonProps> = ({
     ...props
 }) => {
     const handlePressIn = () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        try {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        } catch (error) {
+            // Ignore haptic errors
+        }
     };
 
     const handlePress = (e: any) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        try {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        } catch (error) {
+            // Ignore haptic errors
+        }
         onPress?.(e);
     };
 
     // Variant styles
     const variantClasses = {
         primary: 'bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500 shadow-lg shadow-primary-500/40',
-        secondary: 'bg-neutral-800 border border-neutral-700',
+        secondary: 'bg-primary-600 shadow-md',
         outline: 'bg-transparent border-2 border-primary-500',
         ghost: 'bg-transparent',
         destructive: 'bg-error shadow-md',
@@ -61,7 +69,7 @@ export const ButtonNew: React.FC<ButtonProps> = ({
     // Text variant styles
     const textVariantClasses = {
         primary: 'text-white',
-        secondary: 'text-neutral-50',
+        secondary: 'text-white',
         outline: 'text-primary-500',
         ghost: 'text-primary-500',
         destructive: 'text-white',
@@ -75,12 +83,16 @@ export const ButtonNew: React.FC<ButtonProps> = ({
     };
 
     const buttonClasses = `
-        rounded-xl items-center justify-center flex-row
+        items-center justify-center flex-row
         ${variantClasses[variant]}
         ${sizeClasses[size]}
         ${disabled || loading ? 'opacity-50' : ''}
         ${className}
     `.trim().replace(/\s+/g, ' ');
+
+    const buttonStyle = {
+        borderRadius: 20, // Force 20px border radius (xl)
+    };
 
     const textClasses = `
         font-semibold
@@ -94,6 +106,7 @@ export const ButtonNew: React.FC<ButtonProps> = ({
             onPressIn={handlePressIn}
             disabled={disabled || loading}
             className={buttonClasses}
+            style={buttonStyle}
             {...props}
         >
             {loading ? (

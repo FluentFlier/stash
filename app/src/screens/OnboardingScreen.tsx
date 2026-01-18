@@ -1,62 +1,34 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, Animated } from 'react-native';
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    KeyboardAvoidingView,
+    Platform,
+    TouchableWithoutFeedback,
+    Keyboard,
+    ScrollView,
+    Pressable,
+} from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Sparkles, Calendar, User, ChevronRight } from 'lucide-react-native';
-import { Button, Input, Card } from '../components/ui';
-import { theme } from '../theme';
+import { Calendar, User, ChevronRight } from 'lucide-react-native';
+import { ButtonNew, InputNew, CardNew } from '../components/ui';
 import type { RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Onboarding'>;
-
-const { width } = Dimensions.get('window');
 
 export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
     const [step, setStep] = useState(1);
     const [name, setName] = useState('');
     const [role, setRole] = useState('');
     const [age, setAge] = useState('');
-    const fadeAnim = useRef(new Animated.Value(1)).current;
-    const slideAnim = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        // Fade in animation when step changes
-        Animated.parallel([
-            Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 400,
-                useNativeDriver: true,
-            }),
-            Animated.timing(slideAnim, {
-                toValue: 0,
-                duration: 400,
-                useNativeDriver: true,
-            }),
-        ]).start();
-    }, [step]);
 
     const handleNext = () => {
-        // Fade out before changing step
-        Animated.parallel([
-            Animated.timing(fadeAnim, {
-                toValue: 0,
-                duration: 200,
-                useNativeDriver: true,
-            }),
-            Animated.timing(slideAnim, {
-                toValue: -20,
-                duration: 200,
-                useNativeDriver: true,
-            }),
-        ]).start(() => {
-            if (step < 4) {
-                setStep(step + 1);
-            } else {
-                // Complete onboarding
-                navigation.navigate('Main');
-            }
-        });
+        if (step < 4) {
+            setStep(step + 1);
+        } else {
+            navigation.navigate('Main');
+        }
     };
 
     const handleSkip = () => {
@@ -67,102 +39,125 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
         switch (step) {
             case 1:
                 return (
-                    <View style={styles.stepContent}>
-                        <Text style={styles.title}>What's your name?</Text>
-                        <Text style={styles.description}>
+                    <View className="flex-1 gap-6 items-center">
+                        <Text className="text-3xl font-bold text-neutral-50 text-center">
+                            What's your name?
+                        </Text>
+                        <Text className="text-lg text-neutral-400 text-center max-w-[80%]">
                             This helps us personalize your experience.
                         </Text>
-                        <Card variant="glass" style={styles.stepCard}>
-                            <Card.Content>
-                                <Input
+                        <CardNew variant="glass" className="w-full mt-4">
+                            <CardNew.Content>
+                                <InputNew
                                     label="Name"
                                     placeholder="Enter your name"
                                     value={name}
                                     onChangeText={setName}
-                                    leftIcon={<User size={20} color={theme.colors.text.tertiary} />}
+                                    leftIcon={<User size={20} color="#a3a3a3" />}
                                 />
-                            </Card.Content>
-                        </Card>
+                            </CardNew.Content>
+                        </CardNew>
                     </View>
                 );
 
             case 2:
                 const roles = ['Student', 'Professional', 'Creative', 'Other'];
                 return (
-                    <View style={styles.stepContent}>
-                        <Text style={styles.title}>What do you do?</Text>
-                        <Text style={styles.description}>
+                    <View className="flex-1 gap-6 items-center">
+                        <Text className="text-3xl font-bold text-neutral-50 text-center">
+                            What do you do?
+                        </Text>
+                        <Text className="text-lg text-neutral-400 text-center max-w-[80%]">
                             We'll tailor Stash to fit your workflow.
                         </Text>
-                        <Card variant="glass" style={styles.stepCard}>
-                            <Card.Content>
-                                <View style={styles.roleGrid}>
+                        <CardNew variant="glass" className="w-full mt-4">
+                            <CardNew.Content>
+                                <View className="flex-row flex-wrap gap-3">
                                     {roles.map((r) => (
-                                        <Button
+                                        <Pressable
                                             key={r}
-                                            variant={role === r ? 'primary' : 'outline'}
                                             onPress={() => setRole(r)}
-                                            style={styles.roleButton}
+                                            className={`flex-grow items-center justify-center px-6 py-3 min-h-[48px] ${
+                                                role === r
+                                                    ? 'bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500'
+                                                    : 'bg-transparent border-2 border-primary-500'
+                                            }`}
+                                            style={{ borderRadius: 20 }}
                                         >
-                                            {r}
-                                        </Button>
+                                            <Text
+                                                className={`font-semibold text-base ${
+                                                    role === r ? 'text-white' : 'text-primary-500'
+                                                }`}
+                                            >
+                                                {r}
+                                            </Text>
+                                        </Pressable>
                                     ))}
                                 </View>
-                            </Card.Content>
-                        </Card>
+                            </CardNew.Content>
+                        </CardNew>
                     </View>
                 );
 
             case 3:
                 return (
-                    <View style={styles.stepContent}>
-                        <Text style={styles.title}>How old are you?</Text>
-                        <Text style={styles.description}>
+                    <View className="flex-1 gap-6 items-center">
+                        <Text className="text-3xl font-bold text-neutral-50 text-center">
+                            How old are you?
+                        </Text>
+                        <Text className="text-lg text-neutral-400 text-center max-w-[80%]">
                             Helping us provide age-appropriate content.
                         </Text>
-                        <Card variant="glass" style={styles.stepCard}>
-                            <Card.Content>
-                                <Input
+                        <CardNew variant="glass" className="w-full mt-4">
+                            <CardNew.Content>
+                                <InputNew
                                     label="Age"
                                     placeholder="Enter your age"
                                     value={age}
                                     onChangeText={setAge}
                                     keyboardType="number-pad"
-                                    leftIcon={<Calendar size={20} color={theme.colors.text.tertiary} />}
+                                    leftIcon={<Calendar size={20} color="#a3a3a3" />}
                                 />
-                            </Card.Content>
-                        </Card>
+                            </CardNew.Content>
+                        </CardNew>
                     </View>
                 );
 
             case 4:
                 return (
-                    <View style={styles.stepContent}>
-                        <View style={styles.iconContainer}>
-                            <LinearGradient
-                                colors={theme.colors.gradients.accent as any}
-                                style={styles.iconGradient}
-                            >
-                                <Calendar size={64} color={theme.colors.text.inverse} strokeWidth={1.5} />
-                            </LinearGradient>
+                    <View className="flex-1 gap-6 items-center">
+                        <View className="mt-8 mb-4">
+                            <View className="w-30 h-30 rounded-full bg-gradient-to-br from-accent-600 to-accent-500 items-center justify-center shadow-xl">
+                                <Calendar size={64} color="#ffffff" strokeWidth={1.5} />
+                            </View>
                         </View>
-                        <Text style={styles.title}>Connect Google Calendar</Text>
-                        <Text style={styles.description}>
+                        <Text className="text-3xl font-bold text-neutral-50 text-center">
+                            Connect Google Calendar
+                        </Text>
+                        <Text className="text-lg text-neutral-400 text-center max-w-[80%]">
                             Automatically create events from your saved content.
                         </Text>
-                        <Card variant="glass">
-                            <Card.Content>
-                                <View style={styles.calendarInfo}>
-                                    <Text style={styles.calendarTitle}>What you'll get:</Text>
-                                    <Text style={styles.calendarItem}>• Auto-detect dates and events</Text>
-                                    <Text style={styles.calendarItem}>• Smart reminders</Text>
-                                    <Text style={styles.calendarItem}>• Sync across devices</Text>
+                        <CardNew variant="glass">
+                            <CardNew.Content>
+                                <View className="gap-2">
+                                    <Text className="text-base font-medium text-neutral-50 mb-2">
+                                        What you'll get:
+                                    </Text>
+                                    <Text className="text-base text-neutral-400">
+                                        • Auto-detect dates and events
+                                    </Text>
+                                    <Text className="text-base text-neutral-400">
+                                        • Smart reminders
+                                    </Text>
+                                    <Text className="text-base text-neutral-400">
+                                        • Sync across devices
+                                    </Text>
                                 </View>
-                            </Card.Content>
-                        </Card>
-                        <Button size="lg" onPress={handleNext} style={{ width: '100%', marginTop: theme.spacing[4] }}>
+                            </CardNew.Content>
+                        </CardNew>
+                        <ButtonNew size="lg" onPress={handleNext} className="w-full mt-4">
                             Connect Calendar
-                        </Button>
+                        </ButtonNew>
                     </View>
                 );
 
@@ -172,164 +167,58 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
     };
 
     return (
-        <View style={styles.container}>
-            <LinearGradient
-                colors={[
-                    theme.colors.dark.background,
-                    theme.colors.primary[900],
-                    theme.colors.dark.background,
-                ]}
-                locations={[0, 0.5, 1]}
-                style={styles.gradient}
-            />
-            <SafeAreaView style={styles.safeArea}>
+        <View className="flex-1 bg-neutral-950">
+            {/* Gradient Background */}
+            <View className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-primary-900/50 to-neutral-950" />
+            
+            <SafeAreaView className="flex-1">
                 {/* Progress Indicator */}
-                <View style={styles.progressContainer}>
-                    <View style={styles.progressBar}>
-                        <Animated.View
-                            style={[
-                                styles.progressFill,
-                                { width: `${(step / 4) * 100}%` }
-                            ]}
+                <View className="px-6 py-4 gap-2">
+                    <View className="h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+                        <View 
+                            className="h-full bg-primary-500 rounded-full"
+                            style={{ width: `${(step / 4) * 100}%` }}
                         />
                     </View>
-                    <Text style={styles.stepText}>Step {step} of 4</Text>
+                    <Text className="text-sm text-neutral-400 text-right">
+                        Step {step} of 4
+                    </Text>
                 </View>
 
-                {/* Animated Content */}
-                <Animated.View
-                    style={[
-                        styles.content,
-                        {
-                            opacity: fadeAnim,
-                            transform: [{ translateY: slideAnim }],
-                        },
-                    ]}
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    className="flex-1"
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
                 >
-                    {renderStepContent()}
-                </Animated.View>
-
-                {/* Bottom Actions */}
-                <View style={styles.bottomActions}>
-                    {step < 4 && (
-                        <Button
-                            size="lg"
-                            onPress={handleNext}
-                            rightIcon={<ChevronRight size={20} color={theme.colors.text.inverse} />}
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                        <ScrollView 
+                            className="flex-1"
+                            contentContainerClassName="px-6 flex-grow"
+                            keyboardShouldPersistTaps="handled"
                         >
-                            Continue
-                        </Button>
-                    )}
-                    {step === 4 && (
-                        <Button variant="ghost" onPress={handleSkip}>
-                            Skip for now
-                        </Button>
-                    )}
-                </View>
+                            {renderStepContent()}
+                        </ScrollView>
+                    </TouchableWithoutFeedback>
+
+                    {/* Bottom Actions */}
+                    <View className="px-6 pb-6 gap-3">
+                        {step < 4 && (
+                            <ButtonNew
+                                size="lg"
+                                onPress={handleNext}
+                                rightIcon={<ChevronRight size={20} color="#ffffff" />}
+                            >
+                                Continue
+                            </ButtonNew>
+                        )}
+                        {step === 4 && (
+                            <ButtonNew variant="ghost" onPress={handleSkip}>
+                                Skip for now
+                            </ButtonNew>
+                        )}
+                    </View>
+                </KeyboardAvoidingView>
             </SafeAreaView>
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.colors.background,
-    },
-    gradient: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-    },
-    safeArea: {
-        flex: 1,
-    },
-    progressContainer: {
-        paddingHorizontal: theme.spacing[6],
-        paddingVertical: theme.spacing[4],
-        gap: theme.spacing[2],
-    },
-    progressBar: {
-        height: 6,
-        backgroundColor: theme.colors.surfaceElevated,
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: theme.colors.primary[500],
-        borderRadius: 3,
-    },
-    stepText: {
-        ...theme.typography.styles.caption,
-        color: theme.colors.text.tertiary,
-        textAlign: 'right',
-    },
-    content: {
-        flex: 1,
-        paddingHorizontal: theme.spacing[6],
-    },
-    stepContent: {
-        flex: 1,
-        gap: theme.spacing[6],
-        alignItems: 'center',
-    },
-    stepCard: {
-        width: '100%',
-        marginTop: theme.spacing[4],
-    },
-    roleGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: theme.spacing[3],
-    },
-    roleButton: {
-        flexGrow: 1,
-    },
-    iconContainer: {
-        marginTop: theme.spacing[8],
-        marginBottom: theme.spacing[4],
-    },
-    iconGradient: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        alignItems: 'center',
-        justifyContent: 'center',
-        ...theme.shadows.xl,
-    },
-    title: {
-        ...theme.typography.styles.h2,
-        color: theme.colors.text.primary,
-        textAlign: 'center',
-    },
-    description: {
-        ...theme.typography.styles.bodyLarge,
-        color: theme.colors.text.secondary,
-        textAlign: 'center',
-        maxWidth: width * 0.8,
-    },
-    calendarInfo: {
-        gap: theme.spacing[2],
-    },
-    calendarTitle: {
-        ...theme.typography.styles.bodyMedium,
-        color: theme.colors.text.primary,
-        marginBottom: theme.spacing[2],
-    },
-    calendarItem: {
-        ...theme.typography.styles.body,
-        color: theme.colors.text.secondary,
-    },
-    form: {
-        width: '100%',
-        gap: theme.spacing[4],
-    },
-    bottomActions: {
-        paddingHorizontal: theme.spacing[6],
-        paddingBottom: theme.spacing[6],
-        gap: theme.spacing[3],
-    },
-});

@@ -1,164 +1,98 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import React from 'react';
+import { View, Text } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Sparkles } from 'lucide-react-native';
-import { Button } from '../components/ui';
-import { theme } from '../theme';
+import { Sparkles, Zap, Brain, Shield } from 'lucide-react-native';
+import { ButtonNew } from '../components/ui';
 import type { RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Landing'>;
 
 export const LandingScreen: React.FC<Props> = ({ navigation }) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const slideAnim = useRef(new Animated.Value(30)).current;
-    const floatAnim = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        // Fade in and slide up animation
-        Animated.parallel([
-            Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 800,
-                useNativeDriver: true,
-            }),
-            Animated.timing(slideAnim, {
-                toValue: 0,
-                duration: 800,
-                useNativeDriver: true,
-            }),
-        ]).start();
-
-        // Floating animation loop
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(floatAnim, {
-                    toValue: -10,
-                    duration: 2000,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(floatAnim, {
-                    toValue: 0,
-                    duration: 2000,
-                    useNativeDriver: true,
-                }),
-            ])
-        ).start();
-    }, []);
-
     return (
-        <View style={styles.container}>
-            <LinearGradient
-                colors={[
-                    theme.colors.dark.background,
-                    theme.colors.primary[900],
-                    theme.colors.dark.background,
-                ]}
-                locations={[0, 0.5, 1]}
-                style={styles.gradient}
-            />
-            <SafeAreaView style={styles.safeArea}>
-                <Animated.View
-                    style={[
-                        styles.content,
-                        {
-                            opacity: fadeAnim,
-                            transform: [{ translateY: slideAnim }],
-                        },
-                    ]}
-                >
-                    <Animated.View
-                        style={[
-                            styles.logoContainer,
-                            { transform: [{ translateY: floatAnim }] },
-                        ]}
-                    >
-                        <View style={styles.iconWrapper}>
-                            <Sparkles
-                                size={64}
-                                color={theme.colors.primary[400]}
-                                strokeWidth={1.5}
-                            />
+        <View className="flex-1 bg-neutral-950">
+            {/* Gradient Background */}
+            <View className="absolute inset-0">
+                <View className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-primary-900/30 to-neutral-950" />
+            </View>
+            
+            <SafeAreaView className="flex-1">
+                <View className="flex-1 justify-between px-6 py-8">
+                    {/* Hero Section */}
+                    <View className="flex-1 justify-center items-center">
+                        {/* Logo with glow effect */}
+                        <View className="mb-8 relative">
+                            <View className="absolute inset-0 bg-primary-500/30 rounded-full blur-2xl" />
+                            <View className="w-24 h-24 bg-gradient-to-br from-primary-600 to-accent-500 rounded-3xl items-center justify-center shadow-2xl">
+                                <Sparkles
+                                    size={48}
+                                    color="#ffffff"
+                                    strokeWidth={2}
+                                />
+                            </View>
                         </View>
-                        <Text style={styles.logo}>Stash</Text>
-                        <Text style={styles.tagline}>Your AI Memory Assistant</Text>
-                    </Animated.View>
 
-                    <View style={styles.actions}>
-                        <Button
+                        <Text className="text-5xl font-extrabold text-neutral-50 mb-3 text-center">
+                            Stash
+                        </Text>
+                        <Text className="text-xl text-primary-400 font-semibold mb-8 text-center">
+                            Your AI Memory Assistant
+                        </Text>
+
+                        {/* Feature Pills */}
+                        <View className="gap-3 mb-12">
+                            <View className="flex-row items-center gap-3 bg-neutral-900/60 backdrop-blur-xl px-5 py-3 rounded-full border border-neutral-800">
+                                <View className="w-8 h-8 bg-primary-500/20 rounded-full items-center justify-center">
+                                    <Brain size={16} color="#7c6ff0" />
+                                </View>
+                                <Text className="text-sm text-neutral-300 font-medium">
+                                    AI-Powered Context Extraction
+                                </Text>
+                            </View>
+                            
+                            <View className="flex-row items-center gap-3 bg-neutral-900/60 backdrop-blur-xl px-5 py-3 rounded-full border border-neutral-800">
+                                <View className="w-8 h-8 bg-accent-500/20 rounded-full items-center justify-center">
+                                    <Zap size={16} color="#22d3ee" />
+                                </View>
+                                <Text className="text-sm text-neutral-300 font-medium">
+                                    Instant Capture from Any App
+                                </Text>
+                            </View>
+                            
+                            <View className="flex-row items-center gap-3 bg-neutral-900/60 backdrop-blur-xl px-5 py-3 rounded-full border border-neutral-800">
+                                <View className="w-8 h-8 bg-success/20 rounded-full items-center justify-center">
+                                    <Shield size={16} color="#10b981" />
+                                </View>
+                                <Text className="text-sm text-neutral-300 font-medium">
+                                    Private & Secure Storage
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+
+                    {/* CTA Section */}
+                    <View className="gap-4">
+                        <ButtonNew
                             size="lg"
                             variant="primary"
                             onPress={() => navigation.navigate('SignUp')}
                         >
-                            Get Started
-                        </Button>
-                        <Button
-                            variant="glass"
+                            Get Started Free
+                        </ButtonNew>
+                        <ButtonNew
+                            variant="secondary"
                             size="lg"
                             onPress={() => navigation.navigate('Login')}
                         >
                             Sign In
-                        </Button>
+                        </ButtonNew>
+                        
+                        <Text className="text-xs text-neutral-500 text-center mt-2">
+                            Capture anything. Remember everything. Chat with your memory.
+                        </Text>
                     </View>
-
-                    <Text style={styles.footer}>
-                        Capture, organize, and chat with everything you save
-                    </Text>
-                </Animated.View>
+                </View>
             </SafeAreaView>
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.colors.background,
-    },
-    gradient: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-    },
-    safeArea: {
-        flex: 1,
-    },
-    content: {
-        flex: 1,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: theme.spacing[6],
-        paddingVertical: theme.spacing[12],
-    },
-    logoContainer: {
-        alignItems: 'center',
-        marginTop: theme.spacing[20],
-    },
-    iconWrapper: {
-        marginBottom: theme.spacing[4],
-    },
-    logo: {
-        ...theme.typography.styles.h1,
-        color: theme.colors.text.primary,
-        marginBottom: theme.spacing[2],
-        fontWeight: '800',
-    },
-    tagline: {
-        ...theme.typography.styles.bodyLarge,
-        color: theme.colors.text.secondary,
-        textAlign: 'center',
-    },
-    actions: {
-        width: '100%',
-        gap: theme.spacing[3],
-    },
-    footer: {
-        ...theme.typography.styles.caption,
-        color: theme.colors.text.tertiary,
-        textAlign: 'center',
-        maxWidth: '80%',
-    },
-});

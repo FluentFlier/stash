@@ -7,6 +7,8 @@ import {
     Pressable,
     KeyboardAvoidingView,
     Platform,
+    TouchableWithoutFeedback,
+    Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Send, Sparkles, TrendingUp, Clock, Zap } from 'lucide-react-native';
@@ -131,23 +133,25 @@ export const ChatScreen: React.FC = () => {
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     className="flex-1"
-                    keyboardVerticalOffset={90}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
                 >
-                    <ScrollView
-                        ref={scrollViewRef}
-                        className="flex-1"
-                        contentContainerClassName="py-4"
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        {messages.map((msg) => (
-                            <MessageBubbleNew
-                                key={msg.id}
-                                role={msg.role}
-                                content={msg.content}
-                                timestamp={msg.timestamp}
-                            />
-                        ))}
-                    </ScrollView>
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                        <ScrollView
+                            ref={scrollViewRef}
+                            className="flex-1"
+                            contentContainerClassName="py-4"
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            {messages.map((msg) => (
+                                <MessageBubbleNew
+                                    key={msg.id}
+                                    role={msg.role}
+                                    content={msg.content}
+                                    timestamp={msg.timestamp}
+                                />
+                            ))}
+                        </ScrollView>
+                    </TouchableWithoutFeedback>
 
                     <View className="px-4 py-3 border-t border-neutral-800 bg-neutral-950">
                         <View className="flex-row items-end gap-2">
@@ -159,6 +163,8 @@ export const ChatScreen: React.FC = () => {
                                 onChangeText={setMessage}
                                 multiline
                                 maxLength={500}
+                                returnKeyType="default"
+                                blurOnSubmit={false}
                             />
                             <Pressable
                                 onPress={handleSend}

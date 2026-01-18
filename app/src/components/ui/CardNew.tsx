@@ -29,23 +29,28 @@ export const CardNew: React.FC<CardProps> & { Content: React.FC<CardContentProps
     };
 
     const baseClasses = `
-        rounded-lg p-4
+        p-4
         ${variantClasses[variant]}
         ${className}
     `.trim().replace(/\s+/g, ' ');
 
+    const baseStyle = {
+        borderRadius: 16, // Force 16px border radius
+        overflow: 'hidden' as const, // Clip children to rounded corners
+    };
+
     if (variant === 'glass') {
         if (onPress) {
             return (
-                <Pressable onPress={onPress} {...props}>
-                    <BlurView intensity={80} tint="dark" className={baseClasses}>
+                <Pressable onPress={onPress} style={baseStyle} {...props}>
+                    <BlurView intensity={80} tint="dark" className={baseClasses} style={baseStyle}>
                         {children}
                     </BlurView>
                 </Pressable>
             );
         }
         return (
-            <BlurView intensity={80} tint="dark" className={baseClasses}>
+            <BlurView intensity={80} tint="dark" className={baseClasses} style={baseStyle}>
                 {children}
             </BlurView>
         );
@@ -53,13 +58,13 @@ export const CardNew: React.FC<CardProps> & { Content: React.FC<CardContentProps
 
     if (onPress) {
         return (
-            <Pressable onPress={onPress} className={baseClasses} {...props}>
+            <Pressable onPress={onPress} className={baseClasses} style={baseStyle} {...props}>
                 {children}
             </Pressable>
         );
     }
 
-    return <View className={baseClasses}>{children}</View>;
+    return <View className={baseClasses} style={baseStyle}>{children}</View>;
 };
 
 const CardContent: React.FC<CardContentProps> = ({ children, className = '' }) => {

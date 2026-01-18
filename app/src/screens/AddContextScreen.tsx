@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, TextInput, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useShareIntent } from 'expo-share-intent';
 import {
@@ -84,25 +84,26 @@ export const AddContextScreen: React.FC = () => {
                     )}
                 </View>
 
-                <ScrollView className="flex-1" contentContainerClassName="p-6 gap-6">
-                    {/* Share Intent Alert */}
-                    {hasShareIntent && (
-                        <CardNew variant="glass">
-                            <CardNew.Content>
-                                <View className="flex-row items-center gap-3">
-                                    <Share2 size={24} color="#22d3ee" />
-                                    <View className="flex-1 gap-1">
-                                        <Text className="text-base font-medium text-neutral-50">
-                                            Shared Content Detected
-                                        </Text>
-                                        <Text className="text-sm text-neutral-400">
-                                            Content from another app is ready to save
-                                        </Text>
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <ScrollView className="flex-1" contentContainerClassName="p-6 gap-6" keyboardShouldPersistTaps="handled">
+                        {/* Share Intent Alert */}
+                        {hasShareIntent && (
+                            <CardNew variant="glass">
+                                <CardNew.Content>
+                                    <View className="flex-row items-center gap-3">
+                                        <Share2 size={24} color="#22d3ee" />
+                                        <View className="flex-1 gap-1">
+                                            <Text className="text-base font-medium text-neutral-50">
+                                                Shared Content Detected
+                                            </Text>
+                                            <Text className="text-sm text-neutral-400">
+                                                Content from another app is ready to save
+                                            </Text>
+                                        </View>
                                     </View>
-                                </View>
-                            </CardNew.Content>
-                        </CardNew>
-                    )}
+                                </CardNew.Content>
+                            </CardNew>
+                        )}
 
                     {/* Input Type Selection */}
                     <View className="gap-3">
@@ -322,7 +323,8 @@ export const AddContextScreen: React.FC = () => {
                             </CardNew>
                         ))}
                     </View>
-                </ScrollView>
+                    </ScrollView>
+                </TouchableWithoutFeedback>
             </SafeAreaView>
         </View>
     );

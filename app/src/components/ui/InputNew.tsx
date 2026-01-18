@@ -23,10 +23,14 @@ export const InputNew: React.FC<InputProps> = ({
 
     const inputWrapperClasses = `
         flex-row items-center gap-3
-        bg-neutral-800 rounded-md px-4 py-3
+        bg-neutral-800 px-4 py-3
         border
         ${error ? 'border-error' : isFocused ? 'border-primary-500' : 'border-neutral-700'}
     `.trim().replace(/\s+/g, ' ');
+
+    const inputWrapperStyle = {
+        borderRadius: 12, // Force 12px border radius (md)
+    };
 
     return (
         <View className={containerClasses}>
@@ -35,7 +39,7 @@ export const InputNew: React.FC<InputProps> = ({
                     {label}
                 </Text>
             )}
-            <View className={inputWrapperClasses}>
+            <View className={inputWrapperClasses} style={inputWrapperStyle}>
                 {leftIcon && (
                     <View className="opacity-60">{leftIcon}</View>
                 )}

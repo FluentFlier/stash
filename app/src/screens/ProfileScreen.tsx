@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Switch, Modal, Alert, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
     Edit2,
     Calendar,
@@ -14,8 +16,12 @@ import {
     ChevronRight,
 } from 'lucide-react-native';
 import { AvatarNew, CardNew, ButtonNew, InputNew } from '../components/ui';
+import type { RootStackParamList } from '../types';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const ProfileScreen: React.FC = () => {
+    const navigation = useNavigation<NavigationProp>();
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [editField, setEditField] = useState<'name' | 'role' | 'age' | null>(null);
@@ -32,7 +38,13 @@ export const ProfileScreen: React.FC = () => {
                 {
                     text: 'Sign Out',
                     style: 'destructive',
-                    onPress: () => console.log('Signed out'),
+                    onPress: () => {
+                        // Navigate to Landing screen
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'Landing' }],
+                        });
+                    },
                 },
             ]
         );

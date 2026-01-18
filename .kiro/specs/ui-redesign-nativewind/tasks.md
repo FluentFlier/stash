@@ -109,28 +109,28 @@ This plan outlines the step-by-step migration from the custom styling system to 
     - Replace buttons with new Button component
     - _Requirements: 4.1, 4.2, 4.5_
 
-- [ ] 7. Migrate authentication screens to NativeWind
-  - [ ] 7.1 Update LandingScreen with Tailwind classes
+- [x] 7. Migrate authentication screens to NativeWind
+  - [x] 7.1 Update LandingScreen with Tailwind classes
     - Replace StyleSheet with className props
     - Update hero section styling
     - Update call-to-action buttons
     - _Requirements: 5.4_
 
-  - [ ] 7.2 Update LoginScreen with Tailwind classes
+  - [x] 7.2 Update LoginScreen with Tailwind classes
     - Replace StyleSheet with className props
     - Integrate new Input components
     - Integrate new Button components
     - Add form validation styling
     - _Requirements: 4.1, 4.3, 5.4_
 
-  - [ ] 7.3 Update SignUpScreen with Tailwind classes
+  - [x] 7.3 Update SignUpScreen with Tailwind classes
     - Replace StyleSheet with className props
     - Integrate new Input components
     - Integrate new Button components
     - Add form validation styling
     - _Requirements: 4.1, 4.3, 5.4_
 
-  - [ ] 7.4 Update OnboardingScreen with Tailwind classes
+  - [x] 7.4 Update OnboardingScreen with Tailwind classes
     - Replace StyleSheet with className props
     - Update step indicators
     - Integrate new Button components
