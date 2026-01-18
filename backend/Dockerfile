@@ -3,17 +3,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY backend/package*.json ./
+# Copy package files (including lock file)
+COPY backend/package.json backend/package-lock.json* ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (use npm install as fallback if no lock file)
+RUN npm install --omit=dev
 
 # Copy source code
 COPY backend/ ./
-
-# Build TypeScript
-RUN npm run build 2>/dev/null || echo "No build script, using tsx in production"
 
 # Production stage
 FROM node:20-alpine AS runner
@@ -37,7 +34,7 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
 # Start server
 CMD ["tsx", "index.ts"]
