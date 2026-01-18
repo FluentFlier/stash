@@ -10,19 +10,21 @@ export async function requestLogger(
 ): Promise<void> {
   const start = Date.now();
 
-  reply.addHook('onSend', async (_request, _reply, payload) => {
+  // Log the response after it's sent
+  reply.header('X-Response-Time', '');
+  
+  const onResponse = () => {
     const duration = Date.now() - start;
-
     logger.info({
       method: request.method,
       url: request.url,
       statusCode: reply.statusCode,
       duration: `${duration}ms`,
-      userId: request.user?.id,
+      userId: (request as any).user?.id,
       ip: request.ip,
       userAgent: request.headers['user-agent'],
     });
+  };
 
-    return payload;
-  });
+  reply.raw.on('finish', onResponse);
 }
