@@ -3,9 +3,11 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files and prisma schema
+# Copy package files
 COPY package.json package-lock.json* ./
-COPY ../prisma ./prisma/
+
+# Copy prisma schema (if present in backend)
+COPY prisma ./prisma/
 
 # Install ALL dependencies (including devDeps for prisma)
 RUN npm install
