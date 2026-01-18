@@ -1,7 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
+import Constants from 'expo-constants';
 
-const API_URL = 'http://localhost:4000'; // Backend runs on port 4000
+const API_URL = 'https://glycogenic-marilynn-crustiest.ngrok-free.dev';
+
 
 interface ApiResponse<T> {
     success: boolean;
