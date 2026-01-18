@@ -6,6 +6,7 @@ import { analyzeYouTubeVideo, analyzeVideoFile, isYouTubeUrl } from '../services
 import { analyzePdf, isPdfUrl } from '../services/pdf-extractor.js';
 import { generateStructuredResponse, generateChatCompletion, analyzeImage } from '../services/ai.js';
 import { AnalyzerOutput, DeepAnalysis, UserIntent, ReasoningStep } from '../types/agents.js';
+import { pythonBridge } from '../services/python-bridge.js';
 
 /**
  * Analyzer Agent
@@ -24,57 +25,41 @@ export class AnalyzerAgent {
 
       let contentAnalysis: DeepAnalysis;
 
-      if (capture.type === 'LINK') {
-        if (isYouTubeUrl(capture.content)) {
-          contentAnalysis = await analyzeYouTubeVideo(capture.content, userId);
+      // New: Try Python Workflow for Links and Videos first
+      const usePythonWorkflow = (capture.type === 'LINK' || capture.type === 'VIDEO') && capture.content.startsWith('http');
+
+      if (usePythonWorkflow) {
+        try {
+          logger.info(`[AnalyzerAgent] Delegating to Python Workflow for: ${capture.content}`);
+          const result = await pythonBridge.processUrl(capture.content);
+
+          contentAnalysis = {
+            title: result.topic || "Captured Content", // Topic is often the title/category
+            description: result.summary,
+            fullContent: result.summary, // Summary is the content we have
+            contentType: capture.type === 'VIDEO' ? 'video' : 'other',
+            topics: [result.topic, ...result.tags], // Mix topic and tags
+            entities: { people: [], organizations: [], technologies: [], locations: [] }, // Only filled if we do extra analysis
+            keyTakeaways: [], // Could extract from summary if needed
+            actionItems: [],
+            dates: [],
+            difficulty: 'intermediate',
+            estimatedReadTime: 5
+          };
+
           reasoning.push({
             step: 'content_analysis',
-            observation: 'Detected YouTube video',
-            result: 'Used video transcript extraction',
+            observation: 'Processed via Python Workflow',
+            result: `Classified into: ${result.folderPath} (Confidence: ${result.confidence})`
           });
-        } else if (isPdfUrl(capture.content)) {
-          contentAnalysis = await analyzePdf(capture.content, userId);
-          reasoning.push({
-            step: 'content_analysis',
-            observation: 'Detected PDF document',
-            result: 'Used PDF text extraction',
-          });
-        } else {
-          contentAnalysis = await analyzeLink(capture.content, userId);
-          reasoning.push({
-            step: 'content_analysis',
-            observation: 'Analyzed web link',
-            result: 'Used Jina AI content extraction',
-          });
+
+        } catch (pyError) {
+          logger.error('[AnalyzerAgent] Python workflow failed, falling back to TS logic', pyError);
+          // Fallback to existing logic below
+          contentAnalysis = await this.fallbackAnalysis(capture, userId, reasoning);
         }
-      } else if (capture.type === 'TEXT') {
-        contentAnalysis = await this.analyzeText(capture.content, userId);
-        reasoning.push({
-          step: 'content_analysis',
-          observation: 'Analyzed text content',
-          result: contentAnalysis,
-        });
-      } else if (capture.type === 'IMAGE') {
-        contentAnalysis = await this.analyzeImageContent(capture.content, userId);
-        reasoning.push({
-            step: 'content_analysis',
-            observation: 'Analyzed image content',
-            result: 'Used GPT-4 Vision',
-        });
-      } else if (capture.type === 'VIDEO') {
-        contentAnalysis = await analyzeVideoFile(capture.content, userId);
-        reasoning.push({
-            step: 'content_analysis',
-            observation: 'Analyzed video file',
-            result: 'Used Frame Extraction + GPT-4 Vision',
-        });
       } else {
-        contentAnalysis = await this.analyzeFallback(capture.content, userId);
-        reasoning.push({
-          step: 'content_analysis',
-          observation: `Analyzed ${capture.type} content`,
-          result: 'Used fallback analysis',
-        });
+        contentAnalysis = await this.fallbackAnalysis(capture, userId, reasoning);
       }
 
       // Step 2: Retrieve context from user's history (Supermemory)
@@ -115,6 +100,65 @@ export class AnalyzerAgent {
       logger.error(`[AnalyzerAgent] Error analyzing capture ${capture.id}:`, error);
       throw error;
     }
+  }
+
+  // Moved original logic to helper for fallback
+  private async fallbackAnalysis(capture: Capture, userId: string, reasoning: ReasoningStep[]): Promise<DeepAnalysis> {
+    let contentAnalysis: DeepAnalysis;
+
+    if (capture.type === 'LINK') {
+      if (isYouTubeUrl(capture.content)) {
+        contentAnalysis = await analyzeYouTubeVideo(capture.content, userId);
+        reasoning.push({
+          step: 'content_analysis',
+          observation: 'Detected YouTube video',
+          result: 'Used video transcript extraction',
+        });
+      } else if (isPdfUrl(capture.content)) {
+        contentAnalysis = await analyzePdf(capture.content, userId);
+        reasoning.push({
+          step: 'content_analysis',
+          observation: 'Detected PDF document',
+          result: 'Used PDF text extraction',
+        });
+      } else {
+        contentAnalysis = await analyzeLink(capture.content, userId);
+        reasoning.push({
+          step: 'content_analysis',
+          observation: 'Analyzed web link',
+          result: 'Used Jina AI content extraction',
+        });
+      }
+    } else if (capture.type === 'TEXT') {
+      contentAnalysis = await this.analyzeText(capture.content, userId);
+      reasoning.push({
+        step: 'content_analysis',
+        observation: 'Analyzed text content',
+        result: contentAnalysis,
+      });
+    } else if (capture.type === 'IMAGE') {
+      contentAnalysis = await this.analyzeImageContent(capture.content, userId);
+      reasoning.push({
+        step: 'content_analysis',
+        observation: 'Analyzed image content',
+        result: 'Used GPT-4 Vision',
+      });
+    } else if (capture.type === 'VIDEO') {
+      contentAnalysis = await analyzeVideoFile(capture.content, userId);
+      reasoning.push({
+        step: 'content_analysis',
+        observation: 'Analyzed video file',
+        result: 'Used Frame Extraction + GPT-4 Vision',
+      });
+    } else {
+      contentAnalysis = await this.analyzeFallback(capture.content, userId);
+      reasoning.push({
+        step: 'content_analysis',
+        observation: `Analyzed ${capture.type} content`,
+        result: 'Used fallback analysis',
+      });
+    }
+    return contentAnalysis;
   }
 
   /**
@@ -220,7 +264,7 @@ Context: ${context}`;
   private async analyzeImageContent(imageUrl: string, userId: string): Promise<DeepAnalysis> {
     try {
       logger.info(`[AnalyzerAgent] Analyzing image: ${imageUrl}`);
-      
+
       const prompt = `Analyze this image and provide:
 1. Detailed description
 2. All visible text (OCR)
@@ -247,30 +291,30 @@ Return ONLY valid JSON:
 }`;
 
       const analysisJson = await analyzeImage(imageUrl, prompt, userId);
-      
+
       // Parse JSON response (it might be wrapped in markdown code blocks)
       const cleanJson = analysisJson.replace(/```json\n|\n```/g, '');
       let analysis: any;
       try {
-          analysis = JSON.parse(cleanJson);
+        analysis = JSON.parse(cleanJson);
       } catch (e) {
-          logger.warn('[AnalyzerAgent] Failed to parse JSON from vision analysis, trying loose parse');
-          analysis = {
-              title: "Image Capture",
-              description: analysisJson.slice(0, 200),
-              topics: [],
-              entities: { people: [], organizations: [], technologies: [], locations: [] },
-              keyTakeaways: [],
-              actionItems: [],
-              dates: [],
-              difficulty: "intermediate"
-          };
+        logger.warn('[AnalyzerAgent] Failed to parse JSON from vision analysis, trying loose parse');
+        analysis = {
+          title: "Image Capture",
+          description: analysisJson.slice(0, 200),
+          topics: [],
+          entities: { people: [], organizations: [], technologies: [], locations: [] },
+          keyTakeaways: [],
+          actionItems: [],
+          dates: [],
+          difficulty: "intermediate"
+        };
       }
 
       return {
         title: analysis.title || "Image Capture",
         description: analysis.description || "No description available",
-        fullContent: analysis.description || "", 
+        fullContent: analysis.description || "",
         contentType: 'image',
         topics: analysis.topics || [],
         entities: analysis.entities || { people: [], organizations: [], technologies: [], locations: [] },

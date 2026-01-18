@@ -131,6 +131,46 @@ def parse_subtitles_to_text(subtitle_content: str) -> str:
     return text.strip()
 
 
+def process_url_with_jina(url: str) -> Optional[str]:
+    """
+    Process a URL using Jina Reader API to extract clean content.
+    
+    Args:
+        url: The URL to process
+        
+    Returns:
+        The markdown content of the page
+    """
+    jina_url = f"https://r.jina.ai/{url}"
+    
+    # Headers - no API key needed for basic usage, but good practice if available
+    headers = {
+        "Accept": "application/json"
+    }
+    
+    # Optional: Check for JINA_API_KEY if you want to use authenticated tier
+    jina_key = os.environ.get('JINA_API_KEY')
+    if jina_key:
+        headers["Authorization"] = f"Bearer {jina_key}"
+        
+    logger.info(f"Fetching content via Jina Reader: {jina_url}")
+    
+    try:
+        response = requests.get(jina_url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            if "data" in data and "content" in data["data"]:
+                return data["data"]["content"]
+            # Fallback for plain text response
+            return response.text
+        else:
+            logger.error(f"Jina Reader failed: {response.status_code} - {response.text[:100]}")
+            return None
+    except Exception as e:
+        logger.error(f"Error calling Jina Reader: {e}")
+        return None
+
+
 # ============================================
 # Media Processing Pipeline
 # ============================================
@@ -230,6 +270,12 @@ def process_media(file_path: str, output_name: Optional[str] = None) -> Tuple[Op
         logger.info("Processing as NON-VIDEO with GEMINI API")
         logger.info("=" * 50)
         
+        # Check if it's a text file (likely from Jina)
+        content_to_analyze = ""
+        if file_path.endswith('.txt') or file_path.endswith('.md'):
+             with open(file_path, 'r', encoding='utf-8') as f:
+                 content_to_analyze = f.read()
+        
         if not GEMINI_AVAILABLE:
             logger.error("Gemini SDK not installed. Run: pip install google-generativeai")
             return None, None, None
@@ -240,6 +286,10 @@ def process_media(file_path: str, output_name: Optional[str] = None) -> Tuple[Op
             return None, None, None
         
         try:
+            # If we have content from Jina, pass that directly? 
+            # The existing gemini_client.process_document_with_gemini takes a file path.
+            # So the current flow is correct: we save Jina output to a file, then pass that file to Gemini.
+            
             topic_path, summary_path = process_document_with_gemini(file_path, str(out_dir))
             logger.info(f"[OK] Topic saved to: {topic_path}")
             logger.info(f"[OK] Summary saved to: {summary_path}")
@@ -291,7 +341,7 @@ def download_tiktok(url: str) -> Optional[str]:
         return str(filename)
     else:
         logger.error("Could not find TikTok video URL")
-        logger.debug(f"API Response: {data}")
+        logger.error(f"API Response: {data}")
         return None
 
 
@@ -346,7 +396,7 @@ def download_instagram(url: str) -> Optional[str]:
         return str(filename)
     else:
         logger.error("Could not find Instagram video URL")
-        logger.debug(f"API Response: {data}")
+        logger.error(f"API Response: {data}")
         return None
 
 
@@ -450,6 +500,7 @@ def download_twitter(url: str) -> Optional[str]:
         return str(filename)
     
     logger.error("Could not parse Twitter response")
+    logger.error(f"API Response: {data}")
     return None
 
 
@@ -582,8 +633,20 @@ def download_and_process(url: str) -> Tuple[Optional[str], Optional[str], Option
     elif "youtube.com" in url_lower or "youtu.be" in url_lower:
         downloaded_file = download_youtube(url)
     else:
-        logger.error("Unsupported URL. Supported platforms: TikTok, Instagram, Twitter/X, YouTube")
-        return None, None, None, None
+        # Generic URL - Try Jina Reader
+        logger.info(f"Generic URL detected. Attempting to fetch content via Jina Reader...")
+        jina_content = process_url_with_jina(url)
+        
+        if jina_content:
+             out_dir = get_output_dir("jina_content")
+             filename = out_dir / "url_content.md"
+             with open(filename, "w", encoding="utf-8") as f:
+                 f.write(jina_content)
+             downloaded_file = str(filename)
+             logger.info(f"[OK] Jina content saved: {filename}")
+        else:
+             logger.error("Unsupported URL and Jina Reader failed.")
+             return None, None, None, None
     
     if not downloaded_file:
         return None, None, None, None
