@@ -36,8 +36,6 @@ reminderQueue.process('send-reminder', async (job) => {
     }
 
     // Send notification
-    const metadata = reminder.capture?.metadata as any;
-    const title = metadata?.title || 'Reminder';
 
     await sendNotification(reminder.userId, {
       title: '⏰ Reminder',

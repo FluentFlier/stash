@@ -25,7 +25,7 @@ export const crypto = {
   generateToken(payload: object): string {
     return jwt.sign(payload, config.auth.jwtSecret, {
       expiresIn: config.auth.jwtExpiresIn,
-    });
+    } as any);
   },
 
   /**

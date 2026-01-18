@@ -1,7 +1,7 @@
 import { logger } from '../utils/logger.js';
 import { generateStructuredResponse } from '../services/ai.js';
 import { AnalyzerOutput } from '../types/agents.js';
-import { ActionPlan, Action, ActionType } from '../types/agents.js';
+import { ActionPlan, Action } from '../types/agents.js';
 
 /**
  * Planner Agent

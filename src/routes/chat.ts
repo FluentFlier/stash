@@ -9,9 +9,9 @@ export async function chatRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/api/chat',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const userId = request.user.id;
 
       try {
@@ -74,9 +74,9 @@ export async function chatRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/api/chat/history',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const userId = request.user.id;
       const { limit = '50', offset = '0' } = request.query as { limit?: string; offset?: string };
 
@@ -103,9 +103,9 @@ export async function chatRoutes(fastify: FastifyInstance) {
   fastify.delete(
     '/api/chat/history',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const userId = request.user.id;
 
       try {

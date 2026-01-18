@@ -133,15 +133,15 @@ export class LearnerAgent {
   /**
    * Learn content preferences (topics, types, sources)
    */
-  private async learnContentPreferences(userId: string, outcomes: any[]): Promise<void> {
+  private async learnContentPreferences(userId: string, _outcomes: any[]): Promise<void> {
     try {
       // Get all captures with analysis
       const captures = await prisma.capture.findMany({
         where: {
           userId,
           processingStatus: 'COMPLETED',
-          actionOutcomes: {
-            some: {},
+          analysis: {
+            not: null as any,
           },
         },
         select: {
@@ -214,7 +214,7 @@ export class LearnerAgent {
   /**
    * Learn optimal notification timing
    */
-  private async learnNotificationTiming(userId: string, outcomes: any[]): Promise<void> {
+  private async learnNotificationTiming(userId: string, _outcomes: any[]): Promise<void> {
     try {
       // Get notification interactions from the database
       const notifications = await prisma.notification.findMany({

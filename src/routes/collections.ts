@@ -8,9 +8,9 @@ export async function collectionRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/api/collections',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const userId = request.user.id;
 
       try {
@@ -43,9 +43,9 @@ export async function collectionRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/api/collections',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const userId = request.user.id;
 
       try {
@@ -74,7 +74,7 @@ export async function collectionRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/api/collections/:id',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
     async (request, reply) => {
       const { id } = request.params as { id: string };
@@ -119,7 +119,7 @@ export async function collectionRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/api/collections/:id/captures',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
     async (request, reply) => {
       const { id } = request.params as { id: string };
@@ -178,7 +178,7 @@ export async function collectionRoutes(fastify: FastifyInstance) {
   fastify.delete(
     '/api/collections/:id/captures/:captureId',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
     async (request, reply) => {
       const { id, captureId } = request.params as { id: string; captureId: string };
@@ -223,7 +223,7 @@ export async function collectionRoutes(fastify: FastifyInstance) {
   fastify.delete(
     '/api/collections/:id',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
     async (request, reply) => {
       const { id } = request.params as { id: string };

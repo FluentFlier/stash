@@ -13,9 +13,9 @@ export async function calendarRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/api/calendar/auth/url',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (_request, _reply) => {
       try {
         const authUrl = getAuthUrl();
 
@@ -32,7 +32,7 @@ export async function calendarRoutes(fastify: FastifyInstance) {
 
   // HANDLE OAUTH CALLBACK
   fastify.get('/api/calendar/auth/callback', async (request, reply) => {
-    const { code, state } = request.query as { code?: string; state?: string };
+    const { code } = request.query as { code?: string; state?: string };
 
     if (!code) {
       return reply.code(400).send({
@@ -69,9 +69,9 @@ export async function calendarRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/api/calendar/events',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const userId = request.user.id;
 
       try {
@@ -96,9 +96,9 @@ export async function calendarRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/api/calendar/events',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const userId = request.user.id;
       const { maxResults = '10' } = request.query as { maxResults?: string };
 

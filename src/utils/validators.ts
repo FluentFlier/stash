@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import {
+  sanitizeText,
+  sanitizeEmail,
+  validateSecurityPatterns
+} from './input-sanitization.js';
 
 // ============================================
 // Capture Validators
@@ -6,8 +11,11 @@ import { z } from 'zod';
 
 export const createCaptureSchema = z.object({
   type: z.enum(['LINK', 'TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'PDF', 'DOCUMENT', 'OTHER']),
-  content: z.string().min(1),
-  userInput: z.string().optional(),
+  content: z.string().min(1).max(10000).refine((val) => {
+    const validation = validateSecurityPatterns(val, 'capture content');
+    return validation.isValid;
+  }, { message: 'Content contains potentially dangerous patterns' }),
+  userInput: z.string().max(1000).optional().transform((val) => val ? sanitizeText(val, { maxLength: 1000 }) : val),
   metadata: z.record(z.any()).optional(),
 });
 
@@ -65,9 +73,9 @@ export const addToCollectionSchema = z.object({
 // ============================================
 
 export const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string().min(1).optional(),
+  email: z.string().email().transform(sanitizeEmail),
+  password: z.string().min(8).max(128),
+  name: z.string().min(1).max(100).optional().transform((val) => val ? sanitizeText(val, { maxLength: 100 }) : val),
 });
 
 export const loginSchema = z.object({
