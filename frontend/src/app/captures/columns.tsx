@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, ArrowUpDown } from "lucide-react" 
 import { Button } from "@/components/ui/button"
@@ -17,11 +18,11 @@ export type Capture = {
   id: string
   content: string
   type: "LINK" | "TEXT" | "FILE" | "IMAGE" | "AUDIO"
-  status: "PROCESSED" | "PROCESSING" | "FAILED"
+  status: "PENDING" | "PROCESSING" | "PROCESSED" | "FAILED"
   date: string
 }
 
-export const columns: ColumnDef<Capture>[] = [
+export const columns = (onDelete?: (captureId: string) => void): ColumnDef<Capture>[] => [
   {
     accessorKey: "content",
     header: ({ column }) => {
@@ -49,7 +50,17 @@ export const columns: ColumnDef<Capture>[] = [
     cell: ({ row }) => {
         const status = row.getValue("status") as string;
         return (
-            <Badge variant={status === 'PROCESSED' ? 'default' : status === 'PROCESSING' ? 'secondary' : 'destructive'}>
+            <Badge
+              variant={
+                status === "PROCESSED"
+                  ? "default"
+                  : status === "PROCESSING"
+                  ? "secondary"
+                  : status === "PENDING"
+                  ? "outline"
+                  : "destructive"
+              }
+            >
                 {status}
             </Badge>
         )
@@ -80,8 +91,15 @@ export const columns: ColumnDef<Capture>[] = [
               Copy ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View details</DropdownMenuItem>
-            <DropdownMenuItem>Delete</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href={`/captures/${capture.id}`}>View details</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => onDelete?.(capture.id)}
+            >
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )

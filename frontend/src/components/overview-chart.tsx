@@ -2,38 +2,21 @@
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
 
-const data = [
-  {
-    name: "Mon",
-    total: 12,
-  },
-  {
-    name: "Tue",
-    total: 18,
-  },
-  {
-    name: "Wed",
-    total: 15,
-  },
-  {
-    name: "Thu",
-    total: 24,
-  },
-  {
-    name: "Fri",
-    total: 32,
-  },
-  {
-    name: "Sat",
-    total: 8,
-  },
-  {
-    name: "Sun",
-    total: 10,
-  },
+const fallback = [
+  { name: "Mon", total: 12 },
+  { name: "Tue", total: 18 },
+  { name: "Wed", total: 15 },
+  { name: "Thu", total: 24 },
+  { name: "Fri", total: 32 },
+  { name: "Sat", total: 8 },
+  { name: "Sun", total: 10 },
 ]
 
-export function OverviewChart() {
+type OverviewChartProps = {
+  data?: { name: string; total: number }[]
+}
+
+export function OverviewChart({ data = fallback }: OverviewChartProps) {
   return (
     <ResponsiveContainer width="100%" height={350}>
       <BarChart data={data}>
@@ -51,9 +34,15 @@ export function OverviewChart() {
           axisLine={false}
           tickFormatter={(value) => `${value}`}
         />
-        <Tooltip 
-            cursor={{fill: 'transparent'}}
-            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+        <Tooltip
+            cursor={{ fill: "transparent" }}
+            contentStyle={{
+              borderRadius: "12px",
+              border: "1px solid var(--border)",
+              backgroundColor: "var(--card)",
+              color: "var(--foreground)",
+              boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+            }}
         />
         <Bar
           dataKey="total"

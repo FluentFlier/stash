@@ -1,4 +1,8 @@
-import { Calendar, Home, Inbox, Search, Settings, MessageSquare, Layers, Bell, Folder } from "lucide-react"
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { Calendar, Home, Inbox, Settings, MessageSquare, Bell, Folder } from "lucide-react"
 
 import {
   Sidebar,
@@ -47,6 +51,7 @@ const items = [
 ]
 
 export function AppSidebar() {
+  const pathname = usePathname()
   return (
     <Sidebar className="border-r">
       <SidebarContent className="gap-2">
@@ -60,12 +65,16 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild
-                    className="hover:bg-accent/50 rounded-md transition-colors duration-150"
+                    className={`rounded-md transition-colors duration-150 ${
+                      pathname === item.url
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                        : "hover:bg-accent/50"
+                    }`}
                   >
-                    <a href={item.url}>
+                    <Link href={item.url} aria-current={pathname === item.url ? "page" : undefined}>
                       <item.icon className="size-4" />
                       <span className="font-medium">{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -78,12 +87,16 @@ export function AppSidebar() {
             <SidebarMenuItem>
                 <SidebarMenuButton 
                   asChild
-                  className="hover:bg-accent/50 rounded-md transition-colors duration-150"
+                  className={`rounded-md transition-colors duration-150 ${
+                    pathname === "/settings"
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                      : "hover:bg-accent/50"
+                  }`}
                 >
-                    <a href="/settings">
+                    <Link href="/settings" aria-current={pathname === "/settings" ? "page" : undefined}>
                         <Settings className="size-4" />
                         <span className="font-medium">Settings</span>
-                    </a>
+                    </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
          </SidebarMenu>

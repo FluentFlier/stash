@@ -62,14 +62,14 @@ export function DataTable<TData, TValue>({
           onChange={(event) =>
             table.getColumn("content")?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="max-w-sm bg-background/70"
         />
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="bg-muted/40">
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id}>
