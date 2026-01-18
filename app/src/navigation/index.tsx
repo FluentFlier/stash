@@ -3,7 +3,8 @@ import { NavigationContainer, useNavigationContainerRef, DarkTheme } from '@reac
 import { useShareIntent } from 'expo-share-intent';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MessageCircle, Plus, User } from 'lucide-react-native';
+import { Pressable, View, Text } from 'react-native';
+import { MessageCircle, Plus, User, LayoutDashboard, Brain } from 'lucide-react-native';
 import type { RootStackParamList, MainTabParamList } from '../types';
 import { theme } from '../theme';
 
@@ -15,6 +16,8 @@ import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { ChatScreen } from '../screens/ChatScreen';
 import { AddContextScreen } from '../screens/AddContextScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { DashboardScreen } from '../screens/DashboardScreen';
+import { MemoryScreen } from '../screens/MemoryScreen';
 
 // Custom dark theme using shared colors
 const CustomDarkTheme = {
@@ -33,6 +36,38 @@ const CustomDarkTheme = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
+// Custom tab button with larger hit area
+interface TabButtonProps {
+    icon: React.ReactNode;
+    label: string;
+    focused: boolean;
+    onPress: () => void;
+}
+
+const TabButton: React.FC<TabButtonProps> = ({ icon, label, focused, onPress }) => (
+    <Pressable
+        onPress={onPress}
+        style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 8,
+        }}
+        android_ripple={{ color: theme.primaryMuted, borderless: true }}
+    >
+        <View style={{ alignItems: 'center', gap: 4 }}>
+            {icon}
+            <Text style={{
+                fontSize: 10,
+                fontWeight: '500',
+                color: focused ? theme.primary : theme.textSubtle,
+            }}>
+                {label}
+            </Text>
+        </View>
+    </Pressable>
+);
+
 function MainTabs() {
     return (
         <Tab.Navigator
@@ -42,30 +77,39 @@ function MainTabs() {
                     backgroundColor: theme.bg,
                     borderTopColor: theme.borderLight,
                     borderTopWidth: 1,
-                    paddingBottom: 28,
-                    paddingTop: 10,
-                    height: 85,
+                    paddingBottom: 24,
+                    paddingTop: 4,
+                    height: 76,
                     elevation: 0,
                     shadowOpacity: 0,
-                },
-                tabBarActiveTintColor: theme.primary,
-                tabBarInactiveTintColor: theme.textSubtle,
-                tabBarLabelStyle: {
-                    fontSize: 11,
-                    fontWeight: '500' as '500',
-                    marginTop: 4,
-                },
-                tabBarIconStyle: {
-                    marginTop: 4,
                 },
             }}
         >
             <Tab.Screen
-                name="Chat"
-                component={ChatScreen}
+                name="Dashboard"
+                component={DashboardScreen}
                 options={{
-                    tabBarIcon: ({ color, size }) => (
-                        <MessageCircle color={color} size={size} />
+                    tabBarButton: (props) => (
+                        <TabButton
+                            icon={<LayoutDashboard size={22} color={props.accessibilityState?.selected ? theme.primary : theme.textSubtle} />}
+                            label="Home"
+                            focused={props.accessibilityState?.selected || false}
+                            onPress={() => props.onPress?.({} as any)}
+                        />
+                    ),
+                }}
+            />
+            <Tab.Screen
+                name="Memory"
+                component={MemoryScreen}
+                options={{
+                    tabBarButton: (props) => (
+                        <TabButton
+                            icon={<Brain size={22} color={props.accessibilityState?.selected ? theme.primary : theme.textSubtle} />}
+                            label="Memory"
+                            focused={props.accessibilityState?.selected || false}
+                            onPress={() => props.onPress?.({} as any)}
+                        />
                     ),
                 }}
             />
@@ -73,9 +117,27 @@ function MainTabs() {
                 name="AddContext"
                 component={AddContextScreen}
                 options={{
-                    tabBarLabel: 'Add',
-                    tabBarIcon: ({ color, size }) => (
-                        <Plus color={color} size={size} />
+                    tabBarButton: (props) => (
+                        <TabButton
+                            icon={<Plus size={22} color={props.accessibilityState?.selected ? theme.primary : theme.textSubtle} />}
+                            label="Add"
+                            focused={props.accessibilityState?.selected || false}
+                            onPress={() => props.onPress?.({} as any)}
+                        />
+                    ),
+                }}
+            />
+            <Tab.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{
+                    tabBarButton: (props) => (
+                        <TabButton
+                            icon={<MessageCircle size={22} color={props.accessibilityState?.selected ? theme.primary : theme.textSubtle} />}
+                            label="Chat"
+                            focused={props.accessibilityState?.selected || false}
+                            onPress={() => props.onPress?.({} as any)}
+                        />
                     ),
                 }}
             />
@@ -83,8 +145,13 @@ function MainTabs() {
                 name="Profile"
                 component={ProfileScreen}
                 options={{
-                    tabBarIcon: ({ color, size }) => (
-                        <User color={color} size={size} />
+                    tabBarButton: (props) => (
+                        <TabButton
+                            icon={<User size={22} color={props.accessibilityState?.selected ? theme.primary : theme.textSubtle} />}
+                            label="Profile"
+                            focused={props.accessibilityState?.selected || false}
+                            onPress={() => props.onPress?.({} as any)}
+                        />
                     ),
                 }}
             />
@@ -98,7 +165,6 @@ export function Navigation() {
 
     useEffect(() => {
         if (hasShareIntent && navigationRef.isReady()) {
-            // Use setTimeout to avoid state update during render
             setTimeout(() => {
                 if (navigationRef.current) {
                     navigationRef.navigate('Main', {
@@ -114,8 +180,8 @@ export function Navigation() {
             <Stack.Navigator
                 screenOptions={{
                     headerShown: false,
-                    contentStyle: { backgroundColor: '#0a0a0a' }, // neutral-950
-                    animation: 'fade', // Use fade animation to reduce flash
+                    contentStyle: { backgroundColor: theme.bg },
+                    animation: 'fade',
                 }}
             >
                 <Stack.Screen name="Landing" component={LandingScreen} />
@@ -126,7 +192,7 @@ export function Navigation() {
                     name="Main"
                     component={MainTabs}
                     options={{
-                        gestureEnabled: false, // Disable swipe back
+                        gestureEnabled: false,
                     }}
                 />
             </Stack.Navigator>

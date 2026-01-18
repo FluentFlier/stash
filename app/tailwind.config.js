@@ -1,92 +1,123 @@
 /** @type {import('tailwindcss').Config} */
+
+// ============================================
+// SINGLE SOURCE OF TRUTH FOR ALL APP COLORS
+// Update these values to change colors app-wide
+// ============================================
+const colors = {
+  // Primary accent — Ink / Black
+  primary: {
+    50: '#f2f4f8',
+    100: '#e5e9f0',
+    200: '#cfd6e3',
+    300: '#aeb8cd',
+    400: '#8b98b6',
+    500: '#000000', // Main accent (ink)
+    600: '#000000',
+    700: '#000000',
+    800: '#000000',
+    900: '#000000',
+  },
+
+  // Secondary — Muted blue-gray
+  secondary: {
+    50: '#f7f9fc',
+    100: '#eef2f8',
+    200: '#dde3ef',
+    300: '#c3ccdf',
+    400: '#9aa7c4',
+    500: '#4b5b78',
+    600: '#404f6a',
+    700: '#35425a',
+    800: '#2b3548',
+    900: '#202836',
+  },
+
+  // App backgrounds — Light, blue-tinted surfaces
+  app: {
+    bg: '#f8faff',        // base-100
+    surface: '#f1f5fb',   // base-200
+    elevated: '#e6ebf4',  // base-300
+    border: '#d8deea',
+    borderLight: '#e6ebf4',
+  },
+
+  // Neutral — Editorial ink scale
+  neutral: {
+    50: '#f8faff',
+    100: '#f1f5fb',
+    200: '#e6ebf4',
+    300: '#d2d9e6',
+    400: '#a8b2c6',
+    500: '#7b879f',
+    600: '#55607a',
+    700: '#3b445c',
+    800: '#232b3f',
+    900: '#1c2433',
+    950: '#111827',
+  },
+
+  // Semantic
+  success: {
+    DEFAULT: '#22c55e',
+    light: '#4ade80',
+    dark: '#16a34a',
+    muted: 'rgba(34, 197, 94, 0.12)',
+  },
+  warning: {
+    DEFAULT: '#f59e0b',
+    light: '#fbbf24',
+    dark: '#d97706',
+    muted: 'rgba(245, 158, 11, 0.12)',
+  },
+  error: {
+    DEFAULT: '#ef4444',
+    light: '#f87171',
+    dark: '#dc2626',
+    muted: 'rgba(239, 68, 68, 0.1)',
+  },
+  info: {
+    DEFAULT: '#4f5dff', // accent oklch(54% 0.245 262)
+    light: '#7a85ff',
+    dark: '#3f4ae6',
+    muted: 'rgba(79, 93, 255, 0.12)',
+  },
+};
+
+// Export colors for use in theme/colors.ts
 module.exports = {
   content: [
     "./App.{js,jsx,ts,tsx}",
-    "./src/**/*.{js,jsx,ts,tsx}"
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {
-        // User's unified color scheme (oklch converted to hex)
-        // Primary - Indigo/Blue accent
-        primary: {
-          50: '#ecfeff',
-          100: '#cffafe',
-          200: '#a5f3fc',
-          300: '#67e8f9',
-          400: '#22d3ee',
-          500: '#06b6d4', // Main accent
-          600: '#0891b2',
-          700: '#0e7490',
-          800: '#155e75',
-          900: '#164e63',
-        },
-        // Secondary - Neutral gray-blue
-        secondary: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
-        },
-        // Base/Neutral - Clean grays
-        base: {
-          100: '#fafafa',
-          200: '#f5f5f5',
-          300: '#e5e5e5',
-          content: '#27272a',
-        },
-        // Neutral - Zinc scale for dark mode
-        neutral: {
-          50: '#fafafa',
-          100: '#f4f4f5',
-          200: '#e4e4e7',
-          300: '#d4d4d8',
-          400: '#a1a1aa',
-          500: '#71717a',
-          600: '#52525b',
-          700: '#3f3f46',
-          800: '#27272a',
-          900: '#18181b',
-          950: '#09090b',
-        },
-        // Semantic Colors
-        success: {
-          DEFAULT: '#22c55e',
-          light: '#4ade80',
-          dark: '#16a34a',
-        },
-        warning: {
-          DEFAULT: '#f97316',
-          light: '#fb923c',
-          dark: '#ea580c',
-        },
-        error: {
-          DEFAULT: '#ef4444',
-          light: '#f87171',
-          dark: '#dc2626',
-        },
-        info: {
-          DEFAULT: '#3b82f6',
-          light: '#60a5fa',
-          dark: '#2563eb',
-        },
+        ...colors,
+        // Convenience aliases for common backgrounds
+        background: colors.app.bg,
+        surface: colors.app.surface,
+        elevated: colors.app.elevated,
+      },
+      backgroundColor: {
+        app: colors.app.bg,
+        surface: colors.app.surface,
+        elevated: colors.app.elevated,
+      },
+      borderColor: {
+        app: colors.app.border,
+        'app-light': colors.app.borderLight,
       },
       fontFamily: {
         sans: ['Inter', 'SF Pro Display', 'system-ui', 'sans-serif'],
       },
       fontSize: {
-        'xs': ['11px', { lineHeight: '14px' }],
-        'sm': ['13px', { lineHeight: '18px' }],
-        'base': ['15px', { lineHeight: '22px' }],
-        'lg': ['17px', { lineHeight: '26px' }],
-        'xl': ['19px', { lineHeight: '28px' }],
+        xs: ['11px', { lineHeight: '14px' }],
+        sm: ['13px', { lineHeight: '18px' }],
+        base: ['15px', { lineHeight: '22px' }],
+        lg: ['17px', { lineHeight: '26px' }],
+        xl: ['19px', { lineHeight: '28px' }],
         '2xl': ['23px', { lineHeight: '30px' }],
         '3xl': ['28px', { lineHeight: '34px' }],
         '4xl': ['34px', { lineHeight: '40px' }],
@@ -111,17 +142,19 @@ module.exports = {
         '20': '80px',
       },
       borderRadius: {
-        'none': '0px',
-        'sm': '4px',
-        'DEFAULT': '8px',
-        'md': '10px',
-        'lg': '12px',
-        'xl': '16px',
+        none: '0px',
+        sm: '4px',
+        DEFAULT: '8px',
+        md: '10px',
+        lg: '12px',
+        xl: '16px',
         '2xl': '20px',
         '3xl': '24px',
-        'full': '9999px',
+        full: '9999px',
       },
     },
   },
   plugins: [],
-}
+  // Export colors object for theme/colors.ts
+  colors: colors,
+};

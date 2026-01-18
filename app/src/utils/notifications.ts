@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import { Platform, Alert } from 'react-native';
+import Constants from 'expo-constants';
 
 // Configure how notifications are handled when app is foregrounded
 Notifications.setNotificationHandler({
@@ -18,16 +18,6 @@ Notifications.setNotificationHandler({
  * Returns true if permission was granted, false otherwise
  */
 export async function requestNotificationPermissions(): Promise<boolean> {
-    // On simulator/emulator, we can't get push tokens
-    if (!Device.isDevice) {
-        Alert.alert(
-            'Simulator Detected',
-            'Push notifications require a physical device to work properly.',
-            [{ text: 'OK' }]
-        );
-        return false;
-    }
-
     try {
         // First check current permissions
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -69,13 +59,15 @@ export async function requestNotificationPermissions(): Promise<boolean> {
  * Get push token for remote notifications
  */
 export async function getPushToken(): Promise<string | null> {
-    if (!Device.isDevice) {
-        return null;
-    }
-
     try {
+        const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+        if (!projectId) {
+            console.warn('No project ID found for push notifications');
+            return null;
+        }
+
         const { data } = await Notifications.getExpoPushTokenAsync({
-            projectId: 'your-project-id', // Replace with your Expo project ID
+            projectId,
         });
         return data;
     } catch (error) {
@@ -90,12 +82,12 @@ export async function getPushToken(): Promise<string | null> {
 export async function scheduleLocalNotification(
     title: string,
     body: string,
-    trigger: Notifications.NotificationTriggerInput = { seconds: 5 }
+    seconds: number = 5
 ): Promise<string | null> {
     try {
         const id = await Notifications.scheduleNotificationAsync({
             content: { title, body },
-            trigger,
+            trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds },
         });
         return id;
     } catch (error) {

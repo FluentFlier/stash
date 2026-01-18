@@ -91,7 +91,7 @@ export const ProfileScreen: React.FC = () => {
                             alignItems: 'center',
                             justifyContent: 'center',
                         }}>
-                            <Text style={{ fontSize: 20, fontWeight: '600', color: '#ffffff' }}>
+                            <Text style={{ fontSize: 20, fontWeight: '600', color: theme.white }}>
                                 JS
                             </Text>
                         </View>
@@ -291,7 +291,7 @@ export const ProfileScreen: React.FC = () => {
                                     false: theme.bgTertiary,
                                     true: theme.primary,
                                 }}
-                                thumbColor="#ffffff"
+                                thumbColor={theme.white}
                             />
                         </View>
                     </View>
@@ -300,7 +300,7 @@ export const ProfileScreen: React.FC = () => {
                     <ButtonNew
                         variant="destructive"
                         size="lg"
-                        leftIcon={<LogOut size={16} color="#ffffff" />}
+                        leftIcon={<LogOut size={16} color={theme.white} />}
                         onPress={handleSignOut}
                     >
                         Sign Out

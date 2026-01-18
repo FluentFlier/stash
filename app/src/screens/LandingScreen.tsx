@@ -25,7 +25,7 @@ export const LandingScreen: React.FC<Props> = ({ navigation }) => {
                             justifyContent: 'center',
                             marginBottom: 24,
                         }}>
-                            <Brain size={40} color="#ffffff" strokeWidth={1.5} />
+                            <Brain size={40} color={theme.white} strokeWidth={1.5} />
                         </View>
                         <Text style={{
                             fontSize: 42,

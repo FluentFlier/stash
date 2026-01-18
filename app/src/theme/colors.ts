@@ -1,48 +1,57 @@
-// Shared theme colors - single source of truth
-// Update these values to change colors across the entire app
+// Theme colors derived from tailwind.config.js
+// This file imports from the same source of truth
 
+// Import colors from tailwind config
+const tailwindConfig = require('../../tailwind.config.js');
+const twColors = tailwindConfig.colors;
+
+// Export theme object for use in inline styles
+// All values come from tailwind.config.js - DO NOT HARDCODE HERE
 export const theme = {
-  // Main accent color (cyan from tailwind config)
-  primary: '#06b6d4',
-  primaryLight: '#22d3ee',
-  primaryDark: '#0891b2',
-  primaryMuted: 'rgba(6, 182, 212, 0.12)',
+  // Pure white for text on colored backgrounds
+  white: twColors.neutral[50], // #fafafa
 
-  // Backgrounds - softer dark theme
-  bg: '#121218',
-  bgSecondary: '#1c1c24',
-  bgTertiary: '#252530',
+  // Primary accent (cyan)
+  primary: twColors.primary[500],
+  primaryLight: twColors.primary[400],
+  primaryDark: twColors.primary[600],
+  primaryMuted: `rgba(6, 182, 212, 0.12)`,
+
+  // App backgrounds
+  bg: twColors.app.bg,
+  bgSecondary: twColors.app.surface,
+  bgTertiary: twColors.app.elevated,
 
   // Text colors
-  text: '#f4f4f5',
-  textMuted: '#a1a1aa',
-  textSubtle: '#71717a',
+  text: twColors.neutral[50],
+  textMuted: twColors.neutral[400],
+  textSubtle: twColors.neutral[500],
 
   // Borders
-  border: '#3a3a48',
-  borderLight: '#2d2d38',
+  border: twColors.app.border,
+  borderLight: twColors.app.borderLight,
 
   // Semantic colors
-  success: '#22c55e',
-  successMuted: 'rgba(34, 197, 94, 0.12)',
-  error: '#ef4444',
-  errorMuted: 'rgba(239, 68, 68, 0.1)',
-  warning: '#f97316',
-  warningMuted: 'rgba(249, 115, 22, 0.12)',
-  accent: '#3b82f6',
-  accentMuted: 'rgba(59, 130, 246, 0.12)',
+  success: twColors.success.DEFAULT,
+  successMuted: twColors.success.muted,
+  error: twColors.error.DEFAULT,
+  errorMuted: twColors.error.muted,
+  warning: twColors.warning.DEFAULT,
+  warningMuted: twColors.warning.muted,
+  accent: twColors.info.DEFAULT,
+  accentMuted: twColors.info.muted,
 };
 
-// For ButtonNew variants
+// Button-specific colors
 export const buttonColors = {
   primary: theme.primary,
-  primaryContent: '#ffffff',
-  secondary: '#52525b',
-  secondaryContent: '#fafafa',
-  neutral: '#27272a',
-  neutralContent: '#fafafa',
+  primaryContent: theme.white,
+  secondary: twColors.neutral[600],
+  secondaryContent: twColors.neutral[50],
+  neutral: twColors.neutral[800],
+  neutralContent: twColors.neutral[50],
   error: theme.error,
-  errorContent: '#ffffff',
+  errorContent: theme.white,
   outline: {
     border: theme.border,
     text: theme.text,
@@ -51,3 +60,6 @@ export const buttonColors = {
     text: theme.textMuted,
   },
 };
+
+// Export raw tailwind colors for direct access
+export const colors = twColors;

@@ -102,7 +102,7 @@ export const AddContextScreen: React.FC = () => {
                             alignItems: 'center',
                             justifyContent: 'center',
                         }}>
-                            <Plus size={22} color="#ffffff" strokeWidth={2.5} />
+                            <Plus size={22} color={theme.white} strokeWidth={2.5} />
                         </View>
                         <View>
                             <Text style={{ fontSize: 22, fontWeight: '700', color: theme.text }}>
@@ -141,7 +141,7 @@ export const AddContextScreen: React.FC = () => {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                 }}>
-                                    <Share2 size={20} color="#ffffff" />
+                                    <Share2 size={20} color={theme.white} />
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <Text style={{ fontSize: 15, fontWeight: '600', color: theme.text }}>

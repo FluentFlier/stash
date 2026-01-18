@@ -7,8 +7,10 @@ export type RootStackParamList = {
 };
 
 export type MainTabParamList = {
-    Chat: undefined;
+    Dashboard: undefined;
+    Memory: undefined;
     AddContext: undefined;
+    Chat: undefined;
     Profile: undefined;
 };
 

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, TextInput } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, TextInput, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar, User, ChevronRight, Sparkles, Check } from 'lucide-react-native';
+import { Calendar, User, ChevronRight, Sparkles, Check, Bell } from 'lucide-react-native';
 import { ButtonNew } from '../components/ui';
 import { theme } from '../theme';
+import { requestNotificationPermissions } from '../utils/notifications';
 import type { RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Onboarding'>;
@@ -14,13 +15,26 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
     const [name, setName] = useState('');
     const [role, setRole] = useState('');
     const [age, setAge] = useState('');
+    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-    const handleNext = () => {
-        if (step < 4) setStep(step + 1);
-        else navigation.navigate('Main');
+    const handleNext = async () => {
+        if (step < 5) {
+            setStep(step + 1);
+        } else {
+            navigation.navigate('Main');
+        }
     };
 
     const handleSkip = () => navigation.navigate('Main');
+
+    const handleEnableNotifications = async () => {
+        const granted = await requestNotificationPermissions();
+        setNotificationsEnabled(granted);
+        if (granted) {
+            Alert.alert('Notifications Enabled', 'You\'ll receive reminders for your saved content!');
+        }
+        handleNext();
+    };
 
     const renderInput = (icon: React.ReactNode, label: string, value: string, setValue: (v: string) => void, placeholder: string, keyboardType?: 'default' | 'number-pad') => (
         <View style={{ backgroundColor: theme.bgSecondary, borderRadius: 12, borderWidth: 1, borderColor: theme.borderLight, padding: 16, width: '100%', marginTop: 12 }}>
@@ -37,9 +51,9 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
             <SafeAreaView style={{ flex: 1 }}>
                 <View style={{ paddingHorizontal: 24, paddingVertical: 16, gap: 8 }}>
                     <View style={{ height: 4, backgroundColor: theme.bgTertiary, borderRadius: 2, overflow: 'hidden' }}>
-                        <View style={{ height: '100%', backgroundColor: theme.primary, borderRadius: 2, width: `${(step / 4) * 100}%` }} />
+                        <View style={{ height: '100%', backgroundColor: theme.primary, borderRadius: 2, width: `${(step / 5) * 100}%` }} />
                     </View>
-                    <Text style={{ fontSize: 12, color: theme.textSubtle, textAlign: 'right' }}>Step {step} of 4</Text>
+                    <Text style={{ fontSize: 12, color: theme.textSubtle, textAlign: 'right' }}>Step {step} of 5</Text>
                 </View>
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -76,8 +90,28 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
                             )}
                             {step === 4 && (
                                 <View style={{ flex: 1, gap: 20, alignItems: 'center', justifyContent: 'center' }}>
+                                    <View style={{ width: 80, height: 80, backgroundColor: theme.warningMuted, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
+                                        <Bell size={36} color={theme.warning} />
+                                    </View>
+                                    <Text style={{ fontSize: 26, fontWeight: '700', color: theme.text, textAlign: 'center' }}>Stay Updated</Text>
+                                    <Text style={{ fontSize: 15, color: theme.textMuted, textAlign: 'center', maxWidth: '85%' }}>Get reminders for events and saved content.</Text>
+                                    <View style={{ backgroundColor: theme.bgSecondary, borderRadius: 12, borderWidth: 1, borderColor: theme.borderLight, padding: 16, width: '100%', gap: 12 }}>
+                                        {['Smart reminders for events', 'Content digests', 'AI suggestions'].map((item, i) => (
+                                            <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                                <View style={{ width: 20, height: 20, backgroundColor: theme.successMuted, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Check size={12} color={theme.success} />
+                                                </View>
+                                                <Text style={{ fontSize: 14, color: theme.textMuted }}>{item}</Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                    <ButtonNew size="lg" onPress={handleEnableNotifications} style={{ width: '100%' }}>Enable Notifications</ButtonNew>
+                                </View>
+                            )}
+                            {step === 5 && (
+                                <View style={{ flex: 1, gap: 20, alignItems: 'center', justifyContent: 'center' }}>
                                     <View style={{ width: 80, height: 80, backgroundColor: theme.primary, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
-                                        <Calendar size={36} color="#ffffff" />
+                                        <Calendar size={36} color={theme.white} />
                                     </View>
                                     <Text style={{ fontSize: 26, fontWeight: '700', color: theme.text, textAlign: 'center' }}>Connect Calendar</Text>
                                     <Text style={{ fontSize: 15, color: theme.textMuted, textAlign: 'center', maxWidth: '85%' }}>Automatically create events from saved content.</Text>
@@ -97,8 +131,8 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
                         </ScrollView>
                     </TouchableWithoutFeedback>
                     <View style={{ paddingHorizontal: 24, paddingBottom: 24, gap: 12 }}>
-                        {step < 4 && <ButtonNew size="lg" onPress={handleNext} rightIcon={<ChevronRight size={18} color="#ffffff" />}>Continue</ButtonNew>}
-                        {step === 4 && <ButtonNew variant="ghost" onPress={handleSkip}>Skip for now</ButtonNew>}
+                        {step < 4 && <ButtonNew size="lg" onPress={handleNext} rightIcon={<ChevronRight size={18} color={theme.white} />}>Continue</ButtonNew>}
+                        {(step === 4 || step === 5) && <ButtonNew variant="ghost" onPress={handleSkip}>Skip for now</ButtonNew>}
                     </View>
                 </KeyboardAvoidingView>
             </SafeAreaView>

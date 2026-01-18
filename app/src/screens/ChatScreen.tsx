@@ -242,7 +242,7 @@ export const ChatScreen: React.FC = () => {
                                     justifyContent: 'center',
                                 }}
                             >
-                                <Send size={18} color={message.trim() ? '#ffffff' : theme.textSubtle} />
+                                <Send size={18} color={message.trim() ? theme.white : theme.textSubtle} />
                             </Pressable>
                         </View>
                     </View>
