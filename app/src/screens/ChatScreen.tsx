@@ -62,7 +62,7 @@ export const ChatScreen: React.FC = () => {
 
         // Real AI response
         try {
-            const response = await api.chat(message);
+            const response = await api.sendChatMessage(message);
 
             if (response.success && response.data) {
                 setMessages((prev) => [

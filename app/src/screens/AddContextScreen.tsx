@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, Alert, TouchableWithoutFeedback, Keyboard, Pressable, Image } from 'react-native';
+import { View, Text, ScrollView, TextInput, Alert, TouchableWithoutFeedback, Keyboard, Pressable, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useShareIntent } from 'expo-share-intent';
 import {
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react-native';
 import { ButtonNew } from '../components/ui';
 import { theme } from '../theme';
+import { api } from '../utils/api';
 
 export const AddContextScreen: React.FC = () => {
     const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
@@ -24,6 +25,7 @@ export const AddContextScreen: React.FC = () => {
     const [textNote, setTextNote] = useState('');
     const [sharedMediaUri, setSharedMediaUri] = useState<string | null>(null);
     const [sharedMediaName, setSharedMediaName] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (hasShareIntent && shareIntent) {
@@ -47,21 +49,59 @@ export const AddContextScreen: React.FC = () => {
     }, [hasShareIntent, shareIntent]);
 
     const handleSave = async () => {
-        Alert.alert('Success', 'Content saved to Stash!', [
-            {
-                text: 'OK',
-                onPress: () => {
-                    setSelectedType(null);
-                    setLinkUrl('');
-                    setTextNote('');
-                    setSharedMediaUri(null);
-                    setSharedMediaName(null);
-                    if (hasShareIntent) {
-                        resetShareIntent();
-                    }
-                },
-            },
-        ]);
+        if (!selectedType) return;
+
+        setSaving(true);
+        try {
+            let content = '';
+            let type = selectedType;
+
+            if (selectedType === 'link') {
+                content = linkUrl;
+            } else if (selectedType === 'text') {
+                content = textNote;
+                type = 'text';
+            } else if (sharedMediaUri) {
+                content = sharedMediaUri;
+            }
+
+            if (!content) {
+                Alert.alert('Error', 'Please enter content to save');
+                setSaving(false);
+                return;
+            }
+
+            const response = await api.createCapture({
+                type,
+                content,
+                title: selectedType === 'text' ? textNote.slice(0, 50) : undefined,
+            });
+
+            if (response.success) {
+                Alert.alert('Success', 'Content saved to Stash!', [
+                    {
+                        text: 'OK',
+                        onPress: () => {
+                            setSelectedType(null);
+                            setLinkUrl('');
+                            setTextNote('');
+                            setSharedMediaUri(null);
+                            setSharedMediaName(null);
+                            if (hasShareIntent) {
+                                resetShareIntent();
+                            }
+                        },
+                    },
+                ]);
+            } else {
+                Alert.alert('Error', response.error || 'Failed to save content');
+            }
+        } catch (error) {
+            console.error('Error saving capture:', error);
+            Alert.alert('Error', 'Network error. Please try again.');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleCancel = () => {

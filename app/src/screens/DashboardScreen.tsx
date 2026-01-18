@@ -33,23 +33,21 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export const DashboardScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProp>();
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState<any>(null); // Real stats
+    const [stats, setStats] = useState<any>(null);
 
-    // Default mock for fallback/loading skeleton
     const [weeklyProgress, setWeeklyProgress] = useState(
-        Array(7).fill({ day: 'Day', value: 0 }).map((_, i) => ({ day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i], value: 2 }))
+        Array(7).fill({ day: 'Day', value: 0 }).map((_, i) => ({ day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i], value: 0 }))
     );
 
     useFocusEffect(
         React.useCallback(() => {
             const loadStats = async () => {
+                setLoading(true);
                 try {
                     const response = await api.getDashboardStats();
                     if (response.success && response.data) {
                         setStats(response.data);
-                        if (response.data.weeklyProgress) {
-                            setWeeklyProgress(response.data.weeklyProgress);
-                        }
+                        // Future: Backend should provide weeklyProgress
                     }
                 } catch (e) {
                     console.error("Dashboard Fetch Error", e);
@@ -61,7 +59,7 @@ export const DashboardScreen: React.FC = () => {
         }, [])
     );
 
-    const maxValue = Math.max(...weeklyProgress.map(d => d.value));
+    const maxValue = Math.max(...weeklyProgress.map(d => d.value)) || 1;
 
     const todayStats = stats?.todayStats || {
         itemsSaved: 0,
@@ -70,12 +68,22 @@ export const DashboardScreen: React.FC = () => {
         timeSpent: '0m'
     };
 
-    const upcomingActions = stats?.upcomingActions || [];
-    const recentTopics = stats?.recentTopics || [];
-    // Only show digest if exists
-    const aiDigest = stats?.aiDigest || null;
+    const upcomingActions = (stats?.upcomingReminders || []).map((r: any) => ({
+        id: r.id,
+        title: r.message,
+        time: new Date(r.scheduledAt).toLocaleString(),
+        type: 'reminder',
+        source: 'AI reminder'
+    }));
 
-    // Future: Fetch pending approvals real data
+    const recentTopics = stats?.recentCaptures?.map((c: any) => ({
+        id: c.id,
+        name: c.title || c.type,
+        count: 1,
+        trend: '+1'
+    })) || [];
+
+    const aiDigest = stats?.aiDigest || null;
     const pendingApprovals: any[] = [];
 
 

@@ -10,7 +10,7 @@ import {
 // ============================================
 
 export const createCaptureSchema = z.object({
-  type: z.enum(['LINK', 'TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'PDF', 'DOCUMENT', 'OTHER']),
+  type: z.preprocess((val) => typeof val === 'string' ? val.toUpperCase() : val, z.enum(['LINK', 'TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'PDF', 'DOCUMENT', 'OTHER'])),
   content: z.string().min(1).max(10000).refine((val) => {
     const validation = validateSecurityPatterns(val, 'capture content');
     return validation.isValid;
@@ -22,8 +22,8 @@ export const createCaptureSchema = z.object({
 export const getCapturesQuerySchema = z.object({
   limit: z.string().optional().default('20'),
   offset: z.string().optional().default('0'),
-  type: z.enum(['LINK', 'TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'PDF', 'DOCUMENT', 'OTHER']).optional(),
-  status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']).optional(),
+  type: z.preprocess((val) => typeof val === 'string' ? val.toUpperCase() : val, z.enum(['LINK', 'TEXT', 'IMAGE', 'VIDEO', 'AUDIO', 'PDF', 'DOCUMENT', 'OTHER']).optional()),
+  status: z.preprocess((val) => typeof val === 'string' ? val.toUpperCase() : val, z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']).optional()),
 });
 
 // ============================================

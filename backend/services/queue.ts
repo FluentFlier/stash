@@ -1,5 +1,7 @@
 import { config } from '../config/env.js';
 import { logger } from '../utils/logger.js';
+import { prisma } from '../config/database.js';
+import { AgentCoordinator } from '../agents/coordinator.js';
 
 // ============================================
 // Queue Stubs (Lazy initialization)
@@ -13,6 +15,16 @@ let _captureQueue: any = null;
 let _reminderQueue: any = null;
 let _proactiveQueue: any = null;
 let _patternLearningQueue: any = null;
+
+// Agent coordinator for direct processing fallback
+let _coordinator: AgentCoordinator | null = null;
+
+function getCoordinator() {
+  if (!_coordinator) {
+    _coordinator = new AgentCoordinator();
+  }
+  return _coordinator;
+}
 
 async function getQueue(name: string, existingQueue: any, setQueue: (q: any) => void) {
   if (!REDIS_URL) {
@@ -46,10 +58,29 @@ async function getQueue(name: string, existingQueue: any, setQueue: (q: any) => 
 
 export async function addCaptureJob(captureId: string, userId: string) {
   const queue = await getQueue('capture-processing', _captureQueue, (q) => _captureQueue = q);
+
   if (!queue) {
-    logger.info(`[Queue] Capture ${captureId} saved (queue not available)`);
+    logger.info(`[Queue] Capture ${captureId} - processing directly (no Redis)`);
+
+    // Direct processing fallback (async but not awaited by the route)
+    (async () => {
+      try {
+        const capture = await prisma.capture.findUnique({ where: { id: captureId } });
+        if (capture) {
+          await prisma.capture.update({
+            where: { id: captureId },
+            data: { processingStatus: 'processing' }
+          });
+          await getCoordinator().processCapture(capture, userId);
+        }
+      } catch (err) {
+        logger.error(`[Queue] Direct processing error for ${captureId}:`, err);
+      }
+    })();
+
     return { id: 'direct' };
   }
+
   return queue.add('process-capture', { captureId, userId });
 }
 

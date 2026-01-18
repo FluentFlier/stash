@@ -21,8 +21,8 @@ export const useNotificationSystem = (navigationRef: any) => {
                 // Fetch latest
                 const response = await api.getNotifications();
 
-                if (response.success && response.data?.data) {
-                    const insights = response.data.data;
+                if (response.success && response.data) {
+                    const insights = response.data;
                     if (insights.length === 0) return;
 
                     // Most recent first usually

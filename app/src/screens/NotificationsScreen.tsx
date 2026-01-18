@@ -20,8 +20,7 @@ export const NotificationsScreen = () => {
         try {
             const response = await api.getNotifications();
             if (response.success && response.data) {
-                // response.data is { data: [], meta: {} }
-                setNotifications(response.data.data || []);
+                setNotifications(response.data || []);
             }
         } catch (error) {
             console.error('Failed to load notifications:', error);

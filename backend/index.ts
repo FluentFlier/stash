@@ -11,6 +11,11 @@ import { chatRoutes } from './routes/chat.js';
 import { collectionRoutes } from './routes/collections.js';
 import { reminderRoutes } from './routes/reminders.js';
 import { calendarRoutes } from './routes/calendar.js';
+import { notificationRoutes } from './routes/notifications.js';
+import { insightRoutes } from './routes/insights.js';
+import { voiceRoutes } from './routes/voice.js';
+import { apiKeyRoutes } from './routes/api-keys.js';
+import { webhookRoutes } from './routes/webhooks.js';
 
 async function buildServer() {
   const fastify = Fastify({
@@ -60,6 +65,11 @@ async function buildServer() {
   await fastify.register(collectionRoutes);
   await fastify.register(reminderRoutes);
   await fastify.register(calendarRoutes);
+  await fastify.register(notificationRoutes);
+  await fastify.register(insightRoutes);
+  await fastify.register(voiceRoutes);
+  await fastify.register(apiKeyRoutes);
+  await fastify.register(webhookRoutes);
 
   return fastify;
 }
