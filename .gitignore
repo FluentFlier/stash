@@ -9,6 +9,8 @@ dist/
 build/
 *.tsbuildinfo
 
+*.next/
+
 # Environment variables
 .env
 .env.local
