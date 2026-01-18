@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard, TextInput, Pressable } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard, TextInput, Pressable, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Mail, Lock, AlertCircle, Chrome } from 'lucide-react-native';
 import { ButtonNew } from '../components/ui';
 import { theme } from '../theme';
+import { api } from '../utils/api';
 import type { RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
@@ -23,14 +24,20 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
         setError(null);
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-            if (email.includes('error')) {
-                setError('Invalid email or password');
-            } else {
+
+        try {
+            const response = await api.login(email, password);
+
+            if (response.success) {
                 navigation.navigate('Main');
+            } else {
+                setError(response.error || 'Login failed');
             }
-        }, 1500);
+        } catch (err) {
+            setError('An unexpected error occurred');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleGoogleLogin = () => {

@@ -6,6 +6,7 @@ import { Calendar, User, ChevronRight, Sparkles, Check, Bell } from 'lucide-reac
 import { ButtonNew } from '../components/ui';
 import { theme } from '../theme';
 import { requestNotificationPermissions } from '../utils/notifications';
+import { api } from '../utils/api';
 import type { RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Onboarding'>;
@@ -16,12 +17,28 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
     const [role, setRole] = useState('');
     const [age, setAge] = useState('');
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleNext = async () => {
         if (step < 5) {
             setStep(step + 1);
         } else {
-            navigation.navigate('Main');
+            // Save onboarding data to backend
+            setLoading(true);
+            try {
+                await api.updateOnboarding({
+                    name: name || undefined,
+                    role: role || undefined,
+                    age: age ? parseInt(age) : undefined,
+                    notificationsEnabled,
+                    googleCalendarConnected: false,
+                });
+                navigation.navigate('Main');
+            } catch (error) {
+                Alert.alert('Error', 'Failed to save profile. Please try again.');
+            } finally {
+                setLoading(false);
+            }
         }
     };
 

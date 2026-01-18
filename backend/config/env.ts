@@ -1,29 +1,38 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Load environment variables
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({
+  path: path.resolve(__dirname, '../../.env')
+});
+
+
 
 // Environment schema with Zod validation
 const envSchema = z.object({
   // Server
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().default('3000'),
-  API_URL: z.string().url().default('http://localhost:3000'),
+  PORT: z.string().default('4000'),
+  API_URL: z.string().url().default('http://localhost:4000'),
 
-  // Database (Supabase PostgreSQL)
-  DATABASE_URL: z.string().url(),
-  SUPABASE_URL: z.string().url().optional(),
-  SUPABASE_SERVICE_KEY: z.string().optional(),
+  // Supabase
+  SUPABASE_URL: z.string().url(),
+  SUPABASE_SERVICE_KEY: z.string().min(1),
+  SUPABASE_ANON_KEY: z.string().optional(),
+  SUPABASE_JWT_SECRET: z.string().min(1),
 
-  // Redis (Cache + Queue)
-  REDIS_URL: z.string().url(),
+  // Redis (Optional for now)
+  REDIS_URL: z.string().optional(),
 
-  // AI / LLM (Supermemory proxy)
-  OPENAI_API_KEY: z.string().min(1),
+  // AI Services (Optional for now)
+  OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().url().optional(),
-  OPENAI_MODEL: z.string().min(1).optional(),
-  SUPERMEMORY_API_KEY: z.string().min(1),
+  OPENAI_MODEL: z.string().optional(),
+  SUPERMEMORY_API_KEY: z.string().optional(),
   SUPERMEMORY_BASE_URL: z.string().url().optional(),
 
   // Jina AI (Link content extraction)
@@ -43,10 +52,6 @@ const envSchema = z.object({
   LIVEKIT_API_KEY: z.string().optional(),
   LIVEKIT_API_SECRET: z.string().optional(),
   LIVEKIT_URL: z.string().url().optional(),
-
-  // Authentication
-  JWT_SECRET: z.string().min(32),
-  JWT_EXPIRES_IN: z.string().default('7d'),
 
   // Agent Configuration
   AGENT_MAX_REASONING_STEPS: z.string().default('5'),
@@ -80,10 +85,11 @@ export const config = {
     port: parseInt(env.PORT, 10),
     apiUrl: env.API_URL,
   },
-  database: {
-    url: env.DATABASE_URL,
-    supabaseUrl: env.SUPABASE_URL,
-    supabaseServiceKey: env.SUPABASE_SERVICE_KEY,
+  supabase: {
+    url: env.SUPABASE_URL,
+    serviceKey: env.SUPABASE_SERVICE_KEY,
+    anonKey: env.SUPABASE_ANON_KEY,
+    jwtSecret: env.SUPABASE_JWT_SECRET,
   },
   redis: {
     url: env.REDIS_URL,
@@ -109,10 +115,6 @@ export const config = {
     apiKey: env.LIVEKIT_API_KEY,
     apiSecret: env.LIVEKIT_API_SECRET,
     url: env.LIVEKIT_URL,
-  },
-  auth: {
-    jwtSecret: env.JWT_SECRET,
-    jwtExpiresIn: env.JWT_EXPIRES_IN,
   },
   agent: {
     maxReasoningSteps: parseInt(env.AGENT_MAX_REASONING_STEPS, 10),

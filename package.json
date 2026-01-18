@@ -5,17 +5,17 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch backend/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
-    "worker": "tsx src/workers/index.ts",
+    "worker": "tsx backend/workers/index.ts",
     "test": "vitest",
-    "lint": "eslint src/**/*.ts",
-    "format": "prettier --write src/**/*.ts"
+    "lint": "eslint backend/**/*.ts",
+    "format": "prettier --write backend/**/*.ts"
   },
   "keywords": [
     "ai",

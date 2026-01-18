@@ -1,18 +1,20 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { crypto } from '../utils/crypto.js';
 import { logger } from '../utils/logger.js';
-import { prisma } from '../config/database.js';
 
 export interface JWTPayload {
-  id: string;
-  email: string;
+  sub: string; // Supabase User ID
+  email?: string;
+  aud?: string;
   iat?: number;
   exp?: number;
+  app_metadata?: any;
+  user_metadata?: any;
 }
 
 /**
  * JWT Authentication middleware
- * Verifies the JWT token and attaches user to request
+ * Verifies Supabase JWT token and attaches user to request
  */
 export async function authenticateJWT(
   request: FastifyRequest,
@@ -44,27 +46,22 @@ export async function authenticateJWT(
       });
     }
 
-    // Verify token
+    // Verify token using Supabase JWT secret
     const payload = crypto.verifyToken<JWTPayload>(token);
 
-    // Check if user still exists
-    const user = await prisma.user.findUnique({
-      where: { id: payload.id },
-      select: { id: true, email: true, name: true },
-    });
-
-    if (!user) {
+    // Verify audience
+    if (payload.aud !== 'authenticated') {
       return reply.code(401).send({
         success: false,
-        error: 'User not found',
+        error: 'Invalid token audience',
       });
     }
 
-    // Attach user to request
+    // Attach user from token payload (no DB lookup needed)
     request.user = {
-      id: user.id,
-      email: user.email,
-      name: user.name || undefined,
+      id: payload.sub,
+      email: payload.email || '',
+      name: payload.user_metadata?.name,
     };
   } catch (error: any) {
     logger.error('[Auth] Authentication error:', error);
@@ -108,16 +105,11 @@ export async function optionalAuth(
     const token = authHeader.substring(7);
     const payload = crypto.verifyToken<JWTPayload>(token);
 
-    const user = await prisma.user.findUnique({
-      where: { id: payload.id },
-      select: { id: true, email: true, name: true },
-    });
-
-    if (user) {
+    if (payload.aud === 'authenticated') {
       request.user = {
-        id: user.id,
-        email: user.email,
-        name: user.name || undefined,
+        id: payload.sub,
+        email: payload.email || '',
+        name: payload.user_metadata?.name,
       };
     }
   } catch (error) {
