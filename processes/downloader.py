@@ -24,7 +24,7 @@ Environment Variables:
     GEMINI_API_KEY    - Google Gemini API key for non-video processing
 
 Output Structure:
-    download_test/outputs/<input_stem>/
+    processes/outputs/<input_stem>/
         topic.txt   - Topic label (1-3 words)
         summary.txt - Full summary
 """

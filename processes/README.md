@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 ## Configuration
 
-API keys are stored in a `.env` file in the `download_test` directory.
+API keys are stored in a `.env` file in the `processes` directory.
 
 ### Quick Setup
 
@@ -43,8 +43,8 @@ The `.env` file is already configured with working API keys. Just run:
 # From repository root
 pip install -r requirements.txt
 
-# Then run the downloader (from root or download_test directory)
-cd download_test
+# Then run the downloader (from root or processes directory)
+cd processes
 python downloader.py
 ```
 
@@ -76,13 +76,13 @@ VIDEO_PROCESSOR=gemini
 
 ## Usage
 
-**Note:** Run commands from the repository root, or from the `download_test` directory.
+**Note:** Run commands from the repository root, or from the `processes` directory.
 
 ### Download from URL (with AI processing)
 
 ```bash
-# From repository root or download_test directory
-cd download_test  # if not already there
+# From repository root or processes directory
+cd processes  # if not already there
 
 # Interactive mode
 python downloader.py
@@ -118,7 +118,7 @@ python downloader.py --process-only ./outputs/tiktok_video/tiktok_video.mp4
 All outputs are saved in the `outputs/` directory with **consistent format**:
 
 ```
-download_test/
+processes/
 ├── outputs/
 │   ├── tiktok_video/           # VIDEO → Overshoot AI
 │   │   ├── tiktok_video.mp4    
