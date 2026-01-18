@@ -1,0 +1,148 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User profiles (maps to Supabase auth.users)
+model User {
+  id                      String    @id @default(uuid())
+  email                   String?   @unique
+  name                    String?
+  role                    String?
+  age                     Int?
+  googleCalendarConnected Boolean   @default(false) @map("google_calendar_connected")
+  notificationsEnabled    Boolean   @default(false) @map("notifications_enabled")
+  fcmToken                String?   @map("fcm_token")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  captures    Capture[]
+  reminders   Reminder[]
+  collections Collection[]
+  chatMessages ChatMessage[]
+
+  @@map("profiles")
+}
+
+// Captures - saved links, images, videos, etc.
+model Capture {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  type             String   // link, image, video, text, pdf, audio
+  content          String
+  userInput        String?  @map("user_input")
+  title            String?
+  description      String?
+  metadata         Json     @default("{}")
+  analysis         Json     @default("{}")
+  processingStatus String   @default("PENDING") @map("processing_status")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reminders Reminder[]
+  tags      CaptureTag[]
+  collections CollectionCapture[]
+
+  @@index([userId])
+  @@index([createdAt(sort: Desc)])
+  @@index([type])
+  @@index([processingStatus])
+  @@map("captures")
+}
+
+// Reminders for captures
+model Reminder {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  captureId     String?   @map("capture_id")
+  message       String
+  scheduledAt   DateTime  @map("scheduled_at")
+  status        String    @default("pending") // pending, sent, completed, cancelled
+  recurring     Boolean   @default(false)
+  recurringRule Json?     @map("recurring_rule")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  sentAt        DateTime? @map("sent_at")
+  completedAt   DateTime? @map("completed_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  capture Capture? @relation(fields: [captureId], references: [id], onDelete: SetNull)
+
+  @@map("reminders")
+}
+
+// Collections for organizing captures
+model Collection {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String
+  description String?
+  type        String   @default("manual") // manual, smart
+  rules       Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  captures CollectionCapture[]
+
+  @@map("collections")
+}
+
+// Junction table for collections and captures
+model CollectionCapture {
+  id           String   @id @default(uuid())
+  collectionId String   @map("collection_id")
+  captureId    String   @map("capture_id")
+  addedAt      DateTime @default(now()) @map("added_at")
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  capture    Capture    @relation(fields: [captureId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, captureId])
+  @@map("collection_captures")
+}
+
+// Tags for captures
+model Tag {
+  id        String       @id @default(uuid())
+  name      String       @unique
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  captures CaptureTag[]
+
+  @@map("tags")
+}
+
+// Junction table for captures and tags
+model CaptureTag {
+  id        String   @id @default(uuid())
+  captureId String   @map("capture_id")
+  tagId     String   @map("tag_id")
+  addedAt   DateTime @default(now()) @map("added_at")
+
+  capture Capture @relation(fields: [captureId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([captureId, tagId])
+  @@map("capture_tags")
+}
+
+// Chat messages for AI conversations
+model ChatMessage {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  role      String   // user, assistant
+  content   String
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}

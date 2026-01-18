@@ -4,8 +4,8 @@ import { logger } from '../utils/logger.js';
 type ChatCompletionMessageParam = {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content:
-    | string
-    | Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }>;
+  | string
+  | Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }>;
 };
 
 type ChatCompletionResponse = {
@@ -184,6 +184,49 @@ export async function analyzeImage(
   } catch (error: any) {
     logger.error('[AI] Image analysis error:', error);
     throw new Error(`Failed to analyze image: ${error.message}`);
+  }
+}
+
+/**
+ * Analyze multiple frames with GPT-4 Vision (for video analysis)
+ */
+export async function analyzeFrames(
+  frames: Array<{ type: 'base64' | 'url'; data: string }>,
+  prompt: string,
+  userId: string
+): Promise<string> {
+  try {
+    const imageContent = frames.map((frame) => ({
+      type: 'image_url' as const,
+      image_url: {
+        url: frame.type === 'base64'
+          ? `data:image/jpeg;base64,${frame.data}`
+          : frame.data,
+      },
+    }));
+
+    const response = await supermemoryRequest<ChatCompletionResponse>(
+      '/chat/completions',
+      {
+        model: 'gpt-4-vision-preview',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt },
+              ...imageContent,
+            ],
+          },
+        ],
+        max_tokens: 2000,
+      },
+      userId
+    );
+
+    return response.choices[0]?.message?.content || '';
+  } catch (error: any) {
+    logger.error('[AI] Frame analysis error:', error);
+    throw new Error(`Failed to analyze frames: ${error.message}`);
   }
 }
 

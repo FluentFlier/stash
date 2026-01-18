@@ -6,6 +6,10 @@ import { config } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { authenticateJWT } from './middleware/auth.js';
 import { authRoutes } from './routes/auth.js';
+import { captureRoutes } from './routes/captures.js';
+import { chatRoutes } from './routes/chat.js';
+import { collectionRoutes } from './routes/collections.js';
+import { reminderRoutes } from './routes/reminders.js';
 
 async function buildServer() {
   const fastify = Fastify({
@@ -48,8 +52,12 @@ async function buildServer() {
   // Add authenticate decorator
   fastify.decorate('authenticate', authenticateJWT);
 
-  // Routes
+  // Routes - ALL OF THEM
   await fastify.register(authRoutes);
+  await fastify.register(captureRoutes);
+  await fastify.register(chatRoutes);
+  await fastify.register(collectionRoutes);
+  await fastify.register(reminderRoutes);
 
   return fastify;
 }

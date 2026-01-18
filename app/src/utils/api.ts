@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import Constants from 'expo-constants';
 
-const API_URL = 'https://glycogenic-marilynn-crustiest.ngrok-free.dev';
+const API_URL = 'https://liz-ostracizable-candis.ngrok-free.dev';
 
 
 interface ApiResponse<T> {
@@ -50,6 +50,8 @@ class ApiClient {
 
             const headers: HeadersInit = {
                 'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true', // Skip ngrok interstitial
+                'User-Agent': 'StashApp/1.0', // Alternative ngrok bypass
                 ...(token && { Authorization: `Bearer ${token}` }),
                 ...options.headers,
             };
@@ -59,7 +61,21 @@ class ApiClient {
                 headers,
             });
 
-            const data = await response.json();
+            // Check if response is JSON before parsing
+            const contentType = response.headers.get('content-type');
+            let data: any;
+
+            if (contentType && contentType.includes('application/json')) {
+                data = await response.json();
+            } else {
+                // Non-JSON response (HTML error page, ngrok page, etc.)
+                const text = await response.text();
+                console.warn('Non-JSON response:', text.slice(0, 200));
+                return {
+                    success: false,
+                    error: 'Server returned non-JSON response',
+                };
+            }
 
             if (!response.ok) {
                 return {
