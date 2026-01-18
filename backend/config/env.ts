@@ -16,7 +16,7 @@ dotenv.config({
 const envSchema = z.object({
   // Server
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().default('3000'),
+  PORT: z.string().default('8080'),
   API_URL: z.string().url().default('http://localhost:3000'),
 
   // Supabase (optional at startup, required for auth features)

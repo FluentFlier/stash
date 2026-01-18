@@ -3,14 +3,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files (including lock file)
-COPY backend/package.json backend/package-lock.json* ./
+# Copy package files
+COPY package.json package-lock.json* ./
 
-# Install dependencies (use npm install as fallback if no lock file)
+# Install dependencies
 RUN npm install --omit=dev
 
 # Copy source code
-COPY backend/ ./
+COPY . ./
 
 # Production stage
 FROM node:20-alpine AS runner
@@ -29,12 +29,13 @@ RUN npm install -g tsx
 
 USER stash
 
-# Expose port
-EXPOSE 3000
+# Cloud Run sets PORT automatically
+ENV PORT=8080
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health || exit 1
 
-# Start server
+# Start server - reads PORT from environment
 CMD ["tsx", "index.ts"]

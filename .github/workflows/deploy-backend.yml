@@ -40,11 +40,21 @@ jobs:
         run: |
           cd backend
           IMAGE_URI="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/stash-repo/stash-backend:${{ github.sha }}"
-          docker build -t $IMAGE_URI -f Dockerfile ..
+          docker build -t $IMAGE_URI .
           docker push $IMAGE_URI
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
       - name: Deploy to Cloud Run
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SUPERMEMORY_API_KEY: ${{ secrets.SUPERMEMORY_API_KEY }}
+          JINA_API_KEY: ${{ secrets.JINA_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image ${{ env.IMAGE_URI }} \
@@ -52,7 +62,19 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars "NODE_ENV=production,SUPABASE_URL=${{ secrets.SUPABASE_URL }},SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }},SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }},SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }},REDIS_URL=${{ secrets.REDIS_URL }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }},SUPERMEMORY_API_KEY=${{ secrets.SUPERMEMORY_API_KEY }},JINA_API_KEY=${{ secrets.JINA_API_KEY }},GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
+            --port 8080 \
+            --timeout=300 \
+            --clear-secrets \
+            --set-env-vars NODE_ENV=production \
+            --set-env-vars SUPABASE_URL=$SUPABASE_URL \
+            --set-env-vars SUPABASE_SERVICE_KEY=$SUPABASE_SERVICE_KEY \
+            --set-env-vars SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
+            --set-env-vars SUPABASE_JWT_SECRET=$SUPABASE_JWT_SECRET \
+            --set-env-vars REDIS_URL=$REDIS_URL \
+            --set-env-vars OPENAI_API_KEY=$OPENAI_API_KEY \
+            --set-env-vars SUPERMEMORY_API_KEY=$SUPERMEMORY_API_KEY \
+            --set-env-vars JINA_API_KEY=$JINA_API_KEY \
+            --set-env-vars GEMINI_API_KEY=$GEMINI_API_KEY
 
       - name: Show deployed URL
         run: |
