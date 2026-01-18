@@ -103,11 +103,6 @@ export const config = {
     clientSecret: env.GOOGLE_CLIENT_SECRET,
     redirectUri: env.GOOGLE_REDIRECT_URI,
   },
-  firebase: {
-    projectId: env.FIREBASE_PROJECT_ID,
-    privateKey: env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    clientEmail: env.FIREBASE_CLIENT_EMAIL,
-  },
   livekit: {
     apiKey: env.LIVEKIT_API_KEY,
     apiSecret: env.LIVEKIT_API_SECRET,
