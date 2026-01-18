@@ -1,31 +1,34 @@
-# Build stage
-FROM node:20-alpine AS builder
+# Build stage - use Debian slim instead of Alpine for OpenSSL compatibility
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Copy prisma schema (if present in backend)
+# Copy prisma schema FIRST
 COPY prisma ./prisma/
 
 # Install ALL dependencies (including devDeps for prisma)
 RUN npm install
 
-# Generate Prisma client
+# Generate Prisma client with correct binaries
 RUN npx prisma generate
 
 # Copy source code
 COPY . ./
 
 # Production stage
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
+# Install wget for health checks
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+
 # Create non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 stash
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 stash
 
 # Copy from builder (including node_modules with prisma client)
 COPY --from=builder --chown=stash:nodejs /app ./
