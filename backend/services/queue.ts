@@ -1,160 +1,75 @@
-import Queue from 'bull';
 import { config } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 
 // ============================================
-// Queue Definitions
+// Queue Stubs for Backend API
 // ============================================
+// The actual Bull queues run in the worker process only.
+// The API just needs helper functions to add jobs.
 
-export const captureQueue = new Queue('capture-processing', config.redis.url, {
-  defaultJobOptions: {
-    attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 2000,
-    },
-    removeOnComplete: 100, // Keep last 100 completed jobs
-    removeOnFail: 500, // Keep last 500 failed jobs
-  },
-});
+const REDIS_URL = config.redis?.url;
 
-export const reminderQueue = new Queue('reminder-sending', config.redis.url, {
-  defaultJobOptions: {
-    attempts: 5,
-    backoff: {
-      type: 'exponential',
-      delay: 1000,
-    },
-  },
-});
+if (!REDIS_URL) {
+  logger.warn('[Queue] REDIS_URL not set - job queuing disabled');
+}
 
-export const proactiveQueue = new Queue('proactive-agent', config.redis.url, {
-  defaultJobOptions: {
-    attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 5000,
-    },
-  },
-});
+// Lazy-loaded queue instances (only created when needed)
+let _captureQueue: any = null;
+let _reminderQueue: any = null;
 
-export const patternLearningQueue = new Queue('pattern-learning', config.redis.url, {
-  defaultJobOptions: {
-    attempts: 2,
-    backoff: {
-      type: 'fixed',
-      delay: 10000,
-    },
-  },
-});
+async function getCaptureQueue() {
+  if (!REDIS_URL) return null;
+  if (!_captureQueue) {
+    const Queue = (await import('bull')).default;
+    _captureQueue = new Queue('capture-processing', REDIS_URL);
+  }
+  return _captureQueue;
+}
+
+async function getReminderQueue() {
+  if (!REDIS_URL) return null;
+  if (!_reminderQueue) {
+    const Queue = (await import('bull')).default;
+    _reminderQueue = new Queue('reminder-sending', REDIS_URL);
+  }
+  return _reminderQueue;
+}
 
 // ============================================
-// Queue Event Handlers
-// ============================================
-
-captureQueue.on('completed', (job, result) => {
-  logger.info(`[Queue] Capture job ${job.id} completed:`, result);
-});
-
-captureQueue.on('failed', (job, err) => {
-  logger.error(`[Queue] Capture job ${job?.id} failed:`, err.message);
-});
-
-captureQueue.on('error', (error) => {
-  logger.error('[Queue] Capture queue error:', error);
-});
-
-reminderQueue.on('completed', (job, result) => {
-  logger.info(`[Queue] Reminder job ${job.id} completed:`, result);
-});
-
-reminderQueue.on('failed', (job, err) => {
-  logger.error(`[Queue] Reminder job ${job?.id} failed:`, err.message);
-});
-
-proactiveQueue.on('completed', (job, result) => {
-  logger.info(`[Queue] Proactive agent job ${job.id} completed:`, result);
-});
-
-proactiveQueue.on('failed', (job, err) => {
-  logger.error(`[Queue] Proactive agent job ${job?.id} failed:`, err.message);
-});
-
-patternLearningQueue.on('completed', (job, result) => {
-  logger.info(`[Queue] Pattern learning job ${job.id} completed:`, result);
-});
-
-patternLearningQueue.on('failed', (job, err) => {
-  logger.error(`[Queue] Pattern learning job ${job?.id} failed:`, err.message);
-});
-
-// ============================================
-// Queue Helpers
+// Queue Helpers (used by API routes)
 // ============================================
 
 export async function addCaptureJob(captureId: string, userId: string) {
-  return captureQueue.add(
-    'process-capture',
-    { captureId, userId },
-    {
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 2000,
-      },
-    }
-  );
+  const queue = await getCaptureQueue();
+  if (!queue) {
+    logger.info(`[Queue] Capture ${captureId} saved (no queue configured)`);
+    return { id: 'direct' };
+  }
+  return queue.add('process-capture', { captureId, userId });
 }
 
 export async function addReminderJob(reminderId: string, scheduledAt: Date) {
-  const delay = scheduledAt.getTime() - Date.now();
-
-  if (delay < 0) {
-    logger.warn(`[Queue] Reminder ${reminderId} is in the past, sending immediately`);
+  const queue = await getReminderQueue();
+  if (!queue) {
+    logger.info(`[Queue] Reminder ${reminderId} saved (no queue configured)`);
+    return { id: 'direct' };
   }
-
-  return reminderQueue.add(
-    'send-reminder',
-    { reminderId },
-    {
-      delay: Math.max(0, delay),
-      attempts: 5,
-    }
-  );
+  const delay = Math.max(0, scheduledAt.getTime() - Date.now());
+  return queue.add('send-reminder', { reminderId }, { delay, attempts: 5 });
 }
 
 export async function addProactiveJob(userId: string, type: string, data: any) {
-  return proactiveQueue.add(
-    'proactive-action',
-    { userId, type, data },
-    {
-      attempts: 3,
-    }
-  );
+  // Proactive jobs only run in worker
+  return { id: 'direct' };
 }
 
 export async function addPatternLearningJob(userId: string, captureId: string) {
-  return patternLearningQueue.add(
-    'learn-patterns',
-    { userId, captureId },
-    {
-      attempts: 2,
-      delay: 5000, // Wait 5 seconds before learning
-    }
-  );
+  // Pattern learning only runs in worker
+  return { id: 'direct' };
 }
 
-// ============================================
-// Graceful Shutdown
-// ============================================
-
-process.on('beforeExit', async () => {
-  logger.info('[Queue] Closing all queues...');
-  await Promise.all([
-    captureQueue.close(),
-    reminderQueue.close(),
-    proactiveQueue.close(),
-    patternLearningQueue.close(),
-  ]);
-  logger.info('[Queue] All queues closed');
-});
+// Exported for compatibility with worker imports
+export const captureQueue = null;
+export const reminderQueue = null;
+export const proactiveQueue = null;
+export const patternLearningQueue = null;

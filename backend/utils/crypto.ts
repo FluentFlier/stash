@@ -17,7 +17,15 @@ export const crypto = {
    * Verify JWT token using Supabase secret
    */
   verifyToken<T = any>(token: string): T {
-    return jwt.verify(token, config.supabase.jwtSecret) as T;
+    try {
+      const result = jwt.verify(token, config.supabase.jwtSecret) as T;
+      return result;
+    } catch (error: any) {
+      console.error('[Crypto] JWT verification failed:', error.message);
+      console.error('[Crypto] Token starts with:', token.substring(0, 50));
+      console.error('[Crypto] Secret starts with:', config.supabase.jwtSecret?.substring(0, 20));
+      throw error;
+    }
   },
 
   /**

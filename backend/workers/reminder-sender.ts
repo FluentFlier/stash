@@ -1,4 +1,4 @@
-import { reminderQueue } from '../services/queue.js';
+import { reminderQueue } from './worker-queues.js';
 import { prisma } from '../config/database.js';
 import { logger } from '../utils/logger.js';
 import { sendNotification } from '../services/notifications.js';

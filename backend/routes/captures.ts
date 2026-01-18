@@ -2,8 +2,6 @@ import { FastifyInstance } from 'fastify';
 import { prisma } from '../config/database.js';
 import { logger } from '../utils/logger.js';
 import { createCaptureSchema, getCapturesQuerySchema } from '../utils/validators.js';
-import { addCaptureJob } from '../services/queue.js';
-import { searchRateLimit } from '../utils/rate-limiting.js';
 
 export async function captureRoutes(fastify: FastifyInstance) {
   // CREATE CAPTURE - Main entry point for the agentic system
@@ -26,27 +24,24 @@ export async function captureRoutes(fastify: FastifyInstance) {
             content: body.content,
             userInput: body.userInput,
             metadata: body.metadata,
-            processingStatus: 'PENDING',
+            processingStatus: 'pending',
           },
         });
 
         logger.info(`[API] Created capture ${capture.id} for user ${userId}`);
 
-        // 2. Queue for async processing by autonomous agents
-        await addCaptureJob(capture.id, userId);
-
-        logger.info(`[API] Queued capture ${capture.id} for agentic processing`);
-
-        // 3. Return immediately
         return {
           success: true,
-          captureId: capture.id,
-          status: 'processing',
-          message: 'Capture created and queued for autonomous processing',
+          data: capture,
+          message: 'Capture created successfully',
         };
       } catch (error: any) {
-        logger.error('[API] Error creating capture:', error);
-        throw error;
+        logger.error('[API] Error creating capture:', error.message);
+        logger.error('[API] Full error:', error);
+        return {
+          success: false,
+          error: error.message || 'Failed to create capture',
+        };
       }
     }
   );
@@ -185,7 +180,7 @@ export async function captureRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/api/captures/search',
     {
-      preHandler: [(req: any, rep: any) => (fastify as any).authenticate(req, rep), searchRateLimit],
+      preHandler: [(req: any, rep: any) => (fastify as any).authenticate(req, rep)],
     },
     async (request, reply) => {
       const userId = request.user.id;

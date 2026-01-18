@@ -46,22 +46,73 @@ export const AddContextScreen: React.FC = () => {
         }
     }, [hasShareIntent, shareIntent]);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const handleSave = async () => {
-        Alert.alert('Success', 'Content saved to Stash!', [
-            {
-                text: 'OK',
-                onPress: () => {
-                    setSelectedType(null);
-                    setLinkUrl('');
-                    setTextNote('');
-                    setSharedMediaUri(null);
-                    setSharedMediaName(null);
-                    if (hasShareIntent) {
-                        resetShareIntent();
-                    }
-                },
-            },
-        ]);
+        if (isLoading) return;
+
+        // Determine content and type
+        let content = '';
+        let type = selectedType || 'text';
+
+        if (selectedType === 'link') {
+            if (!linkUrl.trim()) {
+                Alert.alert('Error', 'Please enter a URL');
+                return;
+            }
+            content = linkUrl.trim();
+        } else if (selectedType === 'text') {
+            if (!textNote.trim()) {
+                Alert.alert('Error', 'Please enter some text');
+                return;
+            }
+            content = textNote.trim();
+        } else if (selectedType === 'image' || selectedType === 'video') {
+            if (!sharedMediaUri) {
+                Alert.alert('Error', 'Please select media');
+                return;
+            }
+            content = sharedMediaUri;
+        }
+
+        setIsLoading(true);
+
+        try {
+            console.log('[AddContextScreen] Saving capture:', { type, content });
+
+            const { api } = await import('../utils/api');
+            const response = await api.createCapture({
+                type,
+                content,
+            });
+
+            console.log('[AddContextScreen] API response:', response);
+
+            if (response.success) {
+                Alert.alert('Success', 'Content saved to Stash!', [
+                    {
+                        text: 'OK',
+                        onPress: () => {
+                            setSelectedType(null);
+                            setLinkUrl('');
+                            setTextNote('');
+                            setSharedMediaUri(null);
+                            setSharedMediaName(null);
+                            if (hasShareIntent) {
+                                resetShareIntent();
+                            }
+                        },
+                    },
+                ]);
+            } else {
+                Alert.alert('Error', response.error || 'Failed to save content');
+            }
+        } catch (error) {
+            console.error('[AddContextScreen] Save error:', error);
+            Alert.alert('Error', 'Failed to save content. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleCancel = () => {

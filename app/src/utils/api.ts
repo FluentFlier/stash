@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import Constants from 'expo-constants';
 
-const API_URL = 'https://liz-ostracizable-candis.ngrok-free.dev';
+const API_URL = 'https://glycogenic-marilynn-crustiest.ngrok-free.dev';
 
 
 interface ApiResponse<T> {
@@ -50,27 +50,32 @@ class ApiClient {
 
             const headers: HeadersInit = {
                 'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true', // Skip ngrok interstitial
-                'User-Agent': 'StashApp/1.0', // Alternative ngrok bypass
+                'ngrok-skip-browser-warning': 'true',
+                'User-Agent': 'StashApp/1.0',
                 ...(token && { Authorization: `Bearer ${token}` }),
                 ...options.headers,
             };
 
-            const response = await fetch(`${API_URL}${endpoint}`, {
+            const url = `${API_URL}${endpoint}`;
+            console.log(`[API] ${options.method || 'GET'} ${url}`);
+            console.log('[API] Has auth token:', !!token);
+
+            const response = await fetch(url, {
                 ...options,
                 headers,
             });
 
-            // Check if response is JSON before parsing
+            console.log(`[API] Response status: ${response.status}`);
+
             const contentType = response.headers.get('content-type');
             let data: any;
 
             if (contentType && contentType.includes('application/json')) {
                 data = await response.json();
+                console.log('[API] Response data:', JSON.stringify(data).slice(0, 200));
             } else {
-                // Non-JSON response (HTML error page, ngrok page, etc.)
                 const text = await response.text();
-                console.warn('Non-JSON response:', text.slice(0, 200));
+                console.warn('[API] Non-JSON response:', text.slice(0, 200));
                 return {
                     success: false,
                     error: 'Server returned non-JSON response',
@@ -78,6 +83,7 @@ class ApiClient {
             }
 
             if (!response.ok) {
+                console.error('[API] Request failed:', data.error);
                 return {
                     success: false,
                     error: data.error || 'An error occurred',
@@ -86,7 +92,7 @@ class ApiClient {
 
             return data;
         } catch (error) {
-            console.error('API Error:', error);
+            console.error('[API] Network error:', error);
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Network error',

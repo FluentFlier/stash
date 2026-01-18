@@ -1,4 +1,4 @@
-import { captureQueue } from '../services/queue.js';
+import { captureQueue } from './worker-queues.js';
 import { prisma } from '../config/database.js';
 import { logger } from '../utils/logger.js';
 import { AgentCoordinator } from '../agents/coordinator.js';

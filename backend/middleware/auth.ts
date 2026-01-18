@@ -1,20 +1,17 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { crypto } from '../utils/crypto.js';
+import { supabaseAdmin } from '../config/supabase.js';
 import { logger } from '../utils/logger.js';
 
-export interface JWTPayload {
-  sub: string; // Supabase User ID
-  email?: string;
-  aud?: string;
-  iat?: number;
-  exp?: number;
-  app_metadata?: any;
-  user_metadata?: any;
+export interface AuthUser {
+  id: string;
+  email: string;
+  name?: string;
 }
 
 /**
  * JWT Authentication middleware
- * Verifies Supabase JWT token and attaches user to request
+ * Verifies Supabase JWT token using Supabase's auth.getUser()
+ * This handles ES256 asymmetric tokens properly
  */
 export async function authenticateJWT(
   request: FastifyRequest,
@@ -46,40 +43,35 @@ export async function authenticateJWT(
       });
     }
 
-    // Verify token using Supabase JWT secret
-    const payload = crypto.verifyToken<JWTPayload>(token);
-
-    // Verify audience
-    if (payload.aud !== 'authenticated') {
-      return reply.code(401).send({
+    if (!supabaseAdmin) {
+      logger.error('[Auth] Supabase admin client not initialized');
+      return reply.code(500).send({
         success: false,
-        error: 'Invalid token audience',
+        error: 'Authentication service unavailable',
       });
     }
 
-    // Attach user from token payload (no DB lookup needed)
-    request.user = {
-      id: payload.sub,
-      email: payload.email || '',
-      name: payload.user_metadata?.name,
-    };
-  } catch (error: any) {
-    logger.error('[Auth] Authentication error:', error);
+    // Use Supabase to verify the token (handles ES256)
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
 
-    if (error.name === 'JsonWebTokenError') {
+    if (error || !user) {
+      logger.error('[Auth] Token verification failed:', error?.message);
       return reply.code(401).send({
         success: false,
         error: 'Invalid token',
       });
     }
 
-    if (error.name === 'TokenExpiredError') {
-      return reply.code(401).send({
-        success: false,
-        error: 'Token expired',
-      });
-    }
+    // Attach user to request
+    request.user = {
+      id: user.id,
+      email: user.email || '',
+      name: user.user_metadata?.name,
+    };
 
+    logger.info(`[Auth] Authenticated user: ${user.email}`);
+  } catch (error: any) {
+    logger.error('[Auth] Authentication error:', error.message);
     return reply.code(500).send({
       success: false,
       error: 'Authentication failed',
@@ -98,22 +90,22 @@ export async function optionalAuth(
   try {
     const authHeader = request.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return; // Continue without authentication
+    if (!authHeader || !authHeader.startsWith('Bearer ') || !supabaseAdmin) {
+      return;
     }
 
     const token = authHeader.substring(7);
-    const payload = crypto.verifyToken<JWTPayload>(token);
+    const { data: { user } } = await supabaseAdmin.auth.getUser(token);
 
-    if (payload.aud === 'authenticated') {
+    if (user) {
       request.user = {
-        id: payload.sub,
-        email: payload.email || '',
-        name: payload.user_metadata?.name,
+        id: user.id,
+        email: user.email || '',
+        name: user.user_metadata?.name,
       };
     }
   } catch (error) {
     // Silently fail for optional auth
-    logger.debug('[Auth] Optional authentication failed:', error);
+    logger.debug('[Auth] Optional authentication failed');
   }
 }
