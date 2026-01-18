@@ -365,44 +365,88 @@ def download_twitter(url: str) -> Optional[str]:
     response = requests.get(api_url, headers=headers, params=params)
     data = response.json()
     
+    logger.debug(f"Twitter API response: {json.dumps(data, indent=2)[:1000]}")
+    
     out_dir = get_output_dir("twitter_tweet")
     filename = out_dir / "twitter_tweet_data.txt"
     
     if isinstance(data, dict):
-        # Extract tweet information
-        tweet_text = (data.get("text") or data.get("tweet_text") or 
-                     data.get("content") or data.get("message") or data.get("description"))
-        author = (data.get("author") or data.get("name") or data.get("author_name") or
-                 data.get("username") or data.get("screen_name") or data.get("author_username"))
-        likes = data.get("likes") or data.get("like_count") or data.get("favorite_count")
+        # Check for API error
+        if data.get("error") or data.get("status") == 400:
+            logger.error(f"Twitter API error: {data.get('error', 'Unknown error')}")
+            # Save error info
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write(f"Error: {data.get('error', 'Could not fetch tweet')}\n")
+                f.write(f"URL: {url}\n")
+            return str(filename)
         
-        # Check nested fields
+        # Extract tweet information - handle various API response formats
+        tweet_text = None
+        author = None
+        author_handle = None
+        likes = None
+        created_at = None
+        
+        # Direct fields (main response format)
+        tweet_text = (data.get("description") or data.get("text") or 
+                     data.get("tweet_text") or data.get("content") or data.get("message"))
+        likes = data.get("favorite_count") or data.get("likes") or data.get("like_count")
+        created_at = data.get("created_at")
+        
+        # User info from nested user object
+        user_data = data.get("user", {})
+        if isinstance(user_data, dict):
+            author = user_data.get("name") or user_data.get("author")
+            author_handle = user_data.get("screen_name") or user_data.get("username")
+        
+        # Fallback to top-level user fields
+        if not author:
+            author = (data.get("author") or data.get("name") or 
+                     data.get("author_name") or data.get("username"))
+        if not author_handle:
+            author_handle = data.get("screen_name") or data.get("username")
+        
+        # Check nested 'tweet' field
         if "tweet" in data and isinstance(data["tweet"], dict):
             tweet = data["tweet"]
-            tweet_text = tweet_text or (tweet.get("text") or tweet.get("content") or 
-                                       tweet.get("message") or tweet.get("description"))
-            author = author or (tweet.get("author") or tweet.get("name") or tweet.get("author_name") or
-                               tweet.get("username") or tweet.get("screen_name") or tweet.get("author_username"))
-            likes = likes or tweet.get("likes") or tweet.get("like_count") or tweet.get("favorite_count")
+            tweet_text = tweet_text or tweet.get("text") or tweet.get("description")
+            likes = likes or tweet.get("favorite_count") or tweet.get("likes")
+            if "user" in tweet and isinstance(tweet["user"], dict):
+                author = author or tweet["user"].get("name")
+                author_handle = author_handle or tweet["user"].get("screen_name")
         
+        # Check nested 'data' field
         if "data" in data and isinstance(data["data"], dict):
             nested = data["data"]
-            tweet_text = tweet_text or (nested.get("text") or nested.get("content") or nested.get("description"))
-            author = author or (nested.get("author") or nested.get("name") or
-                               nested.get("username") or nested.get("screen_name"))
-            likes = likes or nested.get("likes") or nested.get("like_count") or nested.get("favorite_count")
+            tweet_text = tweet_text or nested.get("text") or nested.get("description")
+            likes = likes or nested.get("favorite_count") or nested.get("likes")
         
-        # Build tweet data
-        tweet_data_lines = [
-            f"Author: {author or 'N/A'}",
-            f"Likes: {likes or 'N/A'}",
-            f"Tweet: {tweet_text or 'N/A'}"
-        ]
+        # Build tweet data with all available info
+        tweet_data_lines = []
+        
+        if author:
+            author_str = f"{author}"
+            if author_handle:
+                author_str += f" (@{author_handle})"
+            tweet_data_lines.append(f"Author: {author_str}")
+        else:
+            tweet_data_lines.append("Author: N/A")
+        
+        if created_at:
+            tweet_data_lines.append(f"Date: {created_at}")
+        
+        tweet_data_lines.append(f"Likes: {likes if likes is not None else 'N/A'}")
+        tweet_data_lines.append(f"\nTweet:\n{tweet_text or 'N/A'}")
         
         with open(filename, "w", encoding="utf-8") as f:
             f.write("\n".join(tweet_data_lines))
         
         logger.info(f"[OK] Tweet data saved: {filename}")
+        
+        # Log what we extracted
+        if tweet_text:
+            logger.info(f"Tweet preview: {tweet_text[:100]}...")
+        
         return str(filename)
     
     logger.error("Could not parse Twitter response")

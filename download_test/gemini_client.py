@@ -144,7 +144,7 @@ def process_video_with_gemini(video_path: str, out_dir: str) -> Tuple[str, str]:
         logger.info(f"Video processed successfully in {total_waited}s")
         
         # Use Gemini model for video analysis
-        model = genai.GenerativeModel('gemini-1.5-pro')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         # Generate topic (1-3 words)
         logger.info("Generating topic label from video...")
@@ -251,8 +251,8 @@ def process_document_with_gemini(input_path: str, out_dir: str) -> Tuple[str, st
     input_file = Path(input_path)
     
     try:
-        # Use Gemini Pro model for text/document analysis
-        model = genai.GenerativeModel('gemini-1.5-pro')
+        # Use Gemini model for text/document analysis
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         # Determine file type and extract/upload content
         ext = input_file.suffix.lower()
