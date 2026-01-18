@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Switch, Modal, Alert, Pressable, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, Switch, Modal, Alert, Pressable, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -18,19 +18,50 @@ import {
 } from 'lucide-react-native';
 import { ButtonNew } from '../components/ui';
 import { theme } from '../theme';
+import { api, authStorage } from '../utils/api';
 import type { RootStackParamList } from '../types';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+interface UserProfile {
+    id: string;
+    email: string;
+    name: string | null;
+    role: string | null;
+    age: number | null;
+    notifications_enabled: boolean;
+    google_calendar_connected: boolean;
+}
+
 export const ProfileScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProp>();
-    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [editField, setEditField] = useState<'name' | 'role' | 'age' | null>(null);
     const [editValue, setEditValue] = useState('');
-    const [name, setName] = useState('John Smith');
-    const [role, setRole] = useState('Developer');
-    const [age, setAge] = useState('25');
+
+    // Load profile on mount
+    useEffect(() => {
+        loadProfile();
+    }, []);
+
+    const loadProfile = async () => {
+        try {
+            setLoading(true);
+            const response = await api.getMe();
+            if (response.success && response.data) {
+                setProfile(response.data);
+                setNotificationsEnabled(response.data.notifications_enabled || false);
+            }
+        } catch (error) {
+            console.error('Failed to load profile:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSignOut = () => {
         Alert.alert(
@@ -41,7 +72,8 @@ export const ProfileScreen: React.FC = () => {
                 {
                     text: 'Sign Out',
                     style: 'destructive',
-                    onPress: () => {
+                    onPress: async () => {
+                        await api.logout();
                         navigation.reset({
                             index: 0,
                             routes: [{ name: 'Landing' }],
@@ -54,16 +86,65 @@ export const ProfileScreen: React.FC = () => {
 
     const handleEdit = (field: 'name' | 'role' | 'age') => {
         setEditField(field);
-        setEditValue(field === 'name' ? name : field === 'role' ? role : age);
+        if (profile) {
+            if (field === 'name') setEditValue(profile.name || '');
+            else if (field === 'role') setEditValue(profile.role || '');
+            else if (field === 'age') setEditValue(profile.age?.toString() || '');
+        }
         setEditModalVisible(true);
     };
 
-    const handleSave = () => {
-        if (editField === 'name') setName(editValue);
-        if (editField === 'role') setRole(editValue);
-        if (editField === 'age') setAge(editValue);
-        setEditModalVisible(false);
+    const handleSave = async () => {
+        if (!editField) return;
+
+        setSaving(true);
+        try {
+            const updateData: any = {};
+            if (editField === 'name') updateData.name = editValue;
+            if (editField === 'role') updateData.role = editValue;
+            if (editField === 'age') updateData.age = parseInt(editValue) || null;
+
+            const response = await api.updateOnboarding(updateData);
+
+            if (response.success) {
+                // Update local state
+                setProfile(prev => prev ? { ...prev, ...updateData } : prev);
+                setEditModalVisible(false);
+            } else {
+                Alert.alert('Error', response.error || 'Failed to save');
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Failed to save changes');
+        } finally {
+            setSaving(false);
+        }
     };
+
+    const handleNotificationToggle = async (value: boolean) => {
+        setNotificationsEnabled(value);
+        try {
+            await api.updateOnboarding({ notificationsEnabled: value });
+            setProfile(prev => prev ? { ...prev, notifications_enabled: value } : prev);
+        } catch (error) {
+            // Revert on failure
+            setNotificationsEnabled(!value);
+        }
+    };
+
+    const getInitials = (name: string | null, email: string) => {
+        if (name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+        return email.slice(0, 2).toUpperCase();
+    };
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, backgroundColor: theme.bg, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color={theme.primary} />
+            </View>
+        );
+    }
 
     return (
         <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -92,15 +173,15 @@ export const ProfileScreen: React.FC = () => {
                             justifyContent: 'center',
                         }}>
                             <Text style={{ fontSize: 20, fontWeight: '600', color: theme.white }}>
-                                JS
+                                {getInitials(profile?.name || null, profile?.email || '')}
                             </Text>
                         </View>
                         <View style={{ flex: 1 }}>
                             <Text style={{ fontSize: 18, fontWeight: '600', color: theme.text }}>
-                                {name}
+                                {profile?.name || 'User'}
                             </Text>
                             <Text style={{ fontSize: 14, color: theme.textMuted, marginTop: 2 }}>
-                                john@example.com
+                                {profile?.email || ''}
                             </Text>
                         </View>
                         <Pressable onPress={() => handleEdit('name')}>
@@ -122,7 +203,7 @@ export const ProfileScreen: React.FC = () => {
                         }}>
                             <Package size={20} color={theme.primary} />
                             <Text style={{ fontSize: 22, fontWeight: '700', color: theme.text }}>
-                                127
+                                --
                             </Text>
                             <Text style={{ fontSize: 11, color: theme.textSubtle }}>
                                 Items
@@ -141,7 +222,7 @@ export const ProfileScreen: React.FC = () => {
                         }}>
                             <MessageCircle size={20} color={theme.accent} />
                             <Text style={{ fontSize: 22, fontWeight: '700', color: theme.text }}>
-                                43
+                                --
                             </Text>
                             <Text style={{ fontSize: 11, color: theme.textSubtle }}>
                                 Chats
@@ -160,7 +241,7 @@ export const ProfileScreen: React.FC = () => {
                         }}>
                             <TrendingUp size={20} color={theme.success} />
                             <Text style={{ fontSize: 22, fontWeight: '700', color: theme.text }}>
-                                +24%
+                                --
                             </Text>
                             <Text style={{ fontSize: 11, color: theme.textSubtle }}>
                                 Growth
@@ -194,7 +275,7 @@ export const ProfileScreen: React.FC = () => {
                             <User size={18} color={theme.textSubtle} />
                             <View style={{ flex: 1 }}>
                                 <Text style={{ fontSize: 13, color: theme.textSubtle }}>Name</Text>
-                                <Text style={{ fontSize: 14, color: theme.text, marginTop: 2 }}>{name}</Text>
+                                <Text style={{ fontSize: 14, color: theme.text, marginTop: 2 }}>{profile?.name || 'Not set'}</Text>
                             </View>
                             <ChevronRight size={16} color={theme.textSubtle} />
                         </Pressable>
@@ -213,7 +294,7 @@ export const ProfileScreen: React.FC = () => {
                             <Settings size={18} color={theme.textSubtle} />
                             <View style={{ flex: 1 }}>
                                 <Text style={{ fontSize: 13, color: theme.textSubtle }}>Role</Text>
-                                <Text style={{ fontSize: 14, color: theme.text, marginTop: 2 }}>{role}</Text>
+                                <Text style={{ fontSize: 14, color: theme.text, marginTop: 2 }}>{profile?.role || 'Not set'}</Text>
                             </View>
                             <ChevronRight size={16} color={theme.textSubtle} />
                         </Pressable>
@@ -230,7 +311,7 @@ export const ProfileScreen: React.FC = () => {
                             <User size={18} color={theme.textSubtle} />
                             <View style={{ flex: 1 }}>
                                 <Text style={{ fontSize: 13, color: theme.textSubtle }}>Age</Text>
-                                <Text style={{ fontSize: 14, color: theme.text, marginTop: 2 }}>{age}</Text>
+                                <Text style={{ fontSize: 14, color: theme.text, marginTop: 2 }}>{profile?.age || 'Not set'}</Text>
                             </View>
                             <ChevronRight size={16} color={theme.textSubtle} />
                         </Pressable>
@@ -255,10 +336,12 @@ export const ProfileScreen: React.FC = () => {
                             <Calendar size={18} color={theme.primary} />
                             <View style={{ flex: 1 }}>
                                 <Text style={{ fontSize: 14, color: theme.text }}>Google Calendar</Text>
-                                <Text style={{ fontSize: 12, fontWeight: '500', color: theme.success }}>Connected</Text>
+                                <Text style={{ fontSize: 12, fontWeight: '500', color: profile?.google_calendar_connected ? theme.success : theme.textSubtle }}>
+                                    {profile?.google_calendar_connected ? 'Connected' : 'Not connected'}
+                                </Text>
                             </View>
                             <ButtonNew variant="outline" size="sm">
-                                Manage
+                                {profile?.google_calendar_connected ? 'Manage' : 'Connect'}
                             </ButtonNew>
                         </View>
                     </View>
@@ -286,7 +369,7 @@ export const ProfileScreen: React.FC = () => {
                             </View>
                             <Switch
                                 value={notificationsEnabled}
-                                onValueChange={setNotificationsEnabled}
+                                onValueChange={handleNotificationToggle}
                                 trackColor={{
                                     false: theme.bgTertiary,
                                     true: theme.primary,
@@ -368,6 +451,7 @@ export const ProfileScreen: React.FC = () => {
                                 <ButtonNew
                                     variant="primary"
                                     onPress={handleSave}
+                                    loading={saving}
                                     style={{ flex: 1 }}
                                 >
                                     Save
