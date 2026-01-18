@@ -16,8 +16,8 @@ dotenv.config({
 const envSchema = z.object({
   // Server
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().default('4000'),
-  API_URL: z.string().url().default('http://localhost:4000'),
+  PORT: z.string().default('3000'),
+  API_URL: z.string().url().default('http://localhost:3000'),
 
   // Supabase
   SUPABASE_URL: z.string().url(),
@@ -35,8 +35,8 @@ const envSchema = z.object({
   SUPERMEMORY_API_KEY: z.string().optional(),
   SUPERMEMORY_BASE_URL: z.string().url().optional(),
 
-  // Jina AI (Link content extraction)
-  JINA_API_KEY: z.string().min(1),
+  // Jina AI (Link content extraction - optional)
+  JINA_API_KEY: z.string().optional(),
 
   // Google Calendar
   GOOGLE_CLIENT_ID: z.string().optional(),
