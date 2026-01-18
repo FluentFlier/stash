@@ -12,6 +12,7 @@ import { initializeFirebase } from './config/firebase.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
 import { requestLogger } from './middleware/request-logger.js';
 import { authenticateJWT } from './middleware/auth.js';
+import { securityMiddleware, cspMiddleware } from './middleware/security.js';
 
 // Import routes (will be created next)
 import { authRoutes } from './routes/auth.js';
@@ -21,6 +22,7 @@ import { reminderRoutes } from './routes/reminders.js';
 import { collectionRoutes } from './routes/collections.js';
 import { calendarRoutes } from './routes/calendar.js';
 import { voiceRoutes } from './routes/voice.js';
+import { apiKeyRoutes } from './routes/api-keys.js';
 
 /**
  * Build Fastify server
@@ -30,33 +32,110 @@ async function buildServer() {
     logger: false, // We use Pino logger separately
     disableRequestLogging: true,
     trustProxy: true,
-    bodyLimit: 10 * 1024 * 1024, // 10MB
+    bodyLimit: config.security.bodyLimitMax, // Configurable body limit
+    maxParamLength: 500, // Limit parameter length
+    caseSensitive: true, // Case sensitive routing
+    ignoreTrailingSlash: true, // Ignore trailing slashes
   });
 
   // Register plugins
   await fastify.register(cors, {
-    origin: true, // Allow all origins in development
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+
+      // In production, only allow specified origins
+      if (config.server.nodeEnv === 'production') {
+        // Strict origin checking
+        if (config.security.allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        } else {
+          logger.warn('[Security] CORS violation - origin not allowed:', { origin });
+          return callback(new Error('Not allowed by CORS policy'), false);
+        }
+      }
+
+      // In development, allow common development origins
+      const allowedDevOrigins = [
+        /^http:\/\/localhost(:\d+)?$/,
+        /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+        /^https:\/\/localhost(:\d+)?$/,
+        /^https:\/\/127\.0\.0\.1(:\d+)?$/,
+      ];
+
+      if (allowedDevOrigins.some(pattern => pattern.test(origin))) {
+        return callback(null, true);
+      }
+
+      logger.warn('[Security] CORS violation - development origin not allowed:', { origin });
+      return callback(new Error('Not allowed by CORS policy'), false);
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'X-API-Key',
+      'Accept',
+      'Accept-Language',
+      'Cache-Control',
+    ],
+    exposedHeaders: ['X-RateLimit-Remaining', 'X-RateLimit-Reset'],
+    maxAge: 7200, // 2 hours (reduced from 24 for security)
+    optionsSuccessStatus: 200, // Some legacy browsers choke on 204
   });
 
   await fastify.register(helmet, {
-    contentSecurityPolicy: false, // Disable for API
+    // Security headers configuration
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"], // For admin interfaces if needed
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+      },
+    },
+    crossOriginEmbedderPolicy: false, // May break some integrations
+    hsts: {
+      maxAge: 31536000, // 1 year
+      includeSubDomains: true,
+      preload: true,
+    },
+    noSniff: true,
+    xssFilter: true,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    permittedCrossDomainPolicies: { permittedPolicies: 'none' },
   });
 
   await fastify.register(rateLimit, {
-    max: 100, // 100 requests
-    timeWindow: '1 minute',
+    max: config.security.rateLimitMax,
+    timeWindow: config.security.rateLimitWindow,
     redis: await import('./config/redis.js').then((m) => m.redis),
+    skipOnError: false,
+    keyGenerator: (_request) => {
+      // Use user ID for authenticated requests, IP for unauthenticated
+      return _request.user?.id || _request.ip;
+    },
+    errorResponseBuilder: (_request, context) => ({
+      success: false,
+      error: 'Too many requests',
+      retryAfter: Math.ceil(context.ttl / 1000),
+    }),
   });
 
   await fastify.register(formbody);
   await fastify.register(multipart);
 
-  // Add custom decorators
-  fastify.decorate('authenticate', authenticateJWT);
-
   // Global hooks
+  fastify.addHook('onRequest', securityMiddleware);
   fastify.addHook('onRequest', requestLogger);
+  fastify.addHook('onRequest', cspMiddleware);
 
   // Health check endpoint
   fastify.get('/health', async (_request, reply) => {
@@ -68,7 +147,7 @@ async function buildServer() {
     });
   });
 
-  // API routes
+  // API routes (register before hooks to avoid type conflicts)
   await fastify.register(authRoutes);
   await fastify.register(captureRoutes);
   await fastify.register(chatRoutes);
@@ -76,6 +155,10 @@ async function buildServer() {
   await fastify.register(collectionRoutes);
   await fastify.register(calendarRoutes);
   await fastify.register(voiceRoutes);
+  await fastify.register(apiKeyRoutes);
+
+  // Add custom decorators after route registration
+  fastify.decorate('authenticate', authenticateJWT);
 
   // Error handlers
   fastify.setErrorHandler(errorHandler);
@@ -143,8 +226,8 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on('unhandledRejection', (reason, _promise) => {
+  logger.error('Unhandled Rejection at:', reason);
   process.exit(1);
 });
 

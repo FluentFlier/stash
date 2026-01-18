@@ -15,6 +15,9 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_SERVICE_KEY: z.string().optional(),
+  DATABASE_CONNECTION_LIMIT: z.string().default('10'),
+  DATABASE_CONNECTION_TIMEOUT: z.string().default('10000'), // 10 seconds
+  DATABASE_QUERY_TIMEOUT: z.string().default('30000'), // 30 seconds
 
   // Redis (Cache + Queue)
   REDIS_URL: z.string().url(),
@@ -51,6 +54,14 @@ const envSchema = z.object({
   AGENT_CONFIDENCE_THRESHOLD: z.string().default('0.7'),
   ENABLE_PROACTIVE_AGENT: z.string().default('true'),
   PROACTIVE_AGENT_INTERVAL_HOURS: z.string().default('1'),
+
+  // Security Configuration
+  ALLOWED_ORIGINS: z.string().default('http://localhost:3000,http://localhost:3001'),
+  RATE_LIMIT_MAX: z.string().default('100'),
+  RATE_LIMIT_WINDOW: z.string().default('60000'), // 1 minute in ms
+  BODY_LIMIT_MAX: z.string().default('1048576'), // 1MB default
+  ENABLE_HTTPS_REDIRECT: z.string().default('false'),
+  INTERNAL_API_KEY: z.string().optional(), // For internal API key validation
 });
 
 // Parse and validate environment variables
@@ -82,6 +93,9 @@ export const config = {
     url: env.DATABASE_URL,
     supabaseUrl: env.SUPABASE_URL,
     supabaseServiceKey: env.SUPABASE_SERVICE_KEY,
+    connectionLimit: parseInt(env.DATABASE_CONNECTION_LIMIT, 10),
+    connectionTimeout: parseInt(env.DATABASE_CONNECTION_TIMEOUT, 10),
+    queryTimeout: parseInt(env.DATABASE_QUERY_TIMEOUT, 10),
   },
   redis: {
     url: env.REDIS_URL,
@@ -116,5 +130,13 @@ export const config = {
     confidenceThreshold: parseFloat(env.AGENT_CONFIDENCE_THRESHOLD),
     enableProactiveAgent: env.ENABLE_PROACTIVE_AGENT === 'true',
     proactiveAgentIntervalHours: parseInt(env.PROACTIVE_AGENT_INTERVAL_HOURS, 10),
+  },
+  security: {
+    allowedOrigins: env.ALLOWED_ORIGINS.split(','),
+    rateLimitMax: parseInt(env.RATE_LIMIT_MAX, 10),
+    rateLimitWindow: parseInt(env.RATE_LIMIT_WINDOW, 10),
+    bodyLimitMax: parseInt(env.BODY_LIMIT_MAX, 10),
+    enableHttpsRedirect: env.ENABLE_HTTPS_REDIRECT === 'true',
+    internalApiKey: env.INTERNAL_API_KEY,
   },
 } as const;

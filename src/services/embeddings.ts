@@ -41,9 +41,9 @@ export function cosineSimilarity(a: number[], b: number[]): number {
  * For production, use pgvector extension with proper indexing.
  */
 export async function findSimilarCaptures(
-  embedding: number[],
-  userId: string,
-  limit: number = 5
+  _embedding: number[],
+  _userId: string,
+  _limit: number = 5
 ): Promise<any[]> {
   // This is a placeholder - in production, you would use pgvector
   // For now, we'll use topic-based similarity in the AnalyzerAgent

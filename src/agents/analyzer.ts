@@ -107,7 +107,7 @@ export class AnalyzerAgent {
    * Retrieve context from user's history using Supermemory
    */
   private async retrieveContext(
-    capture: Capture,
+    _capture: Capture,
     contentAnalysis: DeepAnalysis,
     userId: string
   ): Promise<string> {
@@ -245,7 +245,7 @@ Context: ${context}`;
   /**
    * Fallback analysis for unsupported content types
    */
-  private async analyzeFallback(content: string, userId: string): Promise<DeepAnalysis> {
+  private async analyzeFallback(content: string, _userId: string): Promise<DeepAnalysis> {
     return {
       title: content.slice(0, 100),
       description: content.slice(0, 200),

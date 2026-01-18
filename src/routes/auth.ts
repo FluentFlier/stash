@@ -3,8 +3,12 @@ import { prisma } from '../config/database.js';
 import { crypto } from '../utils/crypto.js';
 import { logger } from '../utils/logger.js';
 import { registerSchema, loginSchema, updateFcmTokenSchema } from '../utils/validators.js';
+import { authRateLimit } from '../utils/rate-limiting.js';
 
 export async function authRoutes(fastify: FastifyInstance) {
+  // Apply strict rate limiting to auth endpoints
+  fastify.addHook('preHandler', authRateLimit);
+
   // Register new user
   fastify.post('/api/auth/register', async (request, reply) => {
     try {
@@ -118,9 +122,9 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/api/auth/fcm-token',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       try {
         const userId = request.user.id;
         const body = updateFcmTokenSchema.parse(request.body);
@@ -147,9 +151,9 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/api/auth/me',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const user = await prisma.user.findUnique({
         where: { id: request.user.id },
         select: {

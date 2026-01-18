@@ -1,4 +1,4 @@
-import { Capture, User } from '@prisma/client';
+// Types imported from Prisma and other modules as needed
 
 // ============================================
 // Request Types

@@ -79,7 +79,7 @@ export async function analyzeVideo(url: string, userId: string): Promise<DeepAna
     }>(analysisPrompt, systemPrompt, userId);
 
     // Step 3: Extract key moments with timestamps
-    const keyMoments = extractKeyMoments(transcriptData);
+    extractKeyMoments(transcriptData); // TODO: Use key moments in analysis
 
     logger.info(`[VideoAnalyzer] Analysis complete for video ${videoId}`);
 

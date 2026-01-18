@@ -9,9 +9,9 @@ export async function reminderRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/api/reminders',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const userId = request.user.id;
 
       try {
@@ -50,9 +50,9 @@ export async function reminderRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/api/reminders',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const userId = request.user.id;
       const { status, limit = '20', offset = '0' } = request.query as {
         status?: string;
@@ -104,7 +104,7 @@ export async function reminderRoutes(fastify: FastifyInstance) {
   fastify.patch(
     '/api/reminders/:id',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
     async (request, reply) => {
       const { id } = request.params as { id: string };
@@ -151,7 +151,7 @@ export async function reminderRoutes(fastify: FastifyInstance) {
   fastify.delete(
     '/api/reminders/:id',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [(request: any, reply: any) => (fastify as any).authenticate(request, reply)],
     },
     async (request, reply) => {
       const { id } = request.params as { id: string };
