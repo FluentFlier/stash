@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard, TextInput, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Mail, Lock } from 'lucide-react-native';
+import { ArrowLeft, Mail, Lock, AlertCircle } from 'lucide-react-native';
 import { ButtonNew } from '../components/ui';
 import { theme } from '../theme';
 import type { RootStackParamList } from '../types';
+import { register } from '../lib/api';
+import { useAuthStore } from '../store/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
@@ -14,13 +16,30 @@ export const SignUpScreen: React.FC<Props> = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const setAuth = useAuthStore((state) => state.setAuth);
 
     const handleSignUp = async () => {
-        setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        if (!email || !password) {
+            setError('Please enter email and password');
+            return;
+        }
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        try {
+            setError(null);
+            setLoading(true);
+            const result = await register(email, password);
+            await setAuth(result.user, result.token);
             navigation.navigate('Onboarding');
-        }, 1000);
+        } catch (err: any) {
+            setError(err.message || 'Sign up failed');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -58,6 +77,21 @@ export const SignUpScreen: React.FC<Props> = ({ navigation }) => {
                                             <TextInput style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 10, fontSize: 15, color: theme.text }} placeholder="••••••••" placeholderTextColor={theme.textSubtle} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
                                         </View>
                                     </View>
+                                    {error && (
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            gap: 8,
+                                            backgroundColor: theme.errorMuted,
+                                            padding: 12,
+                                            borderRadius: 8,
+                                        }}>
+                                            <AlertCircle size={16} color={theme.error} />
+                                            <Text style={{ fontSize: 13, color: theme.error }}>
+                                                {error}
+                                            </Text>
+                                        </View>
+                                    )}
                                     <ButtonNew size="lg" loading={loading} onPress={handleSignUp}>Create Account</ButtonNew>
                                 </View>
                                 <Pressable onPress={() => navigation.navigate('Login')} style={{ marginTop: 24, alignItems: 'center' }}>

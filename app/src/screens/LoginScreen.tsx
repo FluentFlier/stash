@@ -6,6 +6,8 @@ import { ArrowLeft, Mail, Lock, AlertCircle, Chrome } from 'lucide-react-native'
 import { ButtonNew } from '../components/ui';
 import { theme } from '../theme';
 import type { RootStackParamList } from '../types';
+import { login } from '../lib/api';
+import { useAuthStore } from '../store/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -14,6 +16,7 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const setAuth = useAuthStore((state) => state.setAuth);
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -21,16 +24,17 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
             return;
         }
 
-        setError(null);
-        setLoading(true);
-        setTimeout(() => {
+        try {
+            setError(null);
+            setLoading(true);
+            const result = await login(email, password);
+            await setAuth(result.user, result.token);
+            navigation.navigate('Main');
+        } catch (err: any) {
+            setError(err.message || 'Login failed');
+        } finally {
             setLoading(false);
-            if (email.includes('error')) {
-                setError('Invalid email or password');
-            } else {
-                navigation.navigate('Main');
-            }
-        }, 1500);
+        }
     };
 
     const handleGoogleLogin = () => {

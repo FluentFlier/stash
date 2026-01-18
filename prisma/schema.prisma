@@ -1,0 +1,301 @@
+// Prisma Schema for Stash - Autonomous AI Backend
+// Database: Supabase PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  // extensions = [vector]
+}
+
+// ============================================
+// USERS
+// ============================================
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  name              String?
+  passwordHash      String
+  fcmToken          String?   // Firebase Cloud Messaging token for push notifications
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  captures          Capture[]
+  reminders         Reminder[]
+  calendarTokens    CalendarToken[]
+  tags              Tag[]
+  collections       Collection[]
+  notifications     Notification[]
+  actionOutcomes    ActionOutcome[]
+  userPatterns      UserPattern[]
+  chatMessages      ChatMessage[]
+
+  @@index([email])
+  @@map("users")
+}
+
+// ============================================
+// CAPTURES (Main content storage)
+// ============================================
+
+model Capture {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Original capture data
+  type              CaptureType
+  content           String    @db.Text        // URL or text content
+  userInput         String?   @db.Text        // What user said when sharing
+
+  // Analysis results (from agents)
+  fullContent       String?   @db.Text        // Full extracted content
+  metadata          Json?                     // Title, description, etc.
+  analysis          Json?                     // Deep analysis from analyzer agent
+
+  // Agent processing
+  actionPlan        Json?                     // Plan from planner agent
+  actionResults     Json?                     // Results from executor agent
+  processingStatus  ProcessingStatus @default(PENDING)
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  tags              CaptureTag[]
+  reminders         Reminder[]
+  collections       CollectionCapture[]
+  actionOutcomes    ActionOutcome[]
+
+  @@index([userId, createdAt])
+  @@index([type])
+  @@index([processingStatus])
+  @@map("captures")
+}
+
+enum CaptureType {
+  LINK
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  PDF
+  DOCUMENT
+  OTHER
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ============================================
+// ORGANIZATION (Tags & Collections)
+// ============================================
+
+model Tag {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name              String
+  color             String    @default("#3B82F6")
+
+  captures          CaptureTag[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("tags")
+}
+
+model CaptureTag {
+  captureId         String
+  capture           Capture   @relation(fields: [captureId], references: [id], onDelete: Cascade)
+  tagId             String
+  tag               Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime  @default(now())
+
+  @@id([captureId, tagId])
+  @@map("capture_tags")
+}
+
+model Collection {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name              String
+  description       String?
+  type              CollectionType
+  rules             Json?                     // For smart collections (auto-add rules)
+
+  createdAt         DateTime  @default(now())
+
+  captures          CollectionCapture[]
+
+  @@index([userId])
+  @@map("collections")
+}
+
+enum CollectionType {
+  MANUAL        // User manually adds items
+  SMART         // Auto-populated by rules
+}
+
+model CollectionCapture {
+  collectionId      String
+  collection        Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  captureId         String
+  capture           Capture   @relation(fields: [captureId], references: [id], onDelete: Cascade)
+
+  addedAt           DateTime  @default(now())
+  addedBy           String    @default("agent")  // "user" or "agent"
+
+  @@id([collectionId, captureId])
+  @@map("collection_captures")
+}
+
+// ============================================
+// REMINDERS & CALENDAR
+// ============================================
+
+model Reminder {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  captureId         String?
+  capture           Capture?  @relation(fields: [captureId], references: [id], onDelete: SetNull)
+
+  message           String
+  scheduledAt       DateTime
+  status            ReminderStatus @default(PENDING)
+
+  // For recurring reminders
+  recurring         Boolean   @default(false)
+  recurringRule     Json?     // cron-like rule
+
+  createdAt         DateTime  @default(now())
+  sentAt            DateTime?
+  completedAt       DateTime?
+
+  @@index([userId, scheduledAt])
+  @@index([status, scheduledAt])
+  @@map("reminders")
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  COMPLETED
+  CANCELLED
+  SNOOZED
+}
+
+model CalendarToken {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider          String    // 'google', 'apple', 'outlook'
+  accessToken       String    @db.Text
+  refreshToken      String    @db.Text
+  expiresAt         DateTime
+
+  @@unique([userId, provider])
+  @@map("calendar_tokens")
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+model Notification {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title             String
+  body              String
+  action            String?   // Action type for deep linking
+  data              Json?     // Additional data for the app
+
+  sentAt            DateTime  @default(now())
+  readAt            DateTime?
+  clickedAt         DateTime?
+
+  @@index([userId, sentAt])
+  @@index([readAt])
+  @@map("notifications")
+}
+
+// ============================================
+// CHAT
+// ============================================
+
+model ChatMessage {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role              MessageRole
+  content           String    @db.Text
+  metadata          Json?     // Related captures, sources, etc.
+
+  createdAt         DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@map("chat_messages")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+// ============================================
+// AGENT LEARNING
+// ============================================
+
+model ActionOutcome {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  captureId         String
+  capture           Capture   @relation(fields: [captureId], references: [id], onDelete: Cascade)
+
+  plan              Json      // What the planner agent decided
+  results           Json      // What the executor agent did
+  userFeedback      Json?     // Did user engage? Complete? Ignore?
+
+  timestamp         DateTime  @default(now())
+
+  @@index([userId, timestamp])
+  @@map("action_outcomes")
+}
+
+model UserPattern {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  patternType       String    // e.g., "save_time", "content_preference", "notification_timing"
+  data              Json      // Pattern-specific data
+  confidence        Float     @default(0.5)  // 0-1 confidence score
+
+  lastUpdated       DateTime  @updatedAt
+
+  @@unique([userId, patternType])
+  @@index([userId])
+  @@map("user_patterns")
+}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TextInput, Alert, TouchableWithoutFeedback, Keyboard, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useShareIntent } from 'expo-share-intent';
+import * as ImagePicker from 'expo-image-picker';
 import {
     Camera,
     Video,
@@ -16,6 +17,8 @@ import {
 } from 'lucide-react-native';
 import { ButtonNew } from '../components/ui';
 import { theme } from '../theme';
+import { createCapture, uploadFile } from '../lib/api';
+import { useAuthStore } from '../store/auth';
 
 export const AddContextScreen: React.FC = () => {
     const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
@@ -24,6 +27,9 @@ export const AddContextScreen: React.FC = () => {
     const [textNote, setTextNote] = useState('');
     const [sharedMediaUri, setSharedMediaUri] = useState<string | null>(null);
     const [sharedMediaName, setSharedMediaName] = useState<string | null>(null);
+    const [sharedMediaMimeType, setSharedMediaMimeType] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const token = useAuthStore((state) => state.token);
 
     useEffect(() => {
         if (hasShareIntent && shareIntent) {
@@ -35,8 +41,10 @@ export const AddContextScreen: React.FC = () => {
                 setTextNote(shareIntent.text);
             } else if (shareIntent.type === 'media' && shareIntent.files && shareIntent.files.length > 0) {
                 const file = shareIntent.files[0];
-                setSharedMediaUri(file.path || null);
+                const uri = (file as any).path || (file as any).filePath || (file as any).contentUri || (file as any).uri || null;
+                setSharedMediaUri(uri);
                 setSharedMediaName(file.fileName || 'Shared media');
+                setSharedMediaMimeType(file.mimeType || null);
                 if (file.mimeType?.startsWith('image/')) {
                     setSelectedType('image');
                 } else if (file.mimeType?.startsWith('video/')) {
@@ -47,21 +55,69 @@ export const AddContextScreen: React.FC = () => {
     }, [hasShareIntent, shareIntent]);
 
     const handleSave = async () => {
-        Alert.alert('Success', 'Content saved to Stash!', [
-            {
-                text: 'OK',
-                onPress: () => {
-                    setSelectedType(null);
-                    setLinkUrl('');
-                    setTextNote('');
-                    setSharedMediaUri(null);
-                    setSharedMediaName(null);
-                    if (hasShareIntent) {
-                        resetShareIntent();
-                    }
+        if (!token) {
+            Alert.alert('Sign in required', 'Please sign in to save to Stash.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            if (selectedType === 'link') {
+                await createCapture(token, {
+                    type: 'LINK',
+                    content: linkUrl,
+                    metadata: { source: 'mobile', shared: hasShareIntent },
+                });
+            } else if (selectedType === 'text') {
+                await createCapture(token, {
+                    type: 'TEXT',
+                    content: textNote,
+                    metadata: { source: 'mobile', shared: hasShareIntent },
+                });
+            } else if (selectedType === 'image' || selectedType === 'video') {
+                if (!sharedMediaUri) {
+                    Alert.alert('Missing media', 'Please select a file to upload.');
+                    return;
+                }
+                const name = sharedMediaName || `capture-${Date.now()}`;
+                const mime = sharedMediaMimeType || (selectedType === 'image' ? 'image/jpeg' : 'video/mp4');
+                const uploaded = await uploadFile(token, sharedMediaUri, name, mime);
+                await createCapture(token, {
+                    type: selectedType === 'image' ? 'IMAGE' : 'VIDEO',
+                    content: uploaded.url,
+                    metadata: {
+                        source: 'mobile',
+                        shared: hasShareIntent,
+                        fileName: uploaded.fileName,
+                        mimeType: uploaded.mimeType,
+                    },
+                });
+            } else {
+                Alert.alert('Select a type', 'Please choose a capture type.');
+                return;
+            }
+
+            Alert.alert('Success', 'Content saved to Stash!', [
+                {
+                    text: 'OK',
+                    onPress: () => {
+                        setSelectedType(null);
+                        setLinkUrl('');
+                        setTextNote('');
+                        setSharedMediaUri(null);
+                        setSharedMediaName(null);
+                        setSharedMediaMimeType(null);
+                        if (hasShareIntent) {
+                            resetShareIntent();
+                        }
+                    },
                 },
-            },
-        ]);
+            ]);
+        } catch (error: any) {
+            Alert.alert('Save failed', error.message || 'Unable to save content.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleCancel = () => {
@@ -70,8 +126,23 @@ export const AddContextScreen: React.FC = () => {
         setTextNote('');
         setSharedMediaUri(null);
         setSharedMediaName(null);
+        setSharedMediaMimeType(null);
         if (hasShareIntent) {
             resetShareIntent();
+        }
+    };
+
+    const handlePickMedia = async (type: 'image' | 'video') => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: type === 'image' ? ImagePicker.MediaTypeOptions.Images : ImagePicker.MediaTypeOptions.Videos,
+            quality: 1,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            const asset = result.assets[0];
+            setSharedMediaUri(asset.uri);
+            setSharedMediaMimeType(asset.mimeType || null);
+            setSharedMediaName(asset.fileName || `capture-${Date.now()}`);
         }
     };
 
@@ -254,7 +325,7 @@ export const AddContextScreen: React.FC = () => {
                                     <ButtonNew variant="outline" size="lg" onPress={handleCancel} style={{ flex: 1 }}>
                                         Cancel
                                     </ButtonNew>
-                                    <ButtonNew variant="primary" size="lg" onPress={handleSave} style={{ flex: 1 }}>
+                                    <ButtonNew variant="primary" size="lg" loading={loading} onPress={handleSave} style={{ flex: 1 }}>
                                         Save Link
                                     </ButtonNew>
                                 </View>
@@ -312,7 +383,7 @@ export const AddContextScreen: React.FC = () => {
                                     <ButtonNew variant="outline" size="lg" onPress={handleCancel} style={{ flex: 1 }}>
                                         Cancel
                                     </ButtonNew>
-                                    <ButtonNew variant="primary" size="lg" onPress={handleSave} style={{ flex: 1 }}>
+                                    <ButtonNew variant="primary" size="lg" loading={loading} onPress={handleSave} style={{ flex: 1 }}>
                                         Save Note
                                     </ButtonNew>
                                 </View>
@@ -365,7 +436,7 @@ export const AddContextScreen: React.FC = () => {
                                     </View>
                                 ) : (
                                     <Pressable
-                                        onPress={() => Alert.alert('Gallery', 'Coming soon')}
+                                        onPress={() => handlePickMedia('image')}
                                         style={{
                                             backgroundColor: theme.bgTertiary,
                                             borderRadius: 12,
@@ -397,7 +468,7 @@ export const AddContextScreen: React.FC = () => {
                                     <ButtonNew variant="outline" size="lg" onPress={handleCancel} style={{ flex: 1 }}>
                                         Cancel
                                     </ButtonNew>
-                                    <ButtonNew variant="primary" size="lg" onPress={handleSave} style={{ flex: 1 }}>
+                                    <ButtonNew variant="primary" size="lg" loading={loading} onPress={handleSave} style={{ flex: 1 }}>
                                         {sharedMediaUri ? 'Save Photo' : 'Take Photo'}
                                     </ButtonNew>
                                 </View>
@@ -449,7 +520,7 @@ export const AddContextScreen: React.FC = () => {
                                     </View>
                                 ) : (
                                     <Pressable
-                                        onPress={() => Alert.alert('Library', 'Coming soon')}
+                                        onPress={() => handlePickMedia('video')}
                                         style={{
                                             backgroundColor: theme.bgTertiary,
                                             borderRadius: 12,
@@ -481,7 +552,7 @@ export const AddContextScreen: React.FC = () => {
                                     <ButtonNew variant="outline" size="lg" onPress={handleCancel} style={{ flex: 1 }}>
                                         Cancel
                                     </ButtonNew>
-                                    <ButtonNew variant="primary" size="lg" onPress={handleSave} style={{ flex: 1 }}>
+                                    <ButtonNew variant="primary" size="lg" loading={loading} onPress={handleSave} style={{ flex: 1 }}>
                                         {sharedMediaUri ? 'Save Video' : 'Record'}
                                     </ButtonNew>
                                 </View>

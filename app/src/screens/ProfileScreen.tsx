@@ -19,16 +19,19 @@ import {
 import { ButtonNew } from '../components/ui';
 import { theme } from '../theme';
 import type { RootStackParamList } from '../types';
+import { useAuthStore } from '../store/auth';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const ProfileScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProp>();
+    const user = useAuthStore((state) => state.user);
+    const clearAuth = useAuthStore((state) => state.clear);
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [editField, setEditField] = useState<'name' | 'role' | 'age' | null>(null);
     const [editValue, setEditValue] = useState('');
-    const [name, setName] = useState('John Smith');
+    const [name, setName] = useState(user?.name || 'Unknown User');
     const [role, setRole] = useState('Developer');
     const [age, setAge] = useState('25');
 
@@ -41,7 +44,8 @@ export const ProfileScreen: React.FC = () => {
                 {
                     text: 'Sign Out',
                     style: 'destructive',
-                    onPress: () => {
+                    onPress: async () => {
+                        await clearAuth();
                         navigation.reset({
                             index: 0,
                             routes: [{ name: 'Landing' }],
@@ -100,7 +104,7 @@ export const ProfileScreen: React.FC = () => {
                                 {name}
                             </Text>
                             <Text style={{ fontSize: 14, color: theme.textMuted, marginTop: 2 }}>
-                                john@example.com
+                                {user?.email || 'Not signed in'}
                             </Text>
                         </View>
                         <Pressable onPress={() => handleEdit('name')}>
