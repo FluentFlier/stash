@@ -3,9 +3,11 @@ import { View, Text, KeyboardAvoidingView, Platform, ScrollView, TouchableWithou
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Mail, Lock } from 'lucide-react-native';
+import { ArrowLeft, Mail, Lock, AlertCircle } from 'lucide-react-native';
 import { ButtonNew, InputNew, CardNew } from '../components/ui';
 import type { RootStackParamList } from '../types';
+import { register } from '../lib/api';
+import { useAuthStore } from '../store/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
@@ -14,14 +16,30 @@ export const SignUpScreen: React.FC<Props> = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const setAuth = useAuthStore((state) => state.setAuth);
 
     const handleSignUp = async () => {
-        setLoading(true);
-        // TODO: Implement Supabase auth
-        setTimeout(() => {
-            setLoading(false);
+        if (!email || !password) {
+            setError('Please enter email and password');
+            return;
+        }
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        try {
+            setError(null);
+            setLoading(true);
+            const result = await register(email, password);
+            await setAuth(result.user, result.token);
             navigation.navigate('Onboarding');
-        }, 1000);
+        } catch (err: any) {
+            setError(err.message || 'Sign up failed');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -99,6 +117,15 @@ export const SignUpScreen: React.FC<Props> = ({ navigation }) => {
                                                 secureTextEntry
                                                 leftIcon={<Lock size={20} color="#a3a3a3" />}
                                             />
+
+                                            {error && (
+                                                <View className="flex-row items-center gap-2 bg-error/10 p-3 rounded-md border border-error/20">
+                                                    <AlertCircle size={16} color="#ef4444" />
+                                                    <Text className="text-sm text-error">
+                                                        {error}
+                                                    </Text>
+                                                </View>
+                                            )}
 
                                             <ButtonNew
                                                 size="lg"

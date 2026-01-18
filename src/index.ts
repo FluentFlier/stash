@@ -24,6 +24,7 @@ import { calendarRoutes } from './routes/calendar.js';
 import { voiceRoutes } from './routes/voice.js';
 import { apiKeyRoutes } from './routes/api-keys.js';
 import { webhookRoutes } from './routes/webhooks.js';
+import { uploadRoutes } from './routes/uploads.js';
 
 /**
  * Build Fastify server
@@ -131,7 +132,12 @@ async function buildServer() {
   });
 
   await fastify.register(formbody);
-  await fastify.register(multipart);
+  await fastify.register(multipart, {
+    limits: {
+      fileSize: config.upload.maxBytes,
+      files: 1,
+    },
+  });
 
   // Global hooks
   fastify.addHook('onRequest', securityMiddleware);
@@ -168,6 +174,7 @@ async function buildServer() {
   await fastify.register(voiceRoutes);
   await fastify.register(apiKeyRoutes);
   await fastify.register(webhookRoutes);
+  await fastify.register(uploadRoutes);
 
   // Add custom decorators after route registration
   fastify.decorate('authenticate', authenticateJWT);

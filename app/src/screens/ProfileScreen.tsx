@@ -17,15 +17,18 @@ import {
 } from 'lucide-react-native';
 import { AvatarNew, CardNew, ButtonNew, InputNew } from '../components/ui';
 import type { RootStackParamList } from '../types';
+import { useAuthStore } from '../store/auth';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const ProfileScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProp>();
+    const user = useAuthStore((state) => state.user);
+    const clearAuth = useAuthStore((state) => state.clear);
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [editField, setEditField] = useState<'name' | 'role' | 'age' | null>(null);
-    const [name, setName] = useState('John Smith');
+    const [name, setName] = useState(user?.name || 'Unknown User');
     const [role, setRole] = useState('Developer');
     const [age, setAge] = useState('25');
 
@@ -38,7 +41,8 @@ export const ProfileScreen: React.FC = () => {
                 {
                     text: 'Sign Out',
                     style: 'destructive',
-                    onPress: () => {
+                    onPress: async () => {
+                        await clearAuth();
                         // Navigate to Landing screen
                         navigation.reset({
                             index: 0,
@@ -77,7 +81,7 @@ export const ProfileScreen: React.FC = () => {
                                         {name}
                                     </Text>
                                     <Text className="text-base text-neutral-400">
-                                        john@example.com
+                                        {user?.email || 'Not signed in'}
                                     </Text>
                                 </View>
                                 <Pressable

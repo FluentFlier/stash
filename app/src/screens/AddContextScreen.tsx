@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TextInput, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useShareIntent } from 'expo-share-intent';
+import * as ImagePicker from 'expo-image-picker';
 import {
     Camera,
     Video,
@@ -13,47 +14,125 @@ import {
     Share2,
 } from 'lucide-react-native';
 import { CardNew, ButtonNew, InputNew } from '../components/ui';
+import { createCapture, uploadFile } from '../lib/api';
+import { useAuthStore } from '../store/auth';
 
 export const AddContextScreen: React.FC = () => {
     const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
     const [selectedType, setSelectedType] = useState<'image' | 'video' | 'link' | 'text' | null>(null);
     const [linkUrl, setLinkUrl] = useState('');
     const [textNote, setTextNote] = useState('');
+    const [mediaUri, setMediaUri] = useState<string | null>(null);
+    const [mediaMimeType, setMediaMimeType] = useState<string | null>(null);
+    const [mediaName, setMediaName] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const token = useAuthStore((state) => state.token);
 
     // Handle share intent when app is opened via share sheet
     useEffect(() => {
-        if (hasShareIntent && shareIntent) {
-            if (shareIntent.type === 'weburl' && shareIntent.webUrl) {
-                setSelectedType('link');
-                setLinkUrl(shareIntent.webUrl);
-            } else if (shareIntent.type === 'text' && shareIntent.text) {
-                setSelectedType('text');
-                setTextNote(shareIntent.text);
-            } else if (shareIntent.type === 'media' && shareIntent.files) {
-                const file = shareIntent.files[0];
-                if (file.mimeType?.startsWith('image/')) {
-                    setSelectedType('image');
-                } else if (file.mimeType?.startsWith('video/')) {
-                    setSelectedType('video');
+            if (hasShareIntent && shareIntent) {
+                if (shareIntent.type === 'weburl' && shareIntent.webUrl) {
+                    setSelectedType('link');
+                    setLinkUrl(shareIntent.webUrl);
+                } else if (shareIntent.type === 'text' && shareIntent.text) {
+                    setSelectedType('text');
+                    setTextNote(shareIntent.text);
+                } else if (shareIntent.type === 'media' && shareIntent.files) {
+                    const file = shareIntent.files[0];
+                    if (file.mimeType?.startsWith('image/')) {
+                        setSelectedType('image');
+                        setMediaMimeType(file.mimeType || null);
+                    } else if (file.mimeType?.startsWith('video/')) {
+                        setSelectedType('video');
+                        setMediaMimeType(file.mimeType || null);
+                    }
+                    const uri = (file as any).path || (file as any).filePath || (file as any).contentUri || (file as any).uri;
+                    if (uri) {
+                        setMediaUri(uri);
+                        setMediaName(file.fileName || file.name || 'shared-media');
+                    }
                 }
             }
-        }
-    }, [hasShareIntent, shareIntent]);
+        }, [hasShareIntent, shareIntent]);
 
     const handleSave = async () => {
-        Alert.alert('Success', 'Content saved to Stash!', [
-            {
-                text: 'OK',
-                onPress: () => {
-                    setSelectedType(null);
-                    setLinkUrl('');
-                    setTextNote('');
-                    if (hasShareIntent) {
-                        resetShareIntent();
-                    }
+        if (!token) {
+            Alert.alert('Sign in required', 'Please sign in to save to Stash.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            if (selectedType === 'link') {
+                await createCapture(token, {
+                    type: 'LINK',
+                    content: linkUrl,
+                    metadata: { source: 'mobile', shared: hasShareIntent },
+                });
+            } else if (selectedType === 'text') {
+                await createCapture(token, {
+                    type: 'TEXT',
+                    content: textNote,
+                    metadata: { source: 'mobile', shared: hasShareIntent },
+                });
+            } else if (selectedType === 'image' || selectedType === 'video') {
+                if (!mediaUri) {
+                    Alert.alert('Missing media', 'Please select a file to upload.');
+                    return;
+                }
+                const name = mediaName || `capture-${Date.now()}`;
+                const mime = mediaMimeType || (selectedType === 'image' ? 'image/jpeg' : 'video/mp4');
+                const uploaded = await uploadFile(token, mediaUri, name, mime);
+                await createCapture(token, {
+                    type: selectedType === 'image' ? 'IMAGE' : 'VIDEO',
+                    content: uploaded.url,
+                    metadata: {
+                        source: 'mobile',
+                        shared: hasShareIntent,
+                        fileName: uploaded.fileName,
+                        mimeType: uploaded.mimeType,
+                    },
+                });
+            } else {
+                Alert.alert('Select a type', 'Please choose a capture type.');
+                return;
+            }
+
+            Alert.alert('Success', 'Content saved to Stash!', [
+                {
+                    text: 'OK',
+                    onPress: () => {
+                        setSelectedType(null);
+                        setLinkUrl('');
+                        setTextNote('');
+                        setMediaUri(null);
+                        setMediaMimeType(null);
+                        setMediaName(null);
+                        if (hasShareIntent) {
+                            resetShareIntent();
+                        }
+                    },
                 },
-            },
-        ]);
+            ]);
+        } catch (error: any) {
+            Alert.alert('Save failed', error.message || 'Unable to save content.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePickMedia = async (type: 'image' | 'video') => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: type === 'image' ? ImagePicker.MediaTypeOptions.Images : ImagePicker.MediaTypeOptions.Videos,
+            quality: 1,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            const asset = result.assets[0];
+            setMediaUri(asset.uri);
+            setMediaMimeType(asset.mimeType || null);
+            setMediaName(asset.fileName || `capture-${Date.now()}`);
+        }
     };
 
     const recentCaptures = [
@@ -195,7 +274,7 @@ export const AddContextScreen: React.FC = () => {
                                         autoCapitalize="none"
                                         leftIcon={<LinkIcon size={20} color="#a3a3a3" />}
                                     />
-                                    <ButtonNew variant="primary" size="lg" onPress={handleSave}>
+                                    <ButtonNew variant="primary" size="lg" loading={loading} onPress={handleSave}>
                                         Save Link
                                     </ButtonNew>
                                 </CardNew.Content>
@@ -220,7 +299,7 @@ export const AddContextScreen: React.FC = () => {
                                         numberOfLines={6}
                                         textAlignVertical="top"
                                     />
-                                    <ButtonNew variant="primary" size="lg" onPress={handleSave}>
+                                    <ButtonNew variant="primary" size="lg" loading={loading} onPress={handleSave}>
                                         Save Note
                                     </ButtonNew>
                                 </CardNew.Content>
@@ -235,18 +314,18 @@ export const AddContextScreen: React.FC = () => {
                                     <View className="items-center py-8 gap-2 mb-4">
                                         <ImageIcon size={48} color="#a3a3a3" />
                                         <Text className="text-base font-medium text-neutral-50">
-                                            Tap to select a photo
+                                            {mediaUri ? 'Photo selected' : 'Tap to select a photo'}
                                         </Text>
                                         <Text className="text-sm text-neutral-400">
-                                            or take a new one
+                                            {mediaUri ? 'Ready to upload' : 'or take a new one'}
                                         </Text>
                                     </View>
                                     <View className="flex-row gap-3">
-                                        <ButtonNew variant="outline" className="flex-1">
+                                        <ButtonNew variant="outline" className="flex-1" onPress={() => handlePickMedia('image')}>
                                             Gallery
                                         </ButtonNew>
-                                        <ButtonNew variant="primary" className="flex-1">
-                                            Camera
+                                        <ButtonNew variant="primary" className="flex-1" loading={loading} onPress={handleSave}>
+                                            Save Photo
                                         </ButtonNew>
                                     </View>
                                 </CardNew.Content>
@@ -261,18 +340,18 @@ export const AddContextScreen: React.FC = () => {
                                     <View className="items-center py-8 gap-2 mb-4">
                                         <Video size={48} color="#a3a3a3" />
                                         <Text className="text-base font-medium text-neutral-50">
-                                            Tap to select a video
+                                            {mediaUri ? 'Video selected' : 'Tap to select a video'}
                                         </Text>
                                         <Text className="text-sm text-neutral-400">
-                                            or record a new one
+                                            {mediaUri ? 'Ready to upload' : 'or record a new one'}
                                         </Text>
                                     </View>
                                     <View className="flex-row gap-3">
-                                        <ButtonNew variant="outline" className="flex-1">
+                                        <ButtonNew variant="outline" className="flex-1" onPress={() => handlePickMedia('video')}>
                                             Library
                                         </ButtonNew>
-                                        <ButtonNew variant="primary" className="flex-1">
-                                            Record
+                                        <ButtonNew variant="primary" className="flex-1" loading={loading} onPress={handleSave}>
+                                            Save Video
                                         </ButtonNew>
                                     </View>
                                 </CardNew.Content>

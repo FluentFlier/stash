@@ -14,6 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Send, Sparkles, TrendingUp, Clock, Zap } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { MessageBubbleNew, CardNew, AvatarNew } from '../components/ui';
+import { sendChatMessage } from '../lib/api';
+import { useAuthStore } from '../store/auth';
 
 type Message = {
     id: string;
@@ -35,13 +37,15 @@ export const ChatScreen: React.FC = () => {
             }),
         },
     ]);
+    const [loading, setLoading] = useState(false);
+    const token = useAuthStore((state) => state.token);
     const scrollViewRef = useRef<ScrollView>(null);
 
     useEffect(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
     }, [messages]);
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (!message.trim()) return;
 
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -56,24 +60,56 @@ export const ChatScreen: React.FC = () => {
             }),
         };
 
-        setMessages([...messages, newMessage]);
+        setMessages((prev) => [...prev, newMessage]);
         setMessage('');
 
-        // Simulate AI response
-        setTimeout(() => {
+        if (!token) {
             setMessages((prev) => [
                 ...prev,
                 {
                     id: (Date.now() + 1).toString(),
                     role: 'assistant',
-                    content: 'This is a demo response. Connect to Supabase to enable real AI chat!',
+                    content: 'Please sign in to chat with your memory.',
                     timestamp: new Date().toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
                     }),
                 },
             ]);
-        }, 1000);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await sendChatMessage(token, newMessage.content);
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: (Date.now() + 1).toString(),
+                    role: 'assistant',
+                    content: response.message,
+                    timestamp: new Date().toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                    }),
+                },
+            ]);
+        } catch (error: any) {
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: (Date.now() + 1).toString(),
+                    role: 'assistant',
+                    content: error.message || 'Sorry, something went wrong.',
+                    timestamp: new Date().toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                    }),
+                },
+            ]);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -168,9 +204,9 @@ export const ChatScreen: React.FC = () => {
                             />
                             <Pressable
                                 onPress={handleSend}
-                                disabled={!message.trim()}
+                                disabled={!message.trim() || loading}
                                 className={`w-11 h-11 rounded-full items-center justify-center ${
-                                    message.trim()
+                                    message.trim() && !loading
                                         ? 'bg-gradient-to-r from-primary-600 to-accent-500'
                                         : 'bg-neutral-700'
                                 }`}

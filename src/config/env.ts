@@ -16,6 +16,7 @@ const envSchema = z.object({
   DIRECT_URL: z.string().url(),
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_SERVICE_KEY: z.string().optional(),
+  SUPABASE_STORAGE_BUCKET: z.string().default('captures'),
   DATABASE_CONNECTION_LIMIT: z.string().default('10'),
   DATABASE_CONNECTION_TIMEOUT: z.string().default('10000'), // 10 seconds
   DATABASE_QUERY_TIMEOUT: z.string().default('30000'), // 30 seconds
@@ -64,6 +65,10 @@ const envSchema = z.object({
   BODY_LIMIT_MAX: z.string().default('1048576'), // 1MB default
   ENABLE_HTTPS_REDIRECT: z.string().default('false'),
   INTERNAL_API_KEY: z.string().optional(), // For internal API key validation
+
+  // Uploads
+  UPLOAD_DIR: z.string().default('uploads'),
+  UPLOAD_MAX_MB: z.string().default('50'),
 });
 
 // Parse and validate environment variables
@@ -95,6 +100,7 @@ export const config = {
     url: env.DATABASE_URL,
     supabaseUrl: env.SUPABASE_URL,
     supabaseServiceKey: env.SUPABASE_SERVICE_KEY,
+    supabaseStorageBucket: env.SUPABASE_STORAGE_BUCKET,
     connectionLimit: parseInt(env.DATABASE_CONNECTION_LIMIT, 10),
     connectionTimeout: parseInt(env.DATABASE_CONNECTION_TIMEOUT, 10),
     queryTimeout: parseInt(env.DATABASE_QUERY_TIMEOUT, 10),
@@ -141,5 +147,9 @@ export const config = {
     bodyLimitMax: parseInt(env.BODY_LIMIT_MAX, 10),
     enableHttpsRedirect: env.ENABLE_HTTPS_REDIRECT === 'true',
     internalApiKey: env.INTERNAL_API_KEY,
+  },
+  upload: {
+    dir: env.UPLOAD_DIR,
+    maxBytes: parseInt(env.UPLOAD_MAX_MB, 10) * 1024 * 1024,
   },
 } as const;
