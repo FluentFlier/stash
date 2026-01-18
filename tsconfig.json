@@ -2,12 +2,14 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowJs": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./backend",
     "removeComments": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -27,19 +29,43 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@agents/*": ["src/agents/*"],
-      "@services/*": ["src/services/*"],
-      "@workers/*": ["src/workers/*"],
-      "@config/*": ["src/config/*"],
-      "@utils/*": ["src/utils/*"],
-      "@types/*": ["src/types/*"],
-      "@middleware/*": ["src/middleware/*"]
+      "@/*": [
+        "backend/*"
+      ],
+      "@agents/*": [
+        "backend/agents/*"
+      ],
+      "@services/*": [
+        "backend/services/*"
+      ],
+      "@workers/*": [
+        "backend/workers/*"
+      ],
+      "@config/*": [
+        "backend/config/*"
+      ],
+      "@utils/*": [
+        "backend/utils/*"
+      ],
+      "@types/*": [
+        "backend/types/*"
+      ],
+      "@middleware/*": [
+        "backend/middleware/*"
+      ]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  "include": [
+    "backend/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts"
+  ]
 }

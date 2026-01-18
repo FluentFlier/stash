@@ -1,9 +1,9 @@
-# Stash - Visual AI Memory Assistant
-## Technical Implementation Plan
+# Stash - Implementation Plan
+## AI Memory Assistant with Native Share Sheet Integration
 
-> **Project:** AI personal secretary for visual memories  
-> **Hackathon:** NexHacks 2026 (Jan 17-18, Carnegie Mellon)  
-> **Stack:** React Native + GPT-4V + Supermemory + LiveKit
+> **Project:** Mobile app with iOS/Android share sheet integration + AI context assistant  
+> **Tech Stack:** React Native (Expo) + Supabase + GPT-4 + Google Calendar  
+> **Timeline:** Phased development approach
 
 ---
 
@@ -12,41 +12,45 @@
 1. [Problem Statement](#problem-statement)
 2. [Solution Overview](#solution-overview)
 3. [Architecture](#architecture)
-4. [Visual Processing (Photos)](#visual-processing-photos)
-5. [Video Processing](#video-processing)
-6. [Technology Stack](#technology-stack)
+4. [Technology Stack](#technology-stack)
+5. [Implementation Phases](#implementation-phases)
+6. [API Specifications](#api-specifications)
 7. [Verification Plan](#verification-plan)
 
 ---
 
 ## Problem Statement
 
-**Overshoot visual AI processing is not working.** We need alternative solutions for:
-- Image analysis (OCR, object detection, scene understanding)
-- Video processing (frame extraction, temporal analysis)
-- Memory storage and retrieval
+**Information overload without organization:**
+- Users save 50+ items per week (articles, screenshots, notes, videos)
+- Content scattered across apps (Notes, Photos, Safari Reading List, Pocket)
+- No context, no organization, no memory
+- Existing solutions require manual organization or lack AI understanding
+
+**Current pain points:**
+- Can't remember what was saved last week
+- No way to query saved content conversationally
+- Manual calendar entry for events
+- No proactive reminders based on context
 
 ---
 
 ## Solution Overview
 
-### Recommended Approach: GPT-4 Vision + FFmpeg
+### Stash: Your AI Memory Assistant
 
-**For Images:**
-- Use GPT-4 Vision API directly (already in stack via Supermemory)
-- Single API call handles OCR, object detection, scene understanding
-- No additional services needed
+**Core Features:**
+1. **Native Share Sheet Integration** - Capture from ANY app via iOS/Android share menu
+2. **AI Context Extraction** - GPT-4V analyzes content for entities, dates, intent, actions
+3. **Conversational Interface** - Chat with your memory like ChatGPT
+4. **Autonomous Agent** - Proactive reminders, morning briefings, smart suggestions
+5. **Google Calendar Integration** - Auto-create events from captured content
 
-**For Videos:**
-- Extract key frames using `fluent-ffmpeg`
-- Analyze frames with GPT-4 Vision
-- Optional: Transcribe audio with Whisper
-
-**Benefits:**
-- ✅ Zero additional setup (reuses existing OpenAI integration)
-- ✅ Simpler architecture (fewer dependencies)
-- ✅ Faster development (no new SDKs to learn)
-- ✅ Cost-effective (no extra API fees)
+**Key Differentiators:**
+- ✅ OS-level integration (share sheet) - already in user workflow
+- ✅ Persistent memory across all conversations
+- ✅ Proactive, not just reactive
+- ✅ Clean, modern, minimalistic UI
 
 ---
 
@@ -56,325 +60,612 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                  MOBILE APP (React Native)                   │
-│              Camera → Capture Photo/Video                    │
+│                    ANY iOS/ANDROID APP                       │
+│         (Safari, Twitter, Notes, Photos, etc.)               │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+                    [User taps Share]
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                  NATIVE SHARE SHEET                          │
+│              [Stash appears as option]                       │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                    UPLOAD & STORAGE                          │
-│         Cloudflare R2 (media) + MongoDB (metadata)           │
+│              STASH APP (expo-share-intent)                   │
+│    Receives: text, URLs, images, videos                     │
+│    → Opens "Add Context" tab with pre-filled data           │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                  PROCESSING QUEUE (Bull + Redis)             │
+│                  UPLOAD TO SUPABASE                          │
+│    Images: Supabase Storage                                 │
+│    Videos: Temporary upload for processing                  │
+│    Links: Metadata extraction                               │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
-│              VISUAL ANALYSIS (GPT-4 Vision)                  │
-│    Photos: Direct analysis | Videos: Frame extraction        │
+│              BACKEND PROCESSING (Supabase Edge Functions)   │
+│    GPT-4V: Extract metadata, entities, intent               │
+│    → Date/time extraction                                   │
+│    → Entity recognition (people, places, events)            │
+│    → Intent classification (save, remind, schedule)         │
+│    → Suggested actions                                      │
+│    → Store in Postgres with embeddings                      │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                MEMORY LAYER (Supermemory)                    │
-│              Persistent context + semantic search            │
+│                  STASH MOBILE APP                            │
+│                                                              │
+│  Tab 1: CHAT              Tab 2: ADD CONTEXT                 │
+│  - Conversational UI      - Manual capture                   │
+│  - Query saved content    - Image/video/link                 │
+│  - AI responses           - Share intent target              │
+│                                                              │
+│  Tab 3: PROFILE                                              │
+│  - User metadata                                             │
+│  - Settings                                                  │
+│  - Google Calendar status                                    │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                  VOICE AGENT (LiveKit)                       │
-│           Real-time conversation about memories              │
+│                  INTEGRATIONS                                │
+│    Google Calendar | Push Notifications | Autonomous Agent  │
 └─────────────────────────────────────────────────────────────┘
 ```
-
----
-
-## Visual Processing (Photos)
-
-### GPT-4 Vision Implementation
-
-**Single API call handles everything:**
-
-```typescript
-const analysis = await openai.chat.completions.create({
-  model: 'gpt-4-vision-preview',
-  messages: [
-    {
-      role: 'system',
-      content: `Analyze this image and provide:
-1. Detailed description
-2. All visible text (OCR)
-3. Objects and their relationships
-4. Scene context and setting
-5. Suggested tags for organization
-6. Actionable items (dates, tasks, reminders)
-
-Format as JSON.`
-    },
-    {
-      role: 'user',
-      content: [
-        {
-          type: 'image_url',
-          image_url: { url: imageUrl }
-        }
-      ]
-    }
-  ],
-  response_format: { type: 'json_object' },
-  headers: {
-    'x-sm-user-id': userId,
-    'x-sm-container-tag': `user:${userId}`,
-  },
-});
-
-const result = JSON.parse(analysis.choices[0].message.content);
-```
-
-### Capabilities
-
-| Feature | GPT-4 Vision | Notes |
-|---------|--------------|-------|
-| OCR | ✅ Excellent | Handwritten notes, screenshots, documents |
-| Object Detection | ✅ Strong | Identifies objects + spatial relationships |
-| Scene Understanding | ✅ Excellent | Context, setting, mood |
-| Math OCR | ✅ Advanced | Visual equations, formulas |
-| Chart/Table Extraction | ✅ Good | Data from graphs, tables |
-| Code Generation | ✅ Bonus | LaTeX from equations, Python from flowcharts |
-
-### Alternative Options
-
-#### Claude 3.5 Sonnet (Better Vision Quality)
-- Superior OCR accuracy (especially low-quality images)
-- Better at complex diagrams and visual reasoning
-- Can route through Supermemory or direct Anthropic API
-
-#### Google Cloud Vision (Specialized OCR)
-- Best-in-class OCR specifically
-- Logo/landmark detection
-- Face detection
-- Use if GPT-4V OCR insufficient
-
----
-
-## Video Processing
-
-### Recommended: Frame Extraction + GPT-4V
-
-**Workflow:**
-1. Extract 8-10 key frames using ffmpeg
-2. Upload frames to R2
-3. Analyze all frames with GPT-4V in single call
-4. Optional: Extract & transcribe audio with Whisper
-
-### Implementation
-
-#### Step 1: Frame Extraction
-
-```typescript
-import ffmpeg from 'fluent-ffmpeg';
-import { promises as fs } from 'fs';
-import path from 'path';
-
-async function extractFrames(videoUrl: string, captureId: string, userId: string) {
-  const tempDir = `/tmp/frames-${captureId}`;
-  await fs.mkdir(tempDir, { recursive: true });
-  
-  // Extract 10 evenly distributed frames
-  await new Promise((resolve, reject) => {
-    ffmpeg(videoUrl)
-      .screenshots({
-        count: 10,
-        folder: tempDir,
-        filename: 'frame-%i.png',
-        size: '1280x720'
-      })
-      .on('end', resolve)
-      .on('error', reject);
-  });
-  
-  // Upload frames to R2
-  const frameFiles = await fs.readdir(tempDir);
-  const frameUrls = await Promise.all(
-    frameFiles
-      .filter(f => f.endsWith('.png'))
-      .sort()
-      .map(async (file, i) => {
-        const frameBuffer = await fs.readFile(path.join(tempDir, file));
-        const frameKey = `users/${userId}/captures/${captureId}/frame-${i}.png`;
-        await uploadToR2(frameKey, frameBuffer);
-        return getR2PublicUrl(frameKey);
-      })
-  );
-  
-  // Cleanup
-  await fs.rm(tempDir, { recursive: true });
-  
-  return frameUrls;
-}
-```
-
-#### Step 2: Analyze Frames
-
-```typescript
-async function analyzeVideo(frameUrls: string[], userId: string) {
-  const analysis = await openai.chat.completions.create({
-    model: 'gpt-4-vision-preview',
-    messages: [
-      {
-        role: 'system',
-        content: `Analyze this video by examining ${frameUrls.length} frames. Provide:
-1. Overall video summary and narrative
-2. Key scenes and transitions
-3. All visible text across frames (OCR)
-4. Objects and people throughout
-5. Actions and events happening
-6. Suggested tags
-7. Actionable items (dates, tasks, etc.)
-
-Format as JSON.`
-      },
-      {
-        role: 'user',
-        content: [
-          { type: 'text', text: `Analyzing ${frameUrls.length} frames:` },
-          ...frameUrls.map(url => ({
-            type: 'image_url' as const,
-            image_url: { url }
-          }))
-        ]
-      }
-    ],
-    response_format: { type: 'json_object' },
-    headers: {
-      'x-sm-user-id': userId,
-      'x-sm-container-tag': `user:${userId}`,
-    },
-  });
-  
-  return JSON.parse(analysis.choices[0].message.content);
-}
-```
-
-#### Step 3: Audio Transcription (Optional)
-
-```typescript
-async function extractAndTranscribeAudio(videoUrl: string) {
-  const audioPath = `/tmp/audio-${Date.now()}.mp3`;
-  
-  // Extract audio
-  await new Promise((resolve, reject) => {
-    ffmpeg(videoUrl)
-      .output(audioPath)
-      .audioCodec('libmp3lame')
-      .on('end', resolve)
-      .on('error', reject)
-      .run();
-  });
-  
-  // Transcribe with Whisper
-  const audioFile = await fs.readFile(audioPath);
-  const transcription = await openai.audio.transcriptions.create({
-    file: audioFile,
-    model: 'whisper-1',
-  });
-  
-  await fs.unlink(audioPath);
-  
-  return transcription.text;
-}
-```
-
-#### Complete Video Processing
-
-```typescript
-async function processVideoCapture(captureId: string) {
-  const capture = await db.collection('captures').findOne({ _id: captureId });
-  const videoUrl = getR2PublicUrl(capture.r2Key);
-  
-  // Extract and analyze frames
-  const frameUrls = await extractFrames(videoUrl, captureId, capture.userId);
-  const visualAnalysis = await analyzeVideo(frameUrls, capture.userId);
-  
-  // Optional: Transcribe audio if video > 5 seconds
-  let transcript = null;
-  if (capture.duration > 5) {
-    transcript = await extractAndTranscribeAudio(videoUrl);
-  }
-  
-  // Store results
-  await db.collection('captures').updateOne(
-    { _id: captureId },
-    {
-      $set: {
-        status: 'ready',
-        analysis: visualAnalysis,
-        transcript,
-        frameUrls,
-        processedAt: new Date(),
-      },
-    }
-  );
-}
-```
-
-### Dependencies
-
-```bash
-npm install fluent-ffmpeg @types/fluent-ffmpeg
-```
-
-**Note:** Requires ffmpeg binary on server. Options:
-- Install via package manager: `apt-get install ffmpeg`
-- Use Docker image with ffmpeg pre-installed
-- Use `ffmpeg-static` npm package (includes binary)
-
-### Alternative Video Processing Options
-
-#### Google Video Intelligence API
-- Advanced features: shot detection, explicit content filtering
-- Object tracking across frames
-- Automatic speech transcription
-- **Use if:** Need specialized video features
-
-#### Amazon Rekognition Video
-- Real-time video analysis
-- Celebrity recognition
-- Custom labeling
-- **Use if:** Already on AWS infrastructure
 
 ---
 
 ## Technology Stack
 
-### Core Services
+### Frontend (Mobile App)
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **Mobile App** | React Native (Expo) | Cross-platform camera app |
-| **Backend API** | Fastify (Node.js) | REST API server |
-| **Database** | MongoDB | Capture metadata |
-| **Storage** | Cloudflare R2 | Media files (photos/videos) |
-| **Queue** | Bull + Redis | Async job processing |
-| **Vision AI** | GPT-4 Vision | Image/video analysis |
-| **Memory** | Supermemory | Persistent context |
-| **Voice Agent** | LiveKit | Real-time voice chat |
-| **Audio Transcription** | OpenAI Whisper | Speech-to-text |
-| **Video Processing** | ffmpeg | Frame extraction |
+| **Framework** | React Native (Expo) | Cross-platform mobile development |
+| **Language** | TypeScript | Type safety and better DX |
+| **Navigation** | React Navigation v6 | Tab navigation + stack navigation |
+| **State Management** | Zustand | Lightweight, simple global state |
+| **UI Components** | Custom (design system) | Clean, minimalistic, vibrant UI |
+| **Icons** | Lucide React Native | Consistent icon system (no emojis) |
+| **Share Extension** | expo-share-intent | Native share sheet integration |
+| **Image Picker** | expo-image-picker | Camera and gallery access |
+| **Camera** | expo-camera | Video recording |
+| **Notifications** | expo-notifications | Push notifications |
+| **Auth** | Supabase Auth | User authentication |
 
-### API Keys Required
+### Backend (Cloud)
 
-```bash
-# .env
-MONGODB_URI=mongodb+srv://...
-R2_ACCOUNT_ID=...
-R2_ACCESS_KEY_ID=...
-R2_SECRET_ACCESS_KEY=...
-R2_BUCKET_NAME=stash-media
-OPENAI_API_KEY=...
-SUPERMEMORY_API_KEY=...
-LIVEKIT_API_KEY=...
-LIVEKIT_API_SECRET=...
-LIVEKIT_WS_URL=wss://...
-REDIS_URL=redis://...
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Database** | Supabase (Postgres) | Structured data storage |
+| **Storage** | Supabase Storage | Media files (images, videos) |
+| **Auth** | Supabase Auth | User management, JWT tokens |
+| **Real-time** | Supabase Realtime | Live updates (optional) |
+| **Functions** | Supabase Edge Functions | Serverless processing |
+| **AI Processing** | GPT-4 + GPT-4V (OpenAI) | Context extraction, chat responses |
+| **Embeddings** | OpenAI Embeddings | Semantic search |
+| **Calendar** | Google Calendar API | Event management |
+| **Notifications** | Expo Push Notifications | Autonomous reminders |
+
+### Key Technical Decisions
+
+**Why Supabase over MongoDB?**
+- ✅ Built-in auth, storage, and real-time in one service
+- ✅ Postgres = better for structured data + relationships
+- ✅ Row-level security (RLS) for data privacy
+- ✅ Simpler integration with fewer services
+- ✅ Free tier generous for MVP
+
+**Why expo-share-intent?**
+- ✅ Handles both iOS and Android share extensions
+- ✅ Supports text, URLs, images, videos, files
+- ✅ Works with Expo managed workflow
+- ✅ Active maintenance (updated 2025-2026)
+
+**Why Zustand over Redux?**
+- ✅ Simpler API, less boilerplate
+- ✅ TypeScript-first
+- ✅ No providers needed
+- ✅ Perfect for small-to-medium apps
+
+---
+
+## Implementation Phases
+
+### Phase 1: Project Setup & Design System (4-6 hours)
+
+**Frontend:**
+- [ ] Initialize Expo React Native project with TypeScript
+- [ ] Set up project structure (screens, components, theme, store)
+- [ ] Install dependencies (React Navigation, Zustand, Lucide icons)
+- [ ] Implement design system (colors, typography, spacing, shadows)
+- [ ] Build core components (Button, Input, Card, Avatar, MessageBubble)
+- [ ] Set up navigation structure (Stack + Tab navigators)
+
+**Backend:**
+- [ ] Create Supabase project
+- [ ] Set up Postgres database schema
+- [ ] Configure Supabase Storage buckets
+- [ ] Set up Row-Level Security (RLS) policies
+- [ ] Initialize Supabase Edge Functions project
+
+**Deliverables:**
+- Working Expo app with navigation
+- Design system implemented
+- Supabase project configured
+
+---
+
+### Phase 2: Authentication & Onboarding (4-6 hours)
+
+**Frontend:**
+- [ ] Build Landing page
+- [ ] Build Login/Signup screens
+- [ ] Implement auth state management (Zustand)
+- [ ] Build Onboarding flow (3 steps)
+  - Welcome screen
+  - Google Calendar connection (UI only, pending integration)
+  - User metadata collection (name, role, age)
+- [ ] Integrate Supabase Auth SDK
+
+**Backend:**
+- [ ] Set up Supabase Auth (email/password)
+- [ ] Create `user_profiles` table for metadata
+- [ ] Create API endpoint for onboarding data
+- [ ] Implement user profile CRUD operations
+
+**Deliverables:**
+- Complete auth flow (dummy for now)
+- Onboarding screens functional
+- User metadata stored in Supabase
+
+---
+
+### Phase 3: Chat Interface (6-8 hours)
+
+**Frontend:**
+- [ ] Build Chat tab UI
+- [ ] Implement message list (scrollable, auto-scroll)
+- [ ] Build message input with send button
+- [ ] Create MessageBubble component (user/AI/system)
+- [ ] Implement typing indicator
+- [ ] Add loading states
+- [ ] Implement chat state management (Zustand)
+
+**Backend:**
+- [ ] Create `conversations` table
+- [ ] Create `messages` table
+- [ ] Implement chat API endpoint (POST /api/chat/message)
+- [ ] Integrate GPT-4 for responses
+- [ ] Implement conversation history retrieval
+- [ ] Add context injection (retrieve relevant saved content)
+
+**Deliverables:**
+- Functional chat interface
+- AI responses working
+- Conversation history persisted
+
+---
+
+### Phase 4: Add Context Tab & Share Intent (8-10 hours)
+
+**Frontend:**
+- [ ] Build Add Context tab UI
+- [ ] Implement image picker (camera + gallery)
+- [ ] Implement video picker (camera + gallery)
+- [ ] Implement link input
+- [ ] Build preview components
+- [ ] Add caption/notes input
+- [ ] Implement "Process" button with loading state
+- [ ] Integrate expo-share-intent
+- [ ] Handle share intent data (pre-fill Add Context tab)
+
+**Backend:**
+- [ ] Create `context_items` table
+- [ ] Implement image upload to Supabase Storage
+- [ ] Implement video upload (temporary)
+- [ ] Create processing Edge Function
+  - GPT-4V for image analysis
+  - Video frame extraction + analysis
+  - Link metadata extraction
+- [ ] Store extracted data in Postgres
+- [ ] Delete video after processing (keep extracted data only)
+
+**Deliverables:**
+- Add Context tab functional
+- Share sheet integration working
+- Content processing pipeline complete
+
+---
+
+### Phase 5: Profile & Settings (2-4 hours)
+
+**Frontend:**
+- [ ] Build Profile tab UI
+- [ ] Display user metadata
+- [ ] Implement edit mode for metadata fields
+- [ ] Show Google Calendar connection status
+- [ ] Add notification settings toggle
+- [ ] Implement sign out functionality
+
+**Backend:**
+- [ ] Create profile update API endpoint
+- [ ] Implement metadata validation
+- [ ] Add Google Calendar connection status check
+
+**Deliverables:**
+- Profile page complete
+- User can edit metadata
+- Settings functional
+
+---
+
+### Phase 6: Google Calendar Integration (4-6 hours)
+
+**Frontend:**
+- [ ] Build Google Calendar OAuth flow UI
+- [ ] Add "Connect Calendar" button in onboarding
+- [ ] Add calendar connection status in profile
+- [ ] Handle OAuth callback
+
+**Backend:**
+- [ ] Set up Google Calendar API credentials
+- [ ] Implement OAuth flow (authorization + token exchange)
+- [ ] Store calendar tokens securely in Supabase
+- [ ] Create API endpoint to create calendar events
+- [ ] Implement event creation from extracted data
+
+**Deliverables:**
+- Google Calendar connection working
+- Events auto-created from captured content
+
+---
+
+### Phase 7: Autonomous Agent Features (6-8 hours)
+
+**Backend:**
+- [ ] Set up cron job scheduler (Supabase Edge Functions + pg_cron)
+- [ ] Implement morning briefing generator
+  - Query recent captures
+  - Analyze with GPT-4
+  - Generate personalized summary
+- [ ] Implement event-based reminders
+  - Check for upcoming events (30 min before)
+  - Find related captures
+  - Send push notification
+- [ ] Implement smart suggestions (weekly)
+  - Analyze capture patterns
+  - Generate insights with GPT-4
+  - Send notification
+- [ ] Integrate Expo Push Notifications
+
+**Frontend:**
+- [ ] Handle push notification permissions
+- [ ] Implement notification tap handlers
+- [ ] Add notification settings in profile
+
+**Deliverables:**
+- Morning briefings working
+- Event reminders functional
+- Smart suggestions implemented
+
+---
+
+### Phase 8: Polish & Testing (4-6 hours)
+
+**Frontend:**
+- [ ] Add animations and transitions
+- [ ] Implement error handling (network errors, API errors)
+- [ ] Add empty states
+- [ ] Optimize performance (lazy loading, memoization)
+- [ ] Test on physical devices (iOS + Android)
+- [ ] Fix UI bugs and edge cases
+
+**Backend:**
+- [ ] Add error handling and logging
+- [ ] Optimize database queries
+- [ ] Add rate limiting
+- [ ] Test all API endpoints
+- [ ] Monitor performance
+
+**Deliverables:**
+- Polished, production-ready app
+- All edge cases handled
+- Performance optimized
+
+---
+
+## API Specifications
+
+### Authentication
+
+```typescript
+// POST /api/auth/signup
+Request: {
+  email: string;
+  password: string;
+}
+Response: {
+  user: {
+    id: string;
+    email: string;
+  };
+  token: string;
+}
+
+// POST /api/auth/signin
+Request: {
+  email: string;
+  password: string;
+}
+Response: {
+  user: User;
+  token: string;
+}
+
+// POST /api/auth/signout
+Request: {
+  token: string;
+}
+Response: {
+  success: boolean;
+}
+```
+
+### User Profile
+
+```typescript
+// GET /api/user/profile
+Headers: { Authorization: Bearer <token> }
+Response: {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  age: number;
+  googleCalendarConnected: boolean;
+  notificationsEnabled: boolean;
+  createdAt: string;
+}
+
+// PUT /api/user/profile
+Request: {
+  name?: string;
+  role?: string;
+  age?: number;
+}
+Response: {
+  user: User;
+}
+
+// POST /api/user/onboarding
+Request: {
+  name: string;
+  role: string;
+  age: number;
+}
+Response: {
+  user: User;
+}
+```
+
+### Chat
+
+```typescript
+// POST /api/chat/message
+Request: {
+  message: string;
+  conversationId?: string;
+}
+Response: {
+  response: string;
+  conversationId: string;
+  messageId: string;
+  timestamp: string;
+  relatedContent?: Array<{
+    id: string;
+    type: 'image' | 'video' | 'link' | 'text';
+    preview: string;
+    relevance: number;
+  }>;
+}
+
+// GET /api/chat/history
+Query: { conversationId?: string }
+Response: {
+  messages: Array<{
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: string;
+  }>;
+  conversationId: string;
+}
+```
+
+### Context Processing
+
+```typescript
+// POST /api/context/add
+Request: {
+  type: 'image' | 'video' | 'link';
+  content: string; // base64 for images, URL for videos/links
+  caption?: string;
+}
+Response: {
+  id: string;
+  status: 'processing' | 'ready' | 'failed';
+  extractedData?: {
+    text?: string;
+    entities?: string[];
+    suggestedActions?: Array<{
+      type: 'calendar' | 'reminder' | 'tag';
+      data: any;
+    }>;
+  };
+}
+
+// GET /api/context/items
+Query: { limit?: number; offset?: number }
+Response: {
+  items: Array<ContextItem>;
+  total: number;
+}
+
+// GET /api/context/:id
+Response: {
+  item: ContextItem;
+}
+```
+
+### Google Calendar
+
+```typescript
+// POST /api/calendar/connect
+Request: {
+  authorizationCode: string;
+}
+Response: {
+  success: boolean;
+  calendarConnected: boolean;
+}
+
+// POST /api/calendar/create-event
+Request: {
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  location?: string;
+}
+Response: {
+  eventId: string;
+  eventUrl: string;
+}
+```
+
+### Autonomous Systems
+
+```typescript
+// GET /api/autonomous/briefing
+Response: {
+  summary: string;
+  relatedItems: Array<{
+    id: string;
+    type: string;
+    preview: string;
+  }>;
+  generatedAt: string;
+}
+
+// GET /api/autonomous/reminders
+Response: {
+  reminders: Array<{
+    id: string;
+    type: 'event' | 'deadline' | 'suggestion';
+    title: string;
+    description: string;
+    triggerTime: string;
+    relatedItems: string[];
+  }>;
+}
+```
+
+---
+
+## Database Schema
+
+### Supabase Postgres Tables
+
+```sql
+-- Users table (managed by Supabase Auth)
+-- Extended with user_profiles table
+
+CREATE TABLE user_profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id),
+  name TEXT NOT NULL,
+  role TEXT,
+  age INTEGER,
+  google_calendar_connected BOOLEAN DEFAULT FALSE,
+  google_calendar_token TEXT,
+  google_calendar_refresh_token TEXT,
+  notifications_enabled BOOLEAN DEFAULT TRUE,
+  timezone TEXT DEFAULT 'America/New_York',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Conversations table
+CREATE TABLE conversations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) NOT NULL,
+  title TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Messages table
+CREATE TABLE messages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  conversation_id UUID REFERENCES conversations(id) NOT NULL,
+  role TEXT NOT NULL, -- 'user' or 'assistant'
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Context items table
+CREATE TABLE context_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) NOT NULL,
+  type TEXT NOT NULL, -- 'image', 'video', 'link', 'text'
+  source_url TEXT, -- Supabase Storage URL for images
+  extracted_text TEXT,
+  entities JSONB, -- Array of extracted entities
+  metadata JSONB, -- Additional metadata
+  suggested_actions JSONB, -- Array of suggested actions
+  embedding VECTOR(1536), -- For semantic search
+  status TEXT DEFAULT 'processing', -- 'processing', 'ready', 'failed'
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  processed_at TIMESTAMPTZ
+);
+
+-- Indexes
+CREATE INDEX idx_context_items_user ON context_items(user_id);
+CREATE INDEX idx_context_items_created ON context_items(created_at DESC);
+CREATE INDEX idx_messages_conversation ON messages(conversation_id);
+CREATE INDEX idx_conversations_user ON conversations(user_id);
+
+-- Row-Level Security (RLS)
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE context_items ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Users can view own profile"
+  ON user_profiles FOR SELECT
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile"
+  ON user_profiles FOR UPDATE
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can view own conversations"
+  ON conversations FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can view own messages"
+  ON messages FOR SELECT
+  USING (
+    conversation_id IN (
+      SELECT id FROM conversations WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can view own context items"
+  ON context_items FOR SELECT
+  USING (auth.uid() = user_id);
 ```
 
 ---
@@ -383,81 +674,104 @@ REDIS_URL=redis://...
 
 ### Automated Tests
 
-**1. Unit Tests**
+**Frontend (Jest + React Native Testing Library):**
 ```bash
 npm test
 ```
-- Mock GPT-4V responses
-- Verify JSON parsing
-- Test error handling
+- Component rendering tests
+- Navigation flow tests
+- State management tests
+- API integration tests (mocked)
 
-**2. Integration Tests**
-- Upload sample image → verify analysis
-- Upload sample video → verify frame extraction
-- Test audio transcription
+**Backend (Supabase Edge Functions):**
+- Unit tests for processing functions
+- Integration tests for API endpoints
+- Database query tests
 
 ### Manual Testing
 
-**Photo Processing:**
-1. Capture photo of whiteboard with text
-2. Verify OCR extracted all text
-3. Check object detection accuracy
-4. Validate tags are relevant
+**Authentication Flow:**
+1. Landing page → Sign Up
+2. Enter email/password → Create account
+3. Onboarding flow (3 steps)
+4. Complete setup → Navigate to Chat tab
 
-**Video Processing:**
-1. Capture 10-second video
-2. Verify 8-10 frames extracted
-3. Check video summary quality
-4. Test audio transcription (if speech present)
+**Chat Functionality:**
+1. Send message → Verify AI response
+2. Ask about saved content → Verify retrieval
+3. Check conversation history → Verify persistence
 
-**Voice Interaction:**
-1. Create voice session
-2. Ask about captured content
-3. Verify memory retrieval works
-4. Test conversation flow
+**Add Context:**
+1. Tap "Add Image" → Select from gallery
+2. Add caption → Tap "Process"
+3. Verify processing status → Check extracted data
+4. Repeat for video and link
+
+**Share Intent:**
+1. Open Safari → Share article
+2. Select Stash from share sheet
+3. Verify app opens with pre-filled data
+4. Tap "Process" → Verify content saved
+
+**Profile:**
+1. View profile → Check metadata display
+2. Edit name/role/age → Save changes
+3. Check Google Calendar status
+4. Toggle notifications → Verify saved
 
 ### Performance Benchmarks
 
 | Operation | Target | Acceptable |
 |-----------|--------|------------|
-| Photo upload | < 2s | < 5s |
-| Photo analysis | < 5s | < 10s |
-| Video frame extraction | < 10s | < 20s |
-| Video analysis | < 15s | < 30s |
-| Voice response | < 2s | < 5s |
-
----
-
-## Next Steps
-
-1. ✅ **Remove Overshoot** - Delete from dependencies
-2. ✅ **Update processing worker** - Use GPT-4V only
-3. ⏭️ **Test with sample images** - Verify analysis quality
-4. ⏭️ **Implement video processing** - Frame extraction + analysis
-5. ⏭️ **Deploy backend** - Vercel/Railway
-6. ⏭️ **Build mobile app** - Camera + upload
-7. ⏭️ **Integrate LiveKit** - Voice agent
-8. ⏭️ **End-to-end testing** - Full user flow
-9. ⏭️ **Demo preparation** - Record video, prepare presentation
+| App launch | < 2s | < 3s |
+| Chat message response | < 3s | < 5s |
+| Image upload | < 2s | < 4s |
+| Image processing | < 5s | < 10s |
+| Video processing | < 15s | < 30s |
+| Navigation transition | < 300ms | < 500ms |
 
 ---
 
 ## Success Criteria
 
-### Minimum Viable Demo (Hour 18)
-- ✅ Capture photo via mobile
-- ✅ Photo uploads to R2
-- ✅ GPT-4V analyzes image
-- ✅ Results display in app
-- ✅ Voice chat works
+### Minimum Viable Product (MVP)
 
-### Stretch Goals (Hour 24)
-- ✅ Video capture & processing
-- ✅ Audio transcription
-- ✅ Memory timeline view
-- ✅ Semantic search
-- ✅ Calendar integration
+- ✅ User can sign up and log in
+- ✅ Onboarding flow complete (with dummy Google Calendar)
+- ✅ Chat interface functional with AI responses
+- ✅ Can add images/videos/links manually
+- ✅ Share sheet integration working
+- ✅ Content processing pipeline complete
+- ✅ Profile page functional
+
+### Stretch Goals
+
+- ✅ Google Calendar integration live
+- ✅ Morning briefings working
+- ✅ Event-based reminders functional
+- ✅ Smart suggestions implemented
+- ✅ Semantic search working
+- ✅ Animations and polish complete
 
 ---
 
-**Built for NexHacks 2026 🚀**
+## Next Steps
+
+1. **Set up development environment**
+   - Initialize Expo project
+   - Create Supabase project
+   - Set up environment variables
+
+2. **Begin Phase 1: Project Setup**
+   - Implement design system
+   - Build core components
+   - Set up navigation
+
+3. **Proceed through phases sequentially**
+   - Complete each phase before moving to next
+   - Test thoroughly at each stage
+   - Document any blockers or changes
+
+---
+
+**Ready to build! 🚀**
