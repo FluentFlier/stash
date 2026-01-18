@@ -23,10 +23,12 @@ model User {
   createdAt               DateTime  @default(now()) @map("created_at")
   updatedAt               DateTime  @updatedAt @map("updated_at")
 
-  captures    Capture[]
-  reminders   Reminder[]
-  collections Collection[]
-  chatMessages ChatMessage[]
+  captures       Capture[]
+  reminders      Reminder[]
+  collections    Collection[]
+  chatMessages   ChatMessage[]
+  calendarTokens CalendarToken[]
+  calendarEvents CalendarEvent[]
 
   @@map("profiles")
 }
@@ -145,4 +147,44 @@ model ChatMessage {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("chat_messages")
+}
+
+// OAuth tokens for calendar providers (Google, etc.)
+model CalendarToken {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  provider     String   // "google"
+  accessToken  String   @map("access_token")
+  refreshToken String   @map("refresh_token")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@map("calendar_tokens")
+}
+
+// Local calendar events with Google sync tracking
+model CalendarEvent {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  googleEventId String?   @map("google_event_id")
+  title         String
+  description   String?
+  startTime     DateTime  @map("start_time")
+  endTime       DateTime  @map("end_time")
+  location      String?
+  isAllDay      Boolean   @default(false) @map("is_all_day")
+  syncStatus    String    @default("pending") @map("sync_status") // pending, synced, error
+  lastSyncedAt  DateTime? @map("last_synced_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([googleEventId])
+  @@map("calendar_events")
 }

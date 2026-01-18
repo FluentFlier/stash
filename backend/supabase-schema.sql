@@ -155,3 +155,57 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure handle_new_user();
+
+-- ============================================
+-- GOOGLE CALENDAR INTEGRATION
+-- ============================================
+
+-- Calendar OAuth tokens
+create table calendar_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references profiles(id) on delete cascade not null,
+  provider text not null default 'google',
+  access_token text not null,
+  refresh_token text not null,
+  expires_at timestamptz not null,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  
+  unique(user_id, provider)
+);
+
+-- Enable RLS
+alter table calendar_tokens enable row level security;
+
+create policy "Users can manage own calendar tokens"
+  on calendar_tokens for all
+  using (auth.uid() = user_id);
+
+-- Calendar events (local storage with Google sync)
+create table calendar_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references profiles(id) on delete cascade not null,
+  google_event_id text,
+  title text not null,
+  description text,
+  start_time timestamptz not null,
+  end_time timestamptz not null,
+  location text,
+  is_all_day boolean default false,
+  sync_status text default 'pending' check (sync_status in ('pending', 'synced', 'error')),
+  last_synced_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Enable RLS
+alter table calendar_events enable row level security;
+
+create policy "Users can manage own calendar events"
+  on calendar_events for all
+  using (auth.uid() = user_id);
+
+-- Indexes
+create index calendar_events_user_id_idx on calendar_events(user_id);
+create index calendar_events_google_event_id_idx on calendar_events(google_event_id);
+create index calendar_events_start_time_idx on calendar_events(start_time);

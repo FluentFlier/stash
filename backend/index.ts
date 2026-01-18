@@ -10,6 +10,7 @@ import { captureRoutes } from './routes/captures.js';
 import { chatRoutes } from './routes/chat.js';
 import { collectionRoutes } from './routes/collections.js';
 import { reminderRoutes } from './routes/reminders.js';
+import { calendarRoutes } from './routes/calendar.js';
 
 async function buildServer() {
   const fastify = Fastify({
@@ -58,6 +59,7 @@ async function buildServer() {
   await fastify.register(chatRoutes);
   await fastify.register(collectionRoutes);
   await fastify.register(reminderRoutes);
+  await fastify.register(calendarRoutes);
 
   return fastify;
 }
