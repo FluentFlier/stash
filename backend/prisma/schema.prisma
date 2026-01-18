@@ -30,6 +30,7 @@ model User {
   chatMessages   ChatMessage[]
   calendarTokens CalendarToken[]
   calendarEvents CalendarEvent[]
+  insights       Insight[]
 
   @@map("profiles")
 }
@@ -188,4 +189,23 @@ model CalendarEvent {
   @@index([userId])
   @@index([googleEventId])
   @@map("calendar_events")
+}
+
+// Insights and Notifications
+model Insight {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String   // NOTIFICATION, daily_digest, etc.
+  title     String
+  content   String
+  isRead    Boolean  @default(false) @map("is_read")
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt(sort: Desc)])
+  @@map("insights")
 }
