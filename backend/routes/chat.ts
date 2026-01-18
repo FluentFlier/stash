@@ -58,10 +58,10 @@ export async function chatRoutes(fastify: FastifyInstance) {
 
         return {
           success: true,
-          message: response.message,
-          metadata: {
+          data: {
+            message: response.message,
             sources: response.sources || [],
-          },
+          }
         };
       } catch (error: any) {
         logger.error('[API] Error processing chat:', error);

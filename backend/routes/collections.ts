@@ -157,7 +157,6 @@ export async function collectionRoutes(fastify: FastifyInstance) {
           data: {
             collectionId: id,
             captureId: body.captureId,
-            addedBy: 'user',
           },
         });
 

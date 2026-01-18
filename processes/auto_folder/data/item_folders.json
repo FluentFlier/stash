@@ -1,0 +1,54 @@
+{
+  "4d5a1a5c-e934-458b-974c-ecec9730e27c": {
+    "folder_id": "cba36bc8-ccec-4322-9253-db0482797675",
+    "metadata": {
+      "tags": [
+        "documentation examples",
+        "iana",
+        "placeholder domains",
+        "usage restrictions",
+        "technical guidelines",
+        "internet standards",
+        "domain names",
+        "usage guidelines"
+      ],
+      "confidence": 0.95,
+      "path": "Computer Science/Internet Standards"
+    },
+    "associated_at": "2026-01-18T10:35:55.154215"
+  },
+  "b4cb6e9c-dfce-44b8-88e4-7a85cffbcf83": {
+    "folder_id": "507f4b1d-b32c-4540-a706-5a10d3e4fe13",
+    "metadata": {
+      "tags": [
+        "zoo",
+        "elephants",
+        "wildlife",
+        "travel vlog",
+        "animal observation",
+        "destinations",
+        "zoo visit"
+      ],
+      "confidence": 0.88,
+      "path": "Travel/Destinations/Zoos"
+    },
+    "associated_at": "2026-01-18T10:36:30.767758"
+  },
+  "f36676cc-50e1-4027-9ed8-91dbf0170fab": {
+    "folder_id": "ad560155-d69e-40eb-832e-e7d6581d3c6c",
+    "metadata": {
+      "tags": [
+        "startup",
+        "entrepreneurship",
+        "growth strategy",
+        "user acquisition",
+        "paul graham",
+        "business advice",
+        "startup advice"
+      ],
+      "confidence": 0.95,
+      "path": "Work/Startup Strategy"
+    },
+    "associated_at": "2026-01-18T10:38:05.323498"
+  }
+}

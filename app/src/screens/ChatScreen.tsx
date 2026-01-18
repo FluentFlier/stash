@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Send, Sparkles, TrendingUp, Clock, Zap } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { theme } from '../theme';
+import { api } from '../utils/api';
 
 type Message = {
     id: string;
@@ -41,7 +42,7 @@ export const ChatScreen: React.FC = () => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
     }, [messages]);
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (!message.trim()) return;
 
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -56,24 +57,48 @@ export const ChatScreen: React.FC = () => {
             }),
         };
 
-        setMessages([...messages, newMessage]);
+        setMessages(prev => [...prev, newMessage]);
         setMessage('');
 
-        // Simulate AI response
-        setTimeout(() => {
+        // Real AI response
+        try {
+            const response = await api.chat(message);
+
+            if (response.success && response.data) {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        id: (Date.now() + 1).toString(),
+                        role: 'assistant',
+                        content: response.data?.message || "Error",
+                        timestamp: new Date().toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                        }),
+                    },
+                ]);
+            } else {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        id: (Date.now() + 1).toString(),
+                        role: 'assistant',
+                        content: "Sorry, I couldn't process that. Please try again.",
+                        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    },
+                ]);
+            }
+        } catch (e) {
             setMessages((prev) => [
                 ...prev,
                 {
                     id: (Date.now() + 1).toString(),
                     role: 'assistant',
-                    content: 'This is a demo response. Connect to Supabase to enable real AI chat!',
-                    timestamp: new Date().toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                    }),
+                    content: "Network error. Please check your connection.",
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 },
             ]);
-        }, 1000);
+        }
     };
 
     return (

@@ -42,6 +42,7 @@ export const ProfileScreen: React.FC = () => {
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [editField, setEditField] = useState<'name' | 'role' | 'age' | null>(null);
     const [editValue, setEditValue] = useState('');
+    const [stats, setStats] = useState<any>(null);
 
     // Load profile on mount
     useEffect(() => {
@@ -51,11 +52,20 @@ export const ProfileScreen: React.FC = () => {
     const loadProfile = async () => {
         try {
             setLoading(true);
-            const response = await api.getMe();
-            if (response.success && response.data) {
-                setProfile(response.data);
-                setNotificationsEnabled(response.data.notifications_enabled || false);
+            const [meRes, statsRes] = await Promise.all([
+                api.getMe(),
+                api.getDashboardStats()
+            ]);
+
+            if (meRes.success && meRes.data) {
+                setProfile(meRes.data);
+                setNotificationsEnabled(meRes.data.notifications_enabled || false);
             }
+
+            if (statsRes.success && statsRes.data) {
+                setStats(statsRes.data);
+            }
+
         } catch (error) {
             console.error('Failed to load profile:', error);
         } finally {
@@ -203,10 +213,10 @@ export const ProfileScreen: React.FC = () => {
                         }}>
                             <Package size={20} color={theme.primary} />
                             <Text style={{ fontSize: 22, fontWeight: '700', color: theme.text }}>
-                                --
+                                {stats?.totals?.items || 0}
                             </Text>
                             <Text style={{ fontSize: 11, color: theme.textSubtle }}>
-                                Items
+                                Total Items
                             </Text>
                         </View>
 
@@ -222,10 +232,10 @@ export const ProfileScreen: React.FC = () => {
                         }}>
                             <MessageCircle size={20} color={theme.accent} />
                             <Text style={{ fontSize: 22, fontWeight: '700', color: theme.text }}>
-                                --
+                                {stats?.totals?.chats || 0}
                             </Text>
                             <Text style={{ fontSize: 11, color: theme.textSubtle }}>
-                                Chats
+                                Total Chats
                             </Text>
                         </View>
 
@@ -241,10 +251,10 @@ export const ProfileScreen: React.FC = () => {
                         }}>
                             <TrendingUp size={20} color={theme.success} />
                             <Text style={{ fontSize: 22, fontWeight: '700', color: theme.text }}>
-                                --
+                                {stats?.todayStats?.itemsSaved || 0}
                             </Text>
                             <Text style={{ fontSize: 11, color: theme.textSubtle }}>
-                                Growth
+                                Saved Today
                             </Text>
                         </View>
                     </View>

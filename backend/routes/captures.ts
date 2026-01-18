@@ -22,11 +22,11 @@ export async function captureRoutes(fastify: FastifyInstance) {
         const capture = await prisma.capture.create({
           data: {
             userId,
-            type: body.type,
+            type: body.type.toLowerCase(),
             content: body.content,
             userInput: body.userInput,
             metadata: body.metadata,
-            processingStatus: 'PENDING',
+            processingStatus: 'pending',
           },
         });
 

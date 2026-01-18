@@ -73,7 +73,7 @@ from gemini_client import (
 # Configuration: Which AI to use for videos
 # Set to "gemini" for reliable HTTP-based processing (works on restricted networks like eduroam)
 # Set to "overshoot" for WebRTC-based processing (requires unrestricted UDP traffic)
-VIDEO_PROCESSOR = os.environ.get('VIDEO_PROCESSOR', 'gemini').lower()
+VIDEO_PROCESSOR = os.environ.get('VIDEO_PROCESSOR', 'overshoot').lower()
 
 # Configuration - loaded from .env file
 RAPIDAPI_KEY = os.environ.get('RAPIDAPI_KEY')

@@ -1,0 +1,68 @@
+{
+  "classifications": [
+    {
+      "item_id": "4d5a1a5c-e934-458b-974c-ecec9730e27c",
+      "final_path": "Computer Science/Internet Standards",
+      "confidence": 0.95,
+      "created_folders": [
+        "Computer Science/Internet Standards"
+      ],
+      "timestamp": "2026-01-18T10:35:55.154484"
+    },
+    {
+      "item_id": "b4cb6e9c-dfce-44b8-88e4-7a85cffbcf83",
+      "final_path": "Travel/Destinations/Zoos",
+      "confidence": 0.88,
+      "created_folders": [
+        "Travel/Destinations/Zoos"
+      ],
+      "timestamp": "2026-01-18T10:36:30.768180"
+    },
+    {
+      "item_id": "f36676cc-50e1-4027-9ed8-91dbf0170fab",
+      "final_path": "Work/Startup Strategy",
+      "confidence": 0.95,
+      "created_folders": [
+        "Work/Startup Strategy"
+      ],
+      "timestamp": "2026-01-18T10:38:05.323744"
+    }
+  ],
+  "folder_stats": {
+    "Computer Science": {
+      "classification_count": 1,
+      "first_used": "2026-01-18T10:35:55.154494",
+      "last_used": "2026-01-18T10:35:55.154495"
+    },
+    "Computer Science/Internet Standards": {
+      "classification_count": 1,
+      "first_used": "2026-01-18T10:35:55.154496",
+      "last_used": "2026-01-18T10:35:55.154497"
+    },
+    "Travel": {
+      "classification_count": 1,
+      "first_used": "2026-01-18T10:36:30.768186",
+      "last_used": "2026-01-18T10:36:30.768190"
+    },
+    "Travel/Destinations": {
+      "classification_count": 1,
+      "first_used": "2026-01-18T10:36:30.768191",
+      "last_used": "2026-01-18T10:36:30.768192"
+    },
+    "Travel/Destinations/Zoos": {
+      "classification_count": 1,
+      "first_used": "2026-01-18T10:36:30.768193",
+      "last_used": "2026-01-18T10:36:30.768194"
+    },
+    "Work": {
+      "classification_count": 1,
+      "first_used": "2026-01-18T10:38:05.323751",
+      "last_used": "2026-01-18T10:38:05.323753"
+    },
+    "Work/Startup Strategy": {
+      "classification_count": 1,
+      "first_used": "2026-01-18T10:38:05.323754",
+      "last_used": "2026-01-18T10:38:05.323755"
+    }
+  }
+}

@@ -19,7 +19,7 @@ captureQueue.process('process-capture', async (job) => {
     // Update status
     await prisma.capture.update({
       where: { id: captureId },
-      data: { processingStatus: 'PROCESSING' },
+      data: { processingStatus: 'processing' },
     });
 
     // Get capture
@@ -42,7 +42,7 @@ captureQueue.process('process-capture', async (job) => {
 
     await prisma.capture.update({
       where: { id: captureId },
-      data: { processingStatus: 'FAILED' },
+      data: { processingStatus: 'failed' },
     });
 
     throw error; // Bull will retry

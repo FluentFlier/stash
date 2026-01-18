@@ -73,10 +73,12 @@ export class AgentCoordinator {
       await prisma.capture.update({
         where: { id: capture.id },
         data: {
-          analysis: analysis.contentAnalysis as any,
-          actionPlan: plan as any,
-          actionResults: results as any,
-          fullContent: analysis.contentAnalysis.fullContent,
+          analysis: {
+            ...analysis.contentAnalysis,
+            actionPlan: plan,
+            actionResults: results,
+            fullContent: analysis.contentAnalysis.fullContent,
+          } as any,
           metadata: {
             title: analysis.contentAnalysis.title,
             description: analysis.contentAnalysis.description,
@@ -87,7 +89,7 @@ export class AgentCoordinator {
             intent: analysis.intent as any,
             relatedCount: analysis.relatedCount,
           } as any,
-          processingStatus: 'COMPLETED',
+          processingStatus: 'completed',
         },
       });
       logger.info('✅ Capture updated with analysis and results');
@@ -115,7 +117,7 @@ export class AgentCoordinator {
 
       await prisma.capture.update({
         where: { id: capture.id },
-        data: { processingStatus: 'FAILED' },
+        data: { processingStatus: 'failed' },
       });
 
       throw error;

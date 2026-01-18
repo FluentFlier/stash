@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 14, "column": 0}, "map": {"version":3,"sources":["file:///Users/anirudhmanjesh/Hackathons/stash/web-dashboard/src/app/page.tsx"],"sourcesContent":["import DashboardClient from \"@/components/dashboard-client\"\n\nexport default function Home() {\n  return <DashboardClient />\n}"],"names":[],"mappings":";;;;;;;;;;;;AAEe,SAAS;IACtB,qBAAO,8OAAC;;;;;AACV"}}]
+}

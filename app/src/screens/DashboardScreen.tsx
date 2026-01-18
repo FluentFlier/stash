@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { api } from '../utils/api';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
     TrendingUp,
     Calendar,
@@ -20,53 +23,61 @@ import {
     AlertCircle,
 } from 'lucide-react-native';
 import { theme } from '../theme';
+import type { RootStackParamList } from '../types';
 
-// Mock data for demo
-const todayStats = {
-    itemsSaved: 8,
-    aiQueries: 12,
-    eventsDetected: 3,
-    timeSpent: '45m',
-};
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const weeklyProgress = [
-    { day: 'Mon', value: 5 },
-    { day: 'Tue', value: 8 },
-    { day: 'Wed', value: 3 },
-    { day: 'Thu', value: 12 },
-    { day: 'Fri', value: 7 },
-    { day: 'Sat', value: 4 },
-    { day: 'Sun', value: 8 },
-];
+// Mocks removed - using real stats
 
-const upcomingActions = [
-    { id: '1', title: 'Team meeting', time: 'Today, 3:00 PM', type: 'event', source: 'Detected from email' },
-    { id: '2', title: 'Review saved articles', time: 'Tomorrow, 9:00 AM', type: 'reminder', source: 'AI suggestion' },
-    { id: '3', title: 'Project deadline', time: 'Fri, Jan 24', type: 'deadline', source: 'From calendar' },
-];
-
-const recentTopics = [
-    { id: '1', name: 'React Native', count: 12, trend: '+3' },
-    { id: '2', name: 'AI/ML', count: 8, trend: '+5' },
-    { id: '3', name: 'Product Design', count: 6, trend: '+1' },
-];
-
-const pendingApprovals = [
-    { id: '1', action: 'Create calendar event', title: '"Team standup" on Jan 20, 10am', icon: Calendar },
-    { id: '2', action: 'Set reminder', title: 'Follow up on article in 1 week', icon: Bell },
-];
-
-const aiDigest = {
-    summary: "This week you've focused heavily on React Native development and AI integration. 3 deadlines detected from your saved content.",
-    highlights: [
-        'Saved 40% more links than last week',
-        'Most active between 2-4 PM',
-        '3 potential follow-ups identified',
-    ],
-};
 
 export const DashboardScreen: React.FC = () => {
+    const navigation = useNavigation<NavigationProp>();
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState<any>(null); // Real stats
+
+    // Default mock for fallback/loading skeleton
+    const [weeklyProgress, setWeeklyProgress] = useState(
+        Array(7).fill({ day: 'Day', value: 0 }).map((_, i) => ({ day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i], value: 2 }))
+    );
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const loadStats = async () => {
+                try {
+                    const response = await api.getDashboardStats();
+                    if (response.success && response.data) {
+                        setStats(response.data);
+                        if (response.data.weeklyProgress) {
+                            setWeeklyProgress(response.data.weeklyProgress);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Dashboard Fetch Error", e);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            loadStats();
+        }, [])
+    );
+
     const maxValue = Math.max(...weeklyProgress.map(d => d.value));
+
+    const todayStats = stats?.todayStats || {
+        itemsSaved: 0,
+        aiQueries: 0,
+        eventsDetected: 0,
+        timeSpent: '0m'
+    };
+
+    const upcomingActions = stats?.upcomingActions || [];
+    const recentTopics = stats?.recentTopics || [];
+    // Only show digest if exists
+    const aiDigest = stats?.aiDigest || null;
+
+    // Future: Fetch pending approvals real data
+    const pendingApprovals: any[] = [];
+
 
     return (
         <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -82,17 +93,27 @@ export const DashboardScreen: React.FC = () => {
                                 Friday, Jan 17
                             </Text>
                         </View>
-                        <Pressable style={{
-                            width: 40,
-                            height: 40,
-                            backgroundColor: theme.bgSecondary,
-                            borderRadius: 10,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderWidth: 1,
-                            borderColor: theme.borderLight,
-                        }}>
-                            <RefreshCw size={18} color={theme.textMuted} />
+                        <Pressable
+                            style={{
+                                width: 40,
+                                height: 40,
+                                backgroundColor: theme.bgSecondary,
+                                borderRadius: 10,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderWidth: 1,
+                                borderColor: theme.borderLight,
+                            }}
+                            onPress={() => navigation.navigate('Notifications' as any)} // Cast until types updated
+                        >
+                            <Bell size={20} color={theme.textMuted} />
+                            {/* Unread indicator (mock for now, should come from context) */}
+                            <View style={{
+                                position: 'absolute', top: 10, right: 10,
+                                width: 8, height: 8, borderRadius: 4,
+                                backgroundColor: theme.primary,
+                                borderWidth: 1, borderColor: theme.bgSecondary
+                            }} />
                         </Pressable>
                     </View>
                 </View>
@@ -102,39 +123,43 @@ export const DashboardScreen: React.FC = () => {
                     contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, gap: 16 }}
                 >
                     {/* AI Digest Card */}
-                    <View style={{
-                        backgroundColor: theme.primary,
-                        borderRadius: 14,
-                        padding: 16,
-                        gap: 12,
-                    }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                            <View style={{
-                                width: 36,
-                                height: 36,
-                                backgroundColor: 'rgba(255,255,255,0.2)',
-                                borderRadius: 10,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}>
-                                <Sparkles size={18} color={theme.white} />
-                            </View>
-                            <Text style={{ fontSize: 16, fontWeight: '600', color: theme.white }}>
-                                AI Daily Digest
-                            </Text>
-                        </View>
-                        <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.9)', lineHeight: 20 }}>
-                            {aiDigest.summary}
-                        </Text>
-                        <View style={{ gap: 6 }}>
-                            {aiDigest.highlights.map((item, i) => (
-                                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                    <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: theme.white }} />
-                                    <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>{item}</Text>
+                    {aiDigest && (
+                        <View style={{
+                            backgroundColor: theme.primary,
+                            borderRadius: 14,
+                            padding: 16,
+                            gap: 12,
+                        }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                <View style={{
+                                    width: 36,
+                                    height: 36,
+                                    backgroundColor: 'rgba(255,255,255,0.2)',
+                                    borderRadius: 10,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}>
+                                    <Sparkles size={18} color={theme.white} />
                                 </View>
-                            ))}
+                                <Text style={{ fontSize: 16, fontWeight: '600', color: theme.white }}>
+                                    AI Daily Digest
+                                </Text>
+                            </View>
+                            <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.9)', lineHeight: 20 }}>
+                                {aiDigest.summary}
+                            </Text>
+                            {aiDigest.highlights && aiDigest.highlights.length > 0 && (
+                                <View style={{ gap: 6 }}>
+                                    {aiDigest.highlights.map((item: string, i: number) => (
+                                        <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                            <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: theme.white }} />
+                                            <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>{item}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            )}
                         </View>
-                    </View>
+                    )}
 
                     {/* Pending Approvals */}
                     {pendingApprovals.length > 0 && (
@@ -242,7 +267,7 @@ export const DashboardScreen: React.FC = () => {
                             </View>
                         </View>
                         <View style={{ gap: 10 }}>
-                            {recentTopics.map((topic) => (
+                            {recentTopics.map((topic: any) => (
                                 <View key={topic.id} style={{
                                     flexDirection: 'row',
                                     alignItems: 'center',
@@ -324,7 +349,7 @@ export const DashboardScreen: React.FC = () => {
                             </Pressable>
                         </View>
                         <View style={{ gap: 10 }}>
-                            {upcomingActions.map((action) => (
+                            {upcomingActions.map((action: any) => (
                                 <Pressable key={action.id} style={{
                                     flexDirection: 'row',
                                     alignItems: 'center',

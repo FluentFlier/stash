@@ -25,8 +25,10 @@ const envSchema = z.object({
   SUPABASE_ANON_KEY: z.string().optional(),
   SUPABASE_JWT_SECRET: z.string().optional(),
 
-  // Redis (Optional for now)
+  // Redis
   REDIS_URL: z.string().optional(),
+  UPSTASH_REDIS_REST_URL: z.string().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 
   // AI Services (Optional for now)
   OPENAI_API_KEY: z.string().optional(),
@@ -89,7 +91,9 @@ export const config = {
     jwtSecret: env.SUPABASE_JWT_SECRET,
   },
   redis: {
-    url: env.REDIS_URL,
+    url: env.REDIS_URL || (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
+      ? `rediss://default:${env.UPSTASH_REDIS_REST_TOKEN}@${env.UPSTASH_REDIS_REST_URL.replace('https://', '').replace('/', '')}:6379`
+      : undefined),
   },
   ai: {
     openaiApiKey: env.OPENAI_API_KEY,

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, TextInput, FlatList } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { api } from '../utils/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Search,
@@ -32,17 +34,8 @@ interface MemoryEntry {
     tags: string[];
 }
 
-// Mock data for demo
-const mockEntries: MemoryEntry[] = [
-    { id: '1', title: 'Product roadmap 2024', type: 'link', importance: 5, timestamp: new Date('2024-01-15'), preview: 'Key milestones and deliverables...', tags: ['work', 'planning'] },
-    { id: '2', title: 'Meeting notes - Design review', type: 'note', importance: 4, timestamp: new Date('2024-01-16'), preview: 'Discussed new UI components...', tags: ['meeting', 'design'] },
-    { id: '3', title: 'Architecture diagram', type: 'image', importance: 5, timestamp: new Date('2024-01-14'), tags: ['technical', 'reference'] },
-    { id: '4', title: 'Demo video - Feature X', type: 'video', importance: 3, timestamp: new Date('2024-01-13'), tags: ['demo'] },
-    { id: '5', title: 'Research: AI assistants', type: 'link', importance: 4, timestamp: new Date('2024-01-12'), preview: 'Comparison of AI tools...', tags: ['research', 'ai'] },
-    { id: '6', title: 'Quick thought on pricing', type: 'note', importance: 2, timestamp: new Date('2024-01-11'), preview: 'Consider tiered pricing...', tags: ['idea'] },
-    { id: '7', title: 'Competitor analysis', type: 'link', importance: 5, timestamp: new Date('2024-01-10'), preview: 'Market landscape overview...', tags: ['research', 'strategy'] },
-    { id: '8', title: 'Onboarding flow mockup', type: 'image', importance: 4, timestamp: new Date('2024-01-09'), tags: ['design', 'ux'] },
-];
+// Real data only
+
 
 const typeIcons: Record<EntryType, typeof LinkIcon> = {
     link: LinkIcon,
@@ -65,7 +58,47 @@ export const MemoryScreen: React.FC = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [selectedType, setSelectedType] = useState<EntryType | null>(null);
 
-    const filteredEntries = mockEntries
+    // Real Data State
+    const [entries, setEntries] = useState<MemoryEntry[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            loadCaptures();
+        }, [])
+    );
+
+    const loadCaptures = async () => {
+        try {
+            const response = await api.getCaptures(100); // Fetch last 100
+            if (response.success && response.data) {
+                const mapped = response.data.map((c: any) => ({
+                    id: c.id,
+                    title: c.title || (c.type === 'link' ? 'Saved Link' : 'Untitled Note'),
+                    type: mapCaptureType(c.type),
+                    importance: c.metadata?.importance || 3, // Default mid level
+                    timestamp: new Date(c.createdAt),
+                    preview: c.content,
+                    tags: c.tags?.map((t: any) => t.tag.name) || []
+                }));
+                setEntries(mapped);
+            }
+        } catch (e) {
+            console.error("Error loading memories:", e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const mapCaptureType = (type: string): EntryType => {
+        const lower = type.toLowerCase();
+        if (lower.includes('link')) return 'link';
+        if (lower.includes('image')) return 'image';
+        if (lower.includes('video')) return 'video';
+        return 'note';
+    };
+
+    const filteredEntries = entries
         .filter(entry => {
             const matchesSearch = searchQuery === '' ||
                 entry.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

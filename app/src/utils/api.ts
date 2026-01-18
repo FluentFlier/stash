@@ -141,6 +141,12 @@ class ApiClient {
         });
     }
 
+    async getDashboardStats() {
+        return await this.request<any>('/api/dashboard', {
+            method: 'GET',
+        });
+    }
+
     async updateOnboarding(data: {
         name?: string;
         role?: string;
@@ -176,6 +182,33 @@ class ApiClient {
         return await this.request<any>('/api/captures', {
             method: 'POST',
             body: JSON.stringify(data),
+        });
+    }
+
+    // Notifications endpoints
+    async getNotifications() {
+        return await this.request<{ data: any[]; meta: any }>('/api/notifications', {
+            method: 'GET',
+        });
+    }
+
+    async markNotificationRead(id: string) {
+        return await this.request<any>(`/api/notifications/${id}/read`, {
+            method: 'POST',
+        });
+    }
+
+    async markAllNotificationsRead() {
+        return await this.request<any>('/api/notifications/read-all', {
+            method: 'POST',
+        });
+    }
+
+    // Chat endpoints
+    async chat(message: string) {
+        return await this.request<{ message: string; sources?: any[] }>('/api/chat', {
+            method: 'POST',
+            body: JSON.stringify({ message }),
         });
     }
 }

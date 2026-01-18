@@ -64,6 +64,7 @@ export async function authenticateJWT(
       name: payload.user_metadata?.name,
     };
   } catch (error: any) {
+    console.error('[Auth] Raw Error:', error);
     logger.error('[Auth] Authentication error:', error);
 
     if (error.name === 'JsonWebTokenError') {

@@ -7,19 +7,25 @@ export async function sendNotification(
   payload: NotificationPayload
 ): Promise<{ success: boolean; messageId?: string; reason?: string; error?: any }> {
   try {
-    // Get user's FCM token just to check logging
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { fcmToken: true, name: true },
+    // Save notification as an Insight for in-app retrieval
+    const insight = await prisma.insight.create({
+      data: {
+        userId,
+        type: 'NOTIFICATION',
+        title: payload.title,
+        content: payload.body,
+        metadata: {
+          action: payload.action,
+          data: payload.data,
+          priority: payload.priority
+        },
+        isRead: false
+      }
     });
 
-    if (!user?.fcmToken) {
-      logger.warn(`[Notifications] No FCM token for user ${userId} (simulated)`);
-    }
+    logger.info(`[Notifications] Saved Insight ${insight.id} for user ${userId}`);
 
-    logger.info(`[Notifications] (MOCK) Sent to ${userId}: ${payload.title} - ${payload.body}`);
-
-    return { success: true, messageId: 'mock-id-' + Date.now() };
+    return { success: true, messageId: insight.id };
   } catch (error: any) {
     logger.error(`[Notifications] Error sending to ${userId}:`, error);
     return { success: false, error };

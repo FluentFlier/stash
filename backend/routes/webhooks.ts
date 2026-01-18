@@ -23,7 +23,7 @@ export async function webhookRoutes(fastify: FastifyInstance) {
         // Basic API Key validation (if provided in body or headers)
         // Ideally, this should be a robust API key system, but for now we check against env
         const _providedKey = body.api_key || (request.headers['x-api-key'] as string);
-        
+
         // If we want to secure webhooks, we'd need a mechanism to map keys to users.
         // For this hackathon/MVP scope, we will assume a query param ?userId=... 
         // OR a specific header. Let's use a query param for simplicity in integration.
@@ -47,7 +47,7 @@ export async function webhookRoutes(fastify: FastifyInstance) {
             content: body.content,
             userInput: `Via Webhook (${body.source})`,
             metadata: body.metadata || { source: body.source },
-            processingStatus: 'PENDING',
+            processingStatus: 'pending',
           },
         });
 

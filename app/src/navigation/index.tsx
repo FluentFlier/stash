@@ -18,6 +18,8 @@ import { AddContextScreen } from '../screens/AddContextScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { MemoryScreen } from '../screens/MemoryScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
+import { useNotificationSystem } from '../hooks/useNotificationSystem';
 
 // Custom theme using shared colors
 const CustomTheme = {
@@ -160,6 +162,9 @@ export function Navigation() {
         }
     }, [hasShareIntent, navigationRef]);
 
+    // Initialize notification system
+    useNotificationSystem(navigationRef);
+
     return (
         <NavigationContainer ref={navigationRef} theme={CustomTheme}>
             <Stack.Navigator
@@ -180,6 +185,7 @@ export function Navigation() {
                         gestureEnabled: false,
                     }}
                 />
+                <Stack.Screen name="Notifications" component={NotificationsScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

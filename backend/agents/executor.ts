@@ -113,7 +113,6 @@ export class ExecutorAgent {
         data: {
           collectionId: collection.id,
           captureId,
-          addedBy: 'agent',
         },
       });
 
@@ -181,14 +180,14 @@ export class ExecutorAgent {
       const tags = data.tags as string[];
 
       for (const tagName of tags) {
-        // Find or create tag
+        // Find or create tag (tags are shared globally)
         let tag = await prisma.tag.findFirst({
-          where: { userId, name: tagName },
+          where: { name: tagName },
         });
 
         if (!tag) {
           tag = await prisma.tag.create({
-            data: { userId, name: tagName },
+            data: { name: tagName },
           });
         }
 
@@ -283,11 +282,11 @@ export class ExecutorAgent {
         where: { id: captureId },
       });
 
-      if (!capture || !capture.fullContent) {
+      if (!capture || !capture.content) {
         throw new Error('Capture not found or has no content');
       }
 
-      const summary = await summarizeContent(capture.fullContent, userId, data.maxLength || 200);
+      const summary = await summarizeContent(capture.content, userId, data.maxLength || 200);
 
       // Store summary in metadata
       await prisma.capture.update({

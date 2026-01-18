@@ -4,6 +4,7 @@ export type RootStackParamList = {
     SignUp: undefined;
     Onboarding: undefined;
     Main: undefined;
+    Notifications: undefined;
 };
 
 export type MainTabParamList = {
