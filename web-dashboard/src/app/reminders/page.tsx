@@ -88,12 +88,12 @@ export default function RemindersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-[#1c2433]">Reminders</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Reminders</h2>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#000000] text-white text-sm font-medium rounded-xl hover:bg-[#1c2433] transition-colors shadow-sm">
+            <Button className="gap-2">
               <Bell className="h-4 w-4" /> Add Reminder
-            </button>
+            </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[460px]">
             <DialogHeader>
@@ -119,18 +119,14 @@ export default function RemindersPage() {
                   onChange={(event) => setScheduledAt(event.target.value)}
                 />
               </div>
-              <button
-                onClick={handleCreate}
-                disabled={!message.trim() || !scheduledAt}
-                className="w-full py-2.5 bg-[#000000] text-white text-sm font-medium rounded-lg hover:bg-[#1c2433] transition-colors disabled:opacity-50"
-              >
+              <Button onClick={handleCreate} disabled={!message.trim() || !scheduledAt}>
                 Schedule
-              </button>
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
-
+      
       {!authStorage.getToken() ? (
         <div className="rounded-lg border border-dashed border-border/70 bg-background/60 p-6 text-sm text-muted-foreground">
           Connect your account to manage reminders.

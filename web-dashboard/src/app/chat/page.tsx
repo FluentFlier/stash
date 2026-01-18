@@ -17,11 +17,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { GradientText } from "@/components/ui/gradient-text"
 
 type Message = {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  type?: 'text' | 'code';
-  language?: string;
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    type?: 'text' | 'code';
+    language?: string;
 }
 
 type ChatHistoryItem = {
@@ -47,7 +47,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth" })
+        scrollRef.current.scrollIntoView({ behavior: "smooth" })
     }
   }, [messages, isTyping])
 
@@ -141,116 +141,117 @@ export default function ChatPage() {
     <div className="flex flex-col h-[calc(100vh-8rem)] space-y-4 max-w-5xl mx-auto w-full">
       <div className="flex items-center justify-between px-2">
         <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-primary" />
-          <GradientText>Assistant</GradientText>
+            <Sparkles className="h-6 w-6 text-primary" />
+            <GradientText>Assistant</GradientText>
         </h2>
         <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={handleClear}>
           <Trash2 className="h-4 w-4" />
           Clear
         </Button>
       </div>
-
+      
       <Card className="flex-1 flex flex-col overflow-hidden border-border/50 shadow-xl shadow-primary/5 bg-card/40 backdrop-blur-md">
         <ScrollArea className="flex-1 p-4">
-          <div className="space-y-6 pb-4">
-            <AnimatePresence>
-              {loadingHistory ? (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-muted-foreground">
-                  Loading conversation...
-                </motion.div>
-              ) : null}
-              {messages.map((message) => (
-                <motion.div
-                  key={message.id}
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
-                >
-                  <Avatar className={`h-8 w-8 shrink-0 ${message.role === 'assistant' ? 'bg-[#f1f5fb] border border-[#e6ebf4]' : 'bg-[#e6ebf4]'}`}>
-                    <AvatarFallback className="flex items-center justify-center">
-                      {message.role === 'assistant' ? <Sparkles className="h-4 w-4 text-[#000000]" /> : <User className="h-4 w-4 text-[#55607a]" />}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <div className={`flex flex-col max-w-[80%] ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
-                    {message.type === 'code' ? (
-                      <div className="rounded-xl overflow-hidden w-full shadow-lg border border-border/50 mt-1">
-                        <div className="bg-muted/50 backdrop-blur px-4 py-2 text-xs text-muted-foreground border-b flex items-center justify-between">
-                          <span className="font-mono">{message.language}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => navigator.clipboard.writeText(message.content)}
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <SyntaxHighlighter
-                          language={message.language || 'javascript'}
-                          style={vscDarkPlus}
-                          customStyle={{ margin: 0, padding: '1rem' }}
+            <div className="space-y-6 pb-4">
+                <AnimatePresence>
+                    {loadingHistory ? (
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-muted-foreground">
+                        Loading conversation...
+                      </motion.div>
+                    ) : null}
+                    {messages.map((message) => (
+                        <motion.div 
+                            key={message.id}
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
                         >
-                          {message.content}
-                        </SyntaxHighlighter>
-                      </div>
-                    ) : (
-                      <div
-                        className={`p-3.5 rounded-2xl text-sm shadow-sm backdrop-blur-sm ${message.role === 'user'
-                          ? 'bg-primary/90 text-primary-foreground rounded-tr-none'
-                          : 'bg-muted/50 border border-border/50 rounded-tl-none'
-                          }`}
-                      >
-                        {message.content}
-                      </div>
+                            <Avatar className={`h-8 w-8 ring-2 ring-offset-2 ring-offset-background ${message.role === 'assistant' ? 'bg-primary/20 ring-primary/20' : 'bg-muted ring-muted'}`}>
+                                <AvatarFallback className={message.role === 'assistant' ? 'text-primary' : ''}>
+                                    {message.role === 'assistant' ? <Sparkles className="h-4 w-4" /> : <User className="h-4 w-4" />}
+                                </AvatarFallback>
+                            </Avatar>
+                            
+                            <div className={`flex flex-col max-w-[80%] ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
+                                {message.type === 'code' ? (
+                                    <div className="rounded-xl overflow-hidden w-full shadow-lg border border-border/50 mt-1">
+                                        <div className="bg-muted/50 backdrop-blur px-4 py-2 text-xs text-muted-foreground border-b flex items-center justify-between">
+                                            <span className="font-mono">{message.language}</span>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-6 w-6"
+                                              onClick={() => navigator.clipboard.writeText(message.content)}
+                                            >
+                                                <Copy className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                        <SyntaxHighlighter 
+                                            language={message.language || 'javascript'} 
+                                            style={vscDarkPlus}
+                                            customStyle={{ margin: 0, padding: '1rem' }}
+                                        >
+                                            {message.content}
+                                        </SyntaxHighlighter>
+                                    </div>
+                                ) : (
+                                    <div 
+                                        className={`p-3.5 rounded-2xl text-sm shadow-sm backdrop-blur-sm ${
+                                            message.role === 'user' 
+                                                ? 'bg-primary/90 text-primary-foreground rounded-tr-none' 
+                                                : 'bg-muted/50 border border-border/50 rounded-tl-none'
+                                        }`}
+                                    >
+                                        {message.content}
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    ))}
+                    {isTyping && (
+                         <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex gap-3"
+                        >
+                            <Avatar className="h-8 w-8 bg-primary/20 ring-2 ring-offset-2 ring-offset-background ring-primary/20">
+                                <AvatarFallback className="text-primary">
+                                    <Sparkles className="h-4 w-4" />
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="bg-muted/50 border border-border/50 p-4 rounded-2xl rounded-tl-none flex items-center gap-1.5 h-10">
+                                <span className="block h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce [animation-delay:-0.3s]"></span>
+                                <span className="block h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce [animation-delay:-0.15s]"></span>
+                                <span className="block h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce"></span>
+                            </div>
+                        </motion.div>
                     )}
-                  </div>
-                </motion.div>
-              ))}
-              {isTyping && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-3"
-                >
-                  <Avatar className="h-8 w-8 shrink-0 bg-[#f1f5fb] border border-[#e6ebf4]">
-                    <AvatarFallback className="flex items-center justify-center">
-                      <Sparkles className="h-4 w-4 text-[#000000]" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="bg-muted/50 border border-border/50 p-4 rounded-2xl rounded-tl-none flex items-center gap-1.5 h-10">
-                    <span className="block h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce [animation-delay:-0.3s]"></span>
-                    <span className="block h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce [animation-delay:-0.15s]"></span>
-                    <span className="block h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce"></span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <div ref={scrollRef} />
-          </div>
+                </AnimatePresence>
+                <div ref={scrollRef} />
+            </div>
         </ScrollArea>
-
+        
         <div className="p-4 bg-background/50 border-t border-border/50 backdrop-blur">
-          <form
-            onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-            className="flex gap-2 relative max-w-4xl mx-auto"
-          >
-            <Input
-              placeholder={isAuthed ? "Ask Stash anything..." : "Connect your account to chat"}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              disabled={!isAuthed}
-              className="pr-12 py-6 bg-background/50 border-primary/20 focus-visible:ring-primary/30 rounded-xl"
-            />
-            <Button
-              type="submit"
-              size="icon"
-              disabled={!inputValue.trim() || !isAuthed}
-              className="absolute right-1 top-1.5 h-9 w-9 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:scale-105 active:scale-95"
+            <form 
+                onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+                className="flex gap-2 relative max-w-4xl mx-auto"
             >
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
+                <Input 
+                    placeholder={isAuthed ? "Ask Stash anything..." : "Connect your account to chat"} 
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    disabled={!isAuthed}
+                    className="pr-12 py-6 bg-background/50 border-primary/20 focus-visible:ring-primary/30 rounded-xl"
+                />
+                <Button 
+                    type="submit" 
+                    size="icon" 
+                    disabled={!inputValue.trim() || !isAuthed}
+                    className="absolute right-1 top-1.5 h-9 w-9 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:scale-105 active:scale-95"
+                >
+                    <Send className="h-4 w-4" />
+                </Button>
+            </form>
         </div>
       </Card>
     </div>
