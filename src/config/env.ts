@@ -19,9 +19,11 @@ const envSchema = z.object({
   // Redis (Cache + Queue)
   REDIS_URL: z.string().url(),
 
-  // AI / LLM
+  // AI / LLM (Supermemory proxy)
   OPENAI_API_KEY: z.string().min(1),
-  SUPERMEMORY_API_KEY: z.string().min(1).optional(),
+  OPENAI_BASE_URL: z.string().url().optional(),
+  OPENAI_MODEL: z.string().min(1).optional(),
+  SUPERMEMORY_API_KEY: z.string().min(1),
   SUPERMEMORY_BASE_URL: z.string().url().optional(),
 
   // Jina AI (Link content extraction)
@@ -88,8 +90,9 @@ export const config = {
   },
   ai: {
     openaiApiKey: env.OPENAI_API_KEY,
+    openaiModel: env.OPENAI_MODEL || 'gpt-4-turbo-preview',
     supermemoryApiKey: env.SUPERMEMORY_API_KEY,
-    supermemoryBaseUrl: env.SUPERMEMORY_BASE_URL || 'https://api.supermemory.ai/v1/https/api.openai.com/v1',
+    supermemoryBaseUrl: env.SUPERMEMORY_BASE_URL || 'https://api.supermemory.ai/v3/https://api.openai.com/v1',
     jinaApiKey: env.JINA_API_KEY,
   },
   google: {

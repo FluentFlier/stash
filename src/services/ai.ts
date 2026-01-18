@@ -1,33 +1,81 @@
-import OpenAI from 'openai';
 import { config } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 
-// ============================================
-// OpenAI Client (with optional Supermemory routing)
-// ============================================
+type ChatCompletionMessageParam = {
+  role: 'system' | 'user' | 'assistant' | 'tool';
+  content:
+    | string
+    | Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }>;
+};
 
-export const openai = new OpenAI({
-  apiKey: config.ai.openaiApiKey,
-  // Use Supermemory base URL if configured, otherwise use standard OpenAI
-  ...(config.ai.supermemoryBaseUrl && {
-    baseURL: config.ai.supermemoryBaseUrl,
-  }),
-  ...(config.ai.supermemoryApiKey && {
-    defaultHeaders: {
-      'x-sm-api-key': config.ai.supermemoryApiKey,
-    },
-  }),
-});
+type ChatCompletionResponse = {
+  choices: Array<{ message?: { content?: string } }>;
+};
+
+type EmbeddingResponse = {
+  data: Array<{ embedding: number[] }>;
+};
+
+const getSupermemoryBaseUrl = () => {
+  const baseUrl = config.ai.supermemoryBaseUrl;
+  if (!baseUrl) {
+    throw new Error(
+      'Supermemory base URL is not configured. Set SUPERMEMORY_BASE_URL or OPENAI_BASE_URL.'
+    );
+  }
+  return baseUrl.replace(/\/$/, '');
+};
+
+const getSupermemoryHeaders = (userId?: string) => {
+  if (!config.ai.supermemoryApiKey) {
+    throw new Error('Supermemory API key is not configured. Set SUPERMEMORY_API_KEY.');
+  }
+  if (!config.ai.openaiApiKey) {
+    throw new Error('OpenAI API key is not configured. Set OPENAI_API_KEY.');
+  }
+
+  const headers: Record<string, string> = {
+    'content-type': 'application/json',
+    Authorization: `Bearer ${config.ai.openaiApiKey}`,
+    'x-supermemory-api-key': config.ai.supermemoryApiKey,
+  };
+
+  if (userId) {
+    headers['x-sm-user-id'] = userId;
+  }
+
+  return headers;
+};
+
+const supermemoryRequest = async <T>(
+  path: string,
+  body: Record<string, unknown>,
+  userId?: string
+): Promise<T> => {
+  const url = `${getSupermemoryBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: getSupermemoryHeaders(userId),
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Supermemory request failed (${response.status}): ${errorText}`);
+  }
+
+  return (await response.json()) as T;
+};
 
 // ============================================
 // AI Helper Functions
 // ============================================
 
 /**
- * Generate chat completion with user context (via Supermemory if configured)
+ * Generate chat completion with user context (via Supermemory)
  */
 export async function generateChatCompletion(
-  messages: OpenAI.Chat.ChatCompletionMessageParam[],
+  messages: ChatCompletionMessageParam[],
   userId: string,
   options?: {
     model?: string;
@@ -37,19 +85,17 @@ export async function generateChatCompletion(
   }
 ): Promise<string> {
   try {
-    const response = await openai.chat.completions.create({
-      model: options?.model || 'gpt-4-turbo-preview',
-      messages,
-      temperature: options?.temperature ?? 0.7,
-      max_tokens: options?.maxTokens,
-      response_format: options?.responseFormat,
-      // Supermemory user ID header for context
-      ...(config.ai.supermemoryApiKey && {
-        headers: {
-          'x-sm-user-id': userId,
-        },
-      }),
-    });
+    const response = await supermemoryRequest<ChatCompletionResponse>(
+      '/chat/completions',
+      {
+        model: options?.model || config.ai.openaiModel,
+        messages,
+        temperature: options?.temperature ?? 0.7,
+        max_tokens: options?.maxTokens,
+        response_format: options?.responseFormat,
+      },
+      userId
+    );
 
     return response.choices[0]?.message?.content || '';
   } catch (error: any) {
@@ -95,9 +141,9 @@ export async function generateStructuredResponse<T = any>(
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
-    const response = await openai.embeddings.create({
+    const response = await supermemoryRequest<EmbeddingResponse>('/embeddings', {
       model: 'text-embedding-3-small',
-      input: text.slice(0, 8000), // Limit input size
+      input: text.slice(0, 8000),
     });
 
     return response.data[0].embedding;
@@ -116,24 +162,23 @@ export async function analyzeImage(
   userId: string
 ): Promise<string> {
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4-vision-preview',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            { type: 'image_url', image_url: { url: imageUrl } },
-          ],
-        },
-      ],
-      max_tokens: 1000,
-      ...(config.ai.supermemoryApiKey && {
-        headers: {
-          'x-sm-user-id': userId,
-        },
-      }),
-    });
+    const response = await supermemoryRequest<ChatCompletionResponse>(
+      '/chat/completions',
+      {
+        model: 'gpt-4-vision-preview',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt },
+              { type: 'image_url', image_url: { url: imageUrl } },
+            ],
+          },
+        ],
+        max_tokens: 1000,
+      },
+      userId
+    );
 
     return response.choices[0]?.message?.content || '';
   } catch (error: any) {
@@ -148,10 +193,10 @@ export async function analyzeImage(
 export async function chatWithMemory(
   message: string,
   userId: string,
-  conversationHistory?: OpenAI.Chat.ChatCompletionMessageParam[]
+  conversationHistory?: ChatCompletionMessageParam[]
 ): Promise<{ message: string; sources?: any[] }> {
   try {
-    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+    const messages: ChatCompletionMessageParam[] = [
       {
         role: 'system',
         content: `You are Stash AI, an intelligent assistant with access to the user's saved content.
@@ -162,20 +207,21 @@ export async function chatWithMemory(
       { role: 'user', content: message },
     ];
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
-      messages,
-      temperature: 0.7,
-      max_tokens: 500,
-      ...(config.ai.supermemoryApiKey && {
-        headers: {
-          'x-sm-user-id': userId,
-        },
-      }),
-    });
+    const response = await supermemoryRequest<ChatCompletionResponse>(
+      '/chat/completions',
+      {
+        model: config.ai.openaiModel,
+        messages,
+        temperature: 0.7,
+        max_tokens: 500,
+      },
+      userId
+    );
 
     return {
-      message: response.choices[0]?.message?.content || 'I apologize, but I could not generate a response.',
+      message:
+        response.choices[0]?.message?.content ||
+        'I apologize, but I could not generate a response.',
       // TODO: Extract sources from Supermemory response metadata
       sources: [],
     };
