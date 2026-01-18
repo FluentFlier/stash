@@ -3,11 +3,15 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and prisma schema
 COPY package.json package-lock.json* ./
+COPY ../prisma ./prisma/
 
-# Install dependencies
-RUN npm install --omit=dev
+# Install ALL dependencies (including devDeps for prisma)
+RUN npm install
+
+# Generate Prisma client
+RUN npx prisma generate
 
 # Copy source code
 COPY . ./
@@ -21,7 +25,7 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 stash
 
-# Copy from builder
+# Copy from builder (including node_modules with prisma client)
 COPY --from=builder --chown=stash:nodejs /app ./
 
 # Install tsx globally for running TypeScript
