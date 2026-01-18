@@ -15,17 +15,17 @@ import { ChatScreen } from '../screens/ChatScreen';
 import { AddContextScreen } from '../screens/AddContextScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 
-// Custom dark theme to prevent white flash
+// Custom dark theme - softer dark palette
 const CustomDarkTheme = {
     ...DarkTheme,
     colors: {
         ...DarkTheme.colors,
-        primary: '#7c6ff0',
-        background: '#0a0a0a', // neutral-950
-        card: '#171717', // neutral-900
-        text: '#fafafa', // neutral-50
-        border: '#404040', // neutral-700
-        notification: '#7c6ff0',
+        primary: '#6366f1', // indigo-500
+        background: '#121218', // soft dark slate
+        card: '#1c1c24', // elevated surface
+        text: '#f4f4f5',
+        border: '#2d2d38',
+        notification: '#6366f1',
     },
 };
 
@@ -38,18 +38,20 @@ function MainTabs() {
             screenOptions={{
                 headerShown: false,
                 tabBarStyle: {
-                    backgroundColor: '#171717', // neutral-900
-                    borderTopColor: '#404040', // neutral-700
+                    backgroundColor: '#121218', // soft dark slate
+                    borderTopColor: '#2d2d38',
                     borderTopWidth: 1,
-                    paddingBottom: 8,
-                    paddingTop: 12,
-                    height: 70,
+                    paddingBottom: 28,
+                    paddingTop: 10,
+                    height: 85,
+                    elevation: 0,
+                    shadowOpacity: 0,
                 },
-                tabBarActiveTintColor: '#7c6ff0', // primary-500
-                tabBarInactiveTintColor: '#a3a3a3', // neutral-400
+                tabBarActiveTintColor: '#6366f1', // indigo-500
+                tabBarInactiveTintColor: '#71717a', // zinc-500
                 tabBarLabelStyle: {
-                    fontSize: 12,
-                    fontWeight: '600' as '600',
+                    fontSize: 11,
+                    fontWeight: '500' as '500',
                     marginTop: 4,
                 },
                 tabBarIconStyle: {
@@ -119,8 +121,8 @@ export function Navigation() {
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="SignUp" component={SignUpScreen} />
                 <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-                <Stack.Screen 
-                    name="Main" 
+                <Stack.Screen
+                    name="Main"
                     component={MainTabs}
                     options={{
                         gestureEnabled: false, // Disable swipe back

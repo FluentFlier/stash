@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard, TextInput, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Mail, Lock } from 'lucide-react-native';
-import { ButtonNew, InputNew, CardNew } from '../components/ui';
+import { ButtonNew } from '../components/ui';
 import type { RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
+
+// Unified color constants - softer dark theme
+const colors = {
+    bg: '#121218',           // soft dark slate
+    bgSecondary: '#1c1c24',  // elevated surface
+    bgTertiary: '#252530',   // input backgrounds
+    primary: '#6366f1',
+    text: '#f4f4f5',
+    textMuted: '#a1a1aa',
+    textSubtle: '#71717a',
+    border: '#3a3a48',
+};
 
 export const SignUpScreen: React.FC<Props> = ({ navigation }) => {
     const [email, setEmail] = useState('');
@@ -17,7 +28,6 @@ export const SignUpScreen: React.FC<Props> = ({ navigation }) => {
 
     const handleSignUp = async () => {
         setLoading(true);
-        // TODO: Implement Supabase auth
         setTimeout(() => {
             setLoading(false);
             navigation.navigate('Onboarding');
@@ -26,97 +36,174 @@ export const SignUpScreen: React.FC<Props> = ({ navigation }) => {
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View className="flex-1 bg-neutral-950">
-                {/* Gradient Background */}
-                <View className="absolute inset-0">
-                    <LinearGradient
-                        colors={['#0a0a0a', '#2e1065', '#0a0a0a']}
-                        locations={[0, 0.3, 1]}
-                        style={{ flex: 1 }}
-                    />
-                </View>
-                
-                <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
+            <View style={{ flex: 1, backgroundColor: colors.bg }}>
+                <SafeAreaView style={{ flex: 1 }}>
                     <KeyboardAvoidingView
                         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        className="flex-1"
-                        keyboardVerticalOffset={0}
+                        style={{ flex: 1 }}
                     >
                         <ScrollView
-                            className="flex-1"
-                            contentContainerClassName="flex-grow"
+                            style={{ flex: 1 }}
+                            contentContainerStyle={{ flexGrow: 1 }}
                             keyboardShouldPersistTaps="handled"
-                            showsVerticalScrollIndicator={false}
                         >
-                            {/* Header */}
-                            <View className="px-4 py-2">
-                                <ButtonNew
-                                    variant="ghost"
-                                    size="sm"
-                                    leftIcon={<ArrowLeft size={20} color="#f5f5f5" />}
-                                    onPress={() => navigation.goBack()}
-                                >
-                                    Back
-                                </ButtonNew>
-                            </View>
+                            {/* Back Button */}
+                            <Pressable
+                                onPress={() => navigation.goBack()}
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    paddingHorizontal: 16,
+                                    paddingVertical: 12,
+                                    gap: 6,
+                                }}
+                            >
+                                <ArrowLeft size={20} color={colors.text} />
+                                <Text style={{ color: colors.text, fontSize: 14 }}>Back</Text>
+                            </Pressable>
 
-                            {/* Content */}
-                            <View className="flex-1 px-6 pt-8 pb-6 gap-6">
-                                <View className="gap-2">
-                                    <Text className="text-4xl font-bold text-neutral-50">
-                                        Create Account
-                                    </Text>
-                                    <Text className="text-lg text-neutral-400">
-                                        Join Stash today
-                                    </Text>
-                                </View>
+                            <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 }}>
+                                <Text style={{
+                                    fontSize: 28,
+                                    fontWeight: '700',
+                                    color: colors.text,
+                                    marginBottom: 8,
+                                }}>
+                                    Create Account
+                                </Text>
+                                <Text style={{
+                                    fontSize: 15,
+                                    color: colors.textMuted,
+                                    marginBottom: 32,
+                                }}>
+                                    Join Stash today
+                                </Text>
 
-                                <CardNew variant="glass">
-                                    <CardNew.Content>
-                                        <View className="gap-4">
-                                            <InputNew
-                                                label="Email"
+                                {/* Form Card */}
+                                <View style={{
+                                    backgroundColor: colors.bgSecondary,
+                                    borderRadius: 12,
+                                    padding: 20,
+                                    borderWidth: 1,
+                                    borderColor: colors.border,
+                                    gap: 16,
+                                }}>
+                                    {/* Email */}
+                                    <View style={{ gap: 6 }}>
+                                        <Text style={{ fontSize: 13, color: colors.textMuted, fontWeight: '500' }}>
+                                            Email
+                                        </Text>
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            backgroundColor: colors.bgTertiary,
+                                            borderRadius: 8,
+                                            borderWidth: 1,
+                                            borderColor: colors.border,
+                                            paddingHorizontal: 12,
+                                        }}>
+                                            <Mail size={18} color={colors.textSubtle} />
+                                            <TextInput
+                                                style={{
+                                                    flex: 1,
+                                                    paddingVertical: 12,
+                                                    paddingHorizontal: 10,
+                                                    fontSize: 15,
+                                                    color: colors.text,
+                                                }}
                                                 placeholder="your@email.com"
+                                                placeholderTextColor={colors.textSubtle}
                                                 value={email}
                                                 onChangeText={setEmail}
                                                 keyboardType="email-address"
                                                 autoCapitalize="none"
-                                                leftIcon={<Mail size={20} color="#a3a3a3" />}
                                             />
-                                            <InputNew
-                                                label="Password"
+                                        </View>
+                                    </View>
+
+                                    {/* Password */}
+                                    <View style={{ gap: 6 }}>
+                                        <Text style={{ fontSize: 13, color: colors.textMuted, fontWeight: '500' }}>
+                                            Password
+                                        </Text>
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            backgroundColor: colors.bgTertiary,
+                                            borderRadius: 8,
+                                            borderWidth: 1,
+                                            borderColor: colors.border,
+                                            paddingHorizontal: 12,
+                                        }}>
+                                            <Lock size={18} color={colors.textSubtle} />
+                                            <TextInput
+                                                style={{
+                                                    flex: 1,
+                                                    paddingVertical: 12,
+                                                    paddingHorizontal: 10,
+                                                    fontSize: 15,
+                                                    color: colors.text,
+                                                }}
                                                 placeholder="••••••••"
+                                                placeholderTextColor={colors.textSubtle}
                                                 value={password}
                                                 onChangeText={setPassword}
                                                 secureTextEntry
-                                                leftIcon={<Lock size={20} color="#a3a3a3" />}
                                             />
-                                            <InputNew
-                                                label="Confirm Password"
+                                        </View>
+                                    </View>
+
+                                    {/* Confirm Password */}
+                                    <View style={{ gap: 6 }}>
+                                        <Text style={{ fontSize: 13, color: colors.textMuted, fontWeight: '500' }}>
+                                            Confirm Password
+                                        </Text>
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            backgroundColor: colors.bgTertiary,
+                                            borderRadius: 8,
+                                            borderWidth: 1,
+                                            borderColor: colors.border,
+                                            paddingHorizontal: 12,
+                                        }}>
+                                            <Lock size={18} color={colors.textSubtle} />
+                                            <TextInput
+                                                style={{
+                                                    flex: 1,
+                                                    paddingVertical: 12,
+                                                    paddingHorizontal: 10,
+                                                    fontSize: 15,
+                                                    color: colors.text,
+                                                }}
                                                 placeholder="••••••••"
+                                                placeholderTextColor={colors.textSubtle}
                                                 value={confirmPassword}
                                                 onChangeText={setConfirmPassword}
                                                 secureTextEntry
-                                                leftIcon={<Lock size={20} color="#a3a3a3" />}
                                             />
-
-                                            <ButtonNew
-                                                size="lg"
-                                                loading={loading}
-                                                onPress={handleSignUp}
-                                            >
-                                                Create Account
-                                            </ButtonNew>
                                         </View>
-                                    </CardNew.Content>
-                                </CardNew>
+                                    </View>
 
-                                <ButtonNew
-                                    variant="ghost"
+                                    <ButtonNew
+                                        size="lg"
+                                        loading={loading}
+                                        onPress={handleSignUp}
+                                    >
+                                        Create Account
+                                    </ButtonNew>
+                                </View>
+
+                                {/* Sign In Link */}
+                                <Pressable
                                     onPress={() => navigation.navigate('Login')}
+                                    style={{ marginTop: 24, alignItems: 'center' }}
                                 >
-                                    Already have an account? Sign In
-                                </ButtonNew>
+                                    <Text style={{ fontSize: 14, color: colors.textMuted }}>
+                                        Already have an account?{' '}
+                                        <Text style={{ color: colors.primary, fontWeight: '500' }}>Sign In</Text>
+                                    </Text>
+                                </Pressable>
                             </View>
                         </ScrollView>
                     </KeyboardAvoidingView>

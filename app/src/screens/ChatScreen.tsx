@@ -13,7 +13,22 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Send, Sparkles, TrendingUp, Clock, Zap } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { MessageBubbleNew, CardNew, AvatarNew } from '../components/ui';
+
+// Unified color constants - softer dark theme
+const colors = {
+    bg: '#121218',           // soft dark slate
+    bgSecondary: '#1c1c24',  // elevated surface
+    bgTertiary: '#252530',   // input backgrounds
+    primary: '#6366f1',
+    primaryMuted: 'rgba(99, 102, 241, 0.12)',
+    text: '#f4f4f5',
+    textMuted: '#a1a1aa',
+    textSubtle: '#71717a',
+    border: '#3a3a48',
+    borderLight: '#2d2d38',
+    success: '#22c55e',
+    accent: '#3b82f6',
+};
 
 type Message = {
     id: string;
@@ -77,105 +92,172 @@ export const ChatScreen: React.FC = () => {
     };
 
     return (
-        <View className="flex-1 bg-neutral-950">
-            {/* Gradient Background */}
-            <View className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-primary-900/20 to-neutral-950" />
-            
-            <SafeAreaView className="flex-1" edges={['top']}>
+        <View style={{ flex: 1, backgroundColor: colors.bg }}>
+            <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
                 {/* Header */}
-                <View className="flex-row items-center justify-between px-6 py-4 border-b border-neutral-800">
-                    <View className="flex-row items-center gap-3">
-                        <AvatarNew size="sm" fallback="You" />
-                        <View className="gap-1">
-                            <Text className="text-lg font-semibold text-neutral-50">
-                                Your AI Assistant
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingHorizontal: 20,
+                    paddingVertical: 14,
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.borderLight,
+                }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                        <View style={{
+                            width: 36,
+                            height: 36,
+                            backgroundColor: colors.primaryMuted,
+                            borderRadius: 10,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                            <Sparkles size={18} color={colors.primary} />
+                        </View>
+                        <View>
+                            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
+                                AI Assistant
                             </Text>
-                            <View className="flex-row items-center gap-1">
-                                <View className="w-2 h-2 rounded-full bg-success" />
-                                <Text className="text-xs text-neutral-400">Online</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.success }} />
+                                <Text style={{ fontSize: 12, color: colors.textSubtle }}>Online</Text>
                             </View>
                         </View>
                     </View>
-                    <Sparkles size={24} color="#7c6ff0" />
                 </View>
 
-                {/* AI Summary Card */}
-                <View className="px-4 py-3">
-                    <CardNew variant="glass">
-                        <CardNew.Content>
-                            <View className="flex-row items-center gap-2 mb-2">
-                                <Zap size={18} color="#22d3ee" />
-                                <Text className="text-sm font-semibold text-neutral-50">
-                                    Daily Summary
+                {/* Summary Card */}
+                <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
+                    <View style={{
+                        backgroundColor: colors.bgSecondary,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: colors.borderLight,
+                        padding: 14,
+                    }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                            <Zap size={14} color={colors.accent} />
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text }}>
+                                Daily Summary
+                            </Text>
+                        </View>
+                        <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 10 }}>
+                            You've saved 12 items this week. 3 upcoming events detected.
+                        </Text>
+                        <View style={{ flexDirection: 'row', gap: 16 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <TrendingUp size={12} color={colors.success} />
+                                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.textMuted }}>
+                                    +24%
                                 </Text>
                             </View>
-                            <Text className="text-base text-neutral-300 mb-3">
-                                You've saved 12 items this week. 3 upcoming events detected.
-                            </Text>
-                            <View className="flex-row gap-4">
-                                <View className="flex-row items-center gap-1">
-                                    <TrendingUp size={16} color="#10b981" />
-                                    <Text className="text-sm font-semibold text-neutral-300">
-                                        +24%
-                                    </Text>
-                                </View>
-                                <View className="flex-row items-center gap-1">
-                                    <Clock size={16} color="#a3a3a3" />
-                                    <Text className="text-sm font-semibold text-neutral-300">
-                                        2h saved
-                                    </Text>
-                                </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <Clock size={12} color={colors.textSubtle} />
+                                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.textMuted }}>
+                                    2h saved
+                                </Text>
                             </View>
-                        </CardNew.Content>
-                    </CardNew>
+                        </View>
+                    </View>
                 </View>
 
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    className="flex-1"
-                    keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+                    style={{ flex: 1 }}
+                    keyboardVerticalOffset={0}
                 >
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                         <ScrollView
                             ref={scrollViewRef}
-                            className="flex-1"
-                            contentContainerClassName="py-4"
+                            style={{ flex: 1 }}
+                            contentContainerStyle={{ paddingVertical: 12, paddingHorizontal: 20 }}
                             keyboardShouldPersistTaps="handled"
                         >
                             {messages.map((msg) => (
-                                <MessageBubbleNew
+                                <View
                                     key={msg.id}
-                                    role={msg.role}
-                                    content={msg.content}
-                                    timestamp={msg.timestamp}
-                                />
+                                    style={{
+                                        alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                                        maxWidth: '85%',
+                                        marginBottom: 12,
+                                    }}
+                                >
+                                    <View style={{
+                                        backgroundColor: msg.role === 'user' ? colors.primary : colors.bgSecondary,
+                                        borderRadius: 12,
+                                        borderWidth: msg.role === 'user' ? 0 : 1,
+                                        borderColor: colors.borderLight,
+                                        paddingHorizontal: 14,
+                                        paddingVertical: 10,
+                                    }}>
+                                        <Text style={{
+                                            fontSize: 14,
+                                            color: colors.text,
+                                            lineHeight: 20,
+                                        }}>
+                                            {msg.content}
+                                        </Text>
+                                    </View>
+                                    {msg.timestamp && (
+                                        <Text style={{
+                                            fontSize: 10,
+                                            color: colors.textSubtle,
+                                            marginTop: 4,
+                                            alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                                            marginHorizontal: 4,
+                                        }}>
+                                            {msg.timestamp}
+                                        </Text>
+                                    )}
+                                </View>
                             ))}
                         </ScrollView>
                     </TouchableWithoutFeedback>
 
-                    <View className="px-4 py-3 border-t border-neutral-800 bg-neutral-950">
-                        <View className="flex-row items-end gap-2">
+                    {/* Input Container */}
+                    <View style={{
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                        paddingBottom: 20,
+                        borderTopWidth: 1,
+                        borderTopColor: colors.borderLight,
+                        backgroundColor: colors.bg,
+                    }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                             <TextInput
-                                className="flex-1 bg-neutral-800 rounded-xl px-4 py-3 text-base text-neutral-50 max-h-[100px] border border-neutral-700"
+                                style={{
+                                    flex: 1,
+                                    backgroundColor: colors.bgTertiary,
+                                    borderRadius: 12,
+                                    borderWidth: 1,
+                                    borderColor: colors.border,
+                                    paddingHorizontal: 14,
+                                    paddingVertical: 12,
+                                    fontSize: 14,
+                                    color: colors.text,
+                                    maxHeight: 100,
+                                }}
                                 placeholder="Ask me anything..."
-                                placeholderTextColor="#a3a3a3"
+                                placeholderTextColor={colors.textSubtle}
                                 value={message}
                                 onChangeText={setMessage}
                                 multiline
                                 maxLength={500}
-                                returnKeyType="default"
-                                blurOnSubmit={false}
                             />
                             <Pressable
                                 onPress={handleSend}
                                 disabled={!message.trim()}
-                                className={`w-11 h-11 rounded-full items-center justify-center ${
-                                    message.trim()
-                                        ? 'bg-gradient-to-r from-primary-600 to-accent-500'
-                                        : 'bg-neutral-700'
-                                }`}
+                                style={{
+                                    width: 44,
+                                    height: 44,
+                                    borderRadius: 12,
+                                    backgroundColor: message.trim() ? colors.primary : colors.bgTertiary,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
                             >
-                                <Send size={20} color="#ffffff" />
+                                <Send size={18} color={message.trim() ? '#ffffff' : colors.textSubtle} />
                             </Pressable>
                         </View>
                     </View>

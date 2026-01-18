@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Switch, Modal, Alert, Pressable } from 'react-native';
+import { View, Text, ScrollView, Switch, Modal, Alert, Pressable, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -14,17 +14,36 @@ import {
     MessageCircle,
     Settings,
     ChevronRight,
+    X,
 } from 'lucide-react-native';
-import { AvatarNew, CardNew, ButtonNew, InputNew } from '../components/ui';
+import { ButtonNew } from '../components/ui';
 import type { RootStackParamList } from '../types';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+// Unified color constants - softer dark theme
+const colors = {
+    bg: '#121218',           // soft dark slate
+    bgSecondary: '#1c1c24',  // elevated surface
+    bgTertiary: '#252530',   // input backgrounds
+    primary: '#6366f1',
+    primaryMuted: 'rgba(99, 102, 241, 0.12)',
+    text: '#f4f4f5',
+    textMuted: '#a1a1aa',
+    textSubtle: '#71717a',
+    border: '#3a3a48',
+    borderLight: '#2d2d38',
+    success: '#22c55e',
+    accent: '#3b82f6',
+    error: '#ef4444',
+};
 
 export const ProfileScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProp>();
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [editField, setEditField] = useState<'name' | 'role' | 'age' | null>(null);
+    const [editValue, setEditValue] = useState('');
     const [name, setName] = useState('John Smith');
     const [role, setRole] = useState('Developer');
     const [age, setAge] = useState('25');
@@ -39,7 +58,6 @@ export const ProfileScreen: React.FC = () => {
                     text: 'Sign Out',
                     style: 'destructive',
                     onPress: () => {
-                        // Navigate to Landing screen
                         navigation.reset({
                             index: 0,
                             routes: [{ name: 'Landing' }],
@@ -52,203 +70,253 @@ export const ProfileScreen: React.FC = () => {
 
     const handleEdit = (field: 'name' | 'role' | 'age') => {
         setEditField(field);
+        setEditValue(field === 'name' ? name : field === 'role' ? role : age);
         setEditModalVisible(true);
     };
 
     const handleSave = () => {
+        if (editField === 'name') setName(editValue);
+        if (editField === 'role') setRole(editValue);
+        if (editField === 'age') setAge(editValue);
         setEditModalVisible(false);
-        // TODO: Save to backend
     };
 
     return (
-        <View className="flex-1 bg-neutral-950">
-            {/* Gradient Background */}
-            <View className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-primary-900/20 to-neutral-950" />
-            
-            <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
-                <ScrollView className="flex-1" contentContainerClassName="p-6 gap-4">
+        <View style={{ flex: 1, backgroundColor: colors.bg }}>
+            <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+                <ScrollView
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 16, gap: 16 }}
+                >
                     {/* Profile Header */}
-                    <CardNew variant="glass">
-                        <CardNew.Content>
-                            <View className="flex-row items-center gap-4">
-                                <AvatarNew size="lg" fallback="JS" />
-                                <View className="flex-1 gap-1">
-                                    <Text className="text-2xl font-bold text-neutral-50">
-                                        {name}
-                                    </Text>
-                                    <Text className="text-base text-neutral-400">
-                                        john@example.com
-                                    </Text>
-                                </View>
-                                <Pressable
-                                    onPress={() => handleEdit('name')}
-                                    className="w-10 h-10 items-center justify-center"
-                                >
-                                    <Edit2 size={20} color="#7c6ff0" />
-                                </Pressable>
-                            </View>
-                        </CardNew.Content>
-                    </CardNew>
+                    <View style={{
+                        backgroundColor: colors.bgSecondary,
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: colors.borderLight,
+                        padding: 16,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 14,
+                    }}>
+                        <View style={{
+                            width: 56,
+                            height: 56,
+                            backgroundColor: colors.primary,
+                            borderRadius: 14,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                            <Text style={{ fontSize: 20, fontWeight: '600', color: '#ffffff' }}>
+                                JS
+                            </Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text }}>
+                                {name}
+                            </Text>
+                            <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 2 }}>
+                                john@example.com
+                            </Text>
+                        </View>
+                        <Pressable onPress={() => handleEdit('name')}>
+                            <Edit2 size={18} color={colors.primary} />
+                        </Pressable>
+                    </View>
 
                     {/* Stats Cards */}
-                    <View className="flex-row gap-3">
-                        <CardNew variant="elevated" className="flex-1">
-                            <CardNew.Content>
-                                <View className="items-center gap-2">
-                                    <Package size={24} color="#7c6ff0" />
-                                    <Text className="text-2xl font-bold text-neutral-50">
-                                        127
-                                    </Text>
-                                    <Text className="text-xs text-neutral-400 text-center">
-                                        Items Saved
-                                    </Text>
-                                </View>
-                            </CardNew.Content>
-                        </CardNew>
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <View style={{
+                            flex: 1,
+                            backgroundColor: colors.bgSecondary,
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            borderColor: colors.borderLight,
+                            padding: 14,
+                            alignItems: 'center',
+                            gap: 6,
+                        }}>
+                            <Package size={20} color={colors.primary} />
+                            <Text style={{ fontSize: 22, fontWeight: '700', color: colors.text }}>
+                                127
+                            </Text>
+                            <Text style={{ fontSize: 11, color: colors.textSubtle }}>
+                                Items
+                            </Text>
+                        </View>
 
-                        <CardNew variant="elevated" className="flex-1">
-                            <CardNew.Content>
-                                <View className="items-center gap-2">
-                                    <MessageCircle size={24} color="#22d3ee" />
-                                    <Text className="text-2xl font-bold text-neutral-50">
-                                        43
-                                    </Text>
-                                    <Text className="text-xs text-neutral-400 text-center">
-                                        Conversations
-                                    </Text>
-                                </View>
-                            </CardNew.Content>
-                        </CardNew>
+                        <View style={{
+                            flex: 1,
+                            backgroundColor: colors.bgSecondary,
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            borderColor: colors.borderLight,
+                            padding: 14,
+                            alignItems: 'center',
+                            gap: 6,
+                        }}>
+                            <MessageCircle size={20} color={colors.accent} />
+                            <Text style={{ fontSize: 22, fontWeight: '700', color: colors.text }}>
+                                43
+                            </Text>
+                            <Text style={{ fontSize: 11, color: colors.textSubtle }}>
+                                Chats
+                            </Text>
+                        </View>
 
-                        <CardNew variant="elevated" className="flex-1">
-                            <CardNew.Content>
-                                <View className="items-center gap-2">
-                                    <TrendingUp size={24} color="#10b981" />
-                                    <Text className="text-2xl font-bold text-neutral-50">
-                                        +24%
-                                    </Text>
-                                    <Text className="text-xs text-neutral-400 text-center">
-                                        This Week
-                                    </Text>
-                                </View>
-                            </CardNew.Content>
-                        </CardNew>
+                        <View style={{
+                            flex: 1,
+                            backgroundColor: colors.bgSecondary,
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            borderColor: colors.borderLight,
+                            padding: 14,
+                            alignItems: 'center',
+                            gap: 6,
+                        }}>
+                            <TrendingUp size={20} color={colors.success} />
+                            <Text style={{ fontSize: 22, fontWeight: '700', color: colors.text }}>
+                                +24%
+                            </Text>
+                            <Text style={{ fontSize: 11, color: colors.textSubtle }}>
+                                Growth
+                            </Text>
+                        </View>
                     </View>
 
                     {/* Personal Information */}
-                    <CardNew variant="glass">
-                        <CardNew.Content>
-                            <Text className="text-sm font-semibold text-neutral-50 mb-3">
-                                Personal Information
-                            </Text>
+                    <View style={{
+                        backgroundColor: colors.bgSecondary,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: colors.borderLight,
+                        padding: 14,
+                    }}>
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text, marginBottom: 12 }}>
+                            Personal Information
+                        </Text>
 
-                            <Pressable
-                                onPress={() => handleEdit('name')}
-                                className="flex-row items-center py-3 gap-3 border-b border-neutral-800"
-                            >
-                                <User size={20} color="#a3a3a3" />
-                                <View className="flex-1 gap-1">
-                                    <Text className="text-base font-medium text-neutral-50">
-                                        Name
-                                    </Text>
-                                    <Text className="text-base text-neutral-400">
-                                        {name}
-                                    </Text>
-                                </View>
-                                <ChevronRight size={20} color="#a3a3a3" />
-                            </Pressable>
+                        <Pressable
+                            onPress={() => handleEdit('name')}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                paddingVertical: 12,
+                                gap: 12,
+                                borderBottomWidth: 1,
+                                borderBottomColor: colors.borderLight,
+                            }}
+                        >
+                            <User size={18} color={colors.textSubtle} />
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 13, color: colors.textSubtle }}>Name</Text>
+                                <Text style={{ fontSize: 14, color: colors.text, marginTop: 2 }}>{name}</Text>
+                            </View>
+                            <ChevronRight size={16} color={colors.textSubtle} />
+                        </Pressable>
 
-                            <Pressable
-                                onPress={() => handleEdit('role')}
-                                className="flex-row items-center py-3 gap-3 border-b border-neutral-800"
-                            >
-                                <Settings size={20} color="#a3a3a3" />
-                                <View className="flex-1 gap-1">
-                                    <Text className="text-base font-medium text-neutral-50">
-                                        Role
-                                    </Text>
-                                    <Text className="text-base text-neutral-400">
-                                        {role}
-                                    </Text>
-                                </View>
-                                <ChevronRight size={20} color="#a3a3a3" />
-                            </Pressable>
+                        <Pressable
+                            onPress={() => handleEdit('role')}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                paddingVertical: 12,
+                                gap: 12,
+                                borderBottomWidth: 1,
+                                borderBottomColor: colors.borderLight,
+                            }}
+                        >
+                            <Settings size={18} color={colors.textSubtle} />
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 13, color: colors.textSubtle }}>Role</Text>
+                                <Text style={{ fontSize: 14, color: colors.text, marginTop: 2 }}>{role}</Text>
+                            </View>
+                            <ChevronRight size={16} color={colors.textSubtle} />
+                        </Pressable>
 
-                            <Pressable
-                                onPress={() => handleEdit('age')}
-                                className="flex-row items-center py-3 gap-3"
-                            >
-                                <User size={20} color="#a3a3a3" />
-                                <View className="flex-1 gap-1">
-                                    <Text className="text-base font-medium text-neutral-50">
-                                        Age
-                                    </Text>
-                                    <Text className="text-base text-neutral-400">
-                                        {age}
-                                    </Text>
-                                </View>
-                                <ChevronRight size={20} color="#a3a3a3" />
-                            </Pressable>
-                        </CardNew.Content>
-                    </CardNew>
+                        <Pressable
+                            onPress={() => handleEdit('age')}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                paddingVertical: 12,
+                                gap: 12,
+                            }}
+                        >
+                            <User size={18} color={colors.textSubtle} />
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 13, color: colors.textSubtle }}>Age</Text>
+                                <Text style={{ fontSize: 14, color: colors.text, marginTop: 2 }}>{age}</Text>
+                            </View>
+                            <ChevronRight size={16} color={colors.textSubtle} />
+                        </Pressable>
+                    </View>
 
                     {/* Integrations */}
-                    <CardNew variant="glass">
-                        <CardNew.Content>
-                            <Text className="text-sm font-semibold text-neutral-50 mb-3">
-                                Integrations
-                            </Text>
-                            <View className="flex-row items-center py-3 gap-3">
-                                <Calendar size={20} color="#7c6ff0" />
-                                <View className="flex-1 gap-1">
-                                    <Text className="text-base font-medium text-neutral-50">
-                                        Google Calendar
-                                    </Text>
-                                    <Text className="text-sm font-semibold text-success">
-                                        Connected
-                                    </Text>
-                                </View>
-                                <ButtonNew variant="outline" size="sm">
-                                    Manage
-                                </ButtonNew>
+                    <View style={{
+                        backgroundColor: colors.bgSecondary,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: colors.borderLight,
+                        padding: 14,
+                    }}>
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text, marginBottom: 12 }}>
+                            Integrations
+                        </Text>
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 12,
+                        }}>
+                            <Calendar size={18} color={colors.primary} />
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 14, color: colors.text }}>Google Calendar</Text>
+                                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.success }}>Connected</Text>
                             </View>
-                        </CardNew.Content>
-                    </CardNew>
+                            <ButtonNew variant="outline" size="sm">
+                                Manage
+                            </ButtonNew>
+                        </View>
+                    </View>
 
                     {/* Settings */}
-                    <CardNew variant="glass">
-                        <CardNew.Content>
-                            <Text className="text-sm font-semibold text-neutral-50 mb-3">
-                                Settings
-                            </Text>
-                            <View className="flex-row items-center py-3 gap-3">
-                                <Bell size={20} color="#a3a3a3" />
-                                <View className="flex-1 gap-1">
-                                    <Text className="text-base font-medium text-neutral-50">
-                                        Push Notifications
-                                    </Text>
-                                    <Text className="text-sm text-neutral-400">
-                                        Get reminders and updates
-                                    </Text>
-                                </View>
-                                <Switch
-                                    value={notificationsEnabled}
-                                    onValueChange={setNotificationsEnabled}
-                                    trackColor={{
-                                        false: '#404040',
-                                        true: '#6d4ee3',
-                                    }}
-                                    thumbColor="#ffffff"
-                                />
+                    <View style={{
+                        backgroundColor: colors.bgSecondary,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: colors.borderLight,
+                        padding: 14,
+                    }}>
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text, marginBottom: 12 }}>
+                            Settings
+                        </Text>
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 12,
+                        }}>
+                            <Bell size={18} color={colors.textSubtle} />
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 14, color: colors.text }}>Push Notifications</Text>
+                                <Text style={{ fontSize: 12, color: colors.textSubtle }}>Get reminders and updates</Text>
                             </View>
-                        </CardNew.Content>
-                    </CardNew>
+                            <Switch
+                                value={notificationsEnabled}
+                                onValueChange={setNotificationsEnabled}
+                                trackColor={{
+                                    false: colors.bgTertiary,
+                                    true: colors.primary,
+                                }}
+                                thumbColor="#ffffff"
+                            />
+                        </View>
+                    </View>
 
                     {/* Sign Out Button */}
                     <ButtonNew
                         variant="destructive"
                         size="lg"
-                        leftIcon={<LogOut size={20} color="#ffffff" />}
+                        leftIcon={<LogOut size={16} color="#ffffff" />}
                         onPress={handleSignOut}
                     >
                         Sign Out
@@ -262,37 +330,50 @@ export const ProfileScreen: React.FC = () => {
                     animationType="fade"
                     onRequestClose={() => setEditModalVisible(false)}
                 >
-                    <View className="flex-1 bg-black/80 justify-center items-center p-6">
-                        <View className="bg-neutral-800 rounded-2xl p-6 w-full max-w-[400px] gap-4">
-                            <Text className="text-2xl font-bold text-neutral-50">
-                                Edit {editField ? editField.charAt(0).toUpperCase() + editField.slice(1) : ''}
-                            </Text>
-                            {editField === 'name' && (
-                                <InputNew
-                                    label="Name"
-                                    value={name}
-                                    onChangeText={setName}
-                                    placeholder="Enter your name"
-                                />
-                            )}
-                            {editField === 'role' && (
-                                <InputNew
-                                    label="Role"
-                                    value={role}
-                                    onChangeText={setRole}
-                                    placeholder="Enter your role"
-                                />
-                            )}
-                            {editField === 'age' && (
-                                <InputNew
-                                    label="Age"
-                                    value={age}
-                                    onChangeText={setAge}
-                                    placeholder="Enter your age"
-                                    keyboardType="number-pad"
-                                />
-                            )}
-                            <View className="flex-row gap-3">
+                    <View style={{
+                        flex: 1,
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        padding: 24,
+                    }}>
+                        <View style={{
+                            backgroundColor: colors.bgSecondary,
+                            borderRadius: 12,
+                            padding: 20,
+                            width: '100%',
+                            maxWidth: 360,
+                            gap: 16,
+                        }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Text style={{ fontSize: 18, fontWeight: '600', color: colors.text }}>
+                                    Edit {editField ? editField.charAt(0).toUpperCase() + editField.slice(1) : ''}
+                                </Text>
+                                <Pressable onPress={() => setEditModalVisible(false)}>
+                                    <X size={20} color={colors.textSubtle} />
+                                </Pressable>
+                            </View>
+
+                            <TextInput
+                                style={{
+                                    backgroundColor: colors.bgTertiary,
+                                    borderRadius: 8,
+                                    borderWidth: 1,
+                                    borderColor: colors.border,
+                                    paddingHorizontal: 14,
+                                    paddingVertical: 12,
+                                    fontSize: 14,
+                                    color: colors.text,
+                                }}
+                                placeholder={`Enter your ${editField}`}
+                                placeholderTextColor={colors.textSubtle}
+                                value={editValue}
+                                onChangeText={setEditValue}
+                                keyboardType={editField === 'age' ? 'number-pad' : 'default'}
+                                autoFocus
+                            />
+
+                            <View style={{ flexDirection: 'row', gap: 10 }}>
                                 <ButtonNew
                                     variant="outline"
                                     onPress={() => setEditModalVisible(false)}
