@@ -3,7 +3,7 @@ import { logger } from '../utils/logger.js';
 import { ActionPlan, ExecutionResult } from '../types/agents.js';
 import { sendNotification } from '../services/notifications.js';
 import { addReminderJob } from '../services/queue.js';
-import { createCalendarEvent } from '../services/calendar.js';
+import { createCalendarEvent, hasCalendarConnected } from '../services/calendar.js';
 import { summarizeContent } from '../services/ai.js';
 
 /**
@@ -141,7 +141,9 @@ export class ExecutorAgent {
   ): Promise<ExecutionResult> {
     try {
       const scheduledAt = new Date(data.scheduledAt);
+      const endTime = new Date(scheduledAt.getTime() + 3600000); // Default 1 hour
 
+      // Create reminder first
       const reminder = await prisma.reminder.create({
         data: {
           userId,
@@ -152,13 +154,44 @@ export class ExecutorAgent {
         },
       });
 
+      // Try to create calendar event if user has calendar connected
+      let calendarEventId: string | null = null;
+      try {
+        const hasCalendar = await hasCalendarConnected(userId);
+        if (hasCalendar) {
+          const calendarEvent = await createCalendarEvent(userId, {
+            title: data.message,
+            description: captureId ? `Reminder linked to capture ${captureId}` : undefined,
+            startTime: scheduledAt.toISOString(),
+            endTime: endTime.toISOString(),
+          });
+
+          calendarEventId = calendarEvent.id;
+
+          // Update reminder with calendar event ID
+          await prisma.reminder.update({
+            where: { id: reminder.id },
+            data: {
+              calendarEventId,
+              calendarProvider: 'google',
+              syncedAt: new Date(),
+            },
+          });
+
+          logger.info(`[ExecutorAgent] Created calendar event ${calendarEventId} for reminder ${reminder.id}`);
+        }
+      } catch (calendarError: any) {
+        // Log error but don't fail reminder creation
+        logger.warn(`[ExecutorAgent] Failed to create calendar event for reminder ${reminder.id}:`, calendarError);
+      }
+
       // Add to reminder queue
       await addReminderJob(reminder.id, scheduledAt);
 
       return {
         action: 'CREATE_REMINDER',
         success: true,
-        data: { reminderId: reminder.id },
+        data: { reminderId: reminder.id, calendarEventId },
       };
     } catch (error: any) {
       return {

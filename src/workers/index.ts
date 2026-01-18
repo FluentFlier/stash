@@ -6,6 +6,7 @@ import { testRedisConnection } from '../config/redis.js';
 import './capture-processor.js';
 import './reminder-sender.js';
 import { startProactiveAgent } from './proactive-agent.js';
+import { startCalendarSync } from './calendar-sync.js';
 
 /**
  * Start all workers
@@ -30,6 +31,9 @@ async function startWorkers() {
     // Start proactive agent
     startProactiveAgent();
 
+    // Start calendar sync worker
+    startCalendarSync();
+
     logger.info('');
     logger.info('✅ All workers started successfully');
     logger.info('');
@@ -37,6 +41,7 @@ async function startWorkers() {
     logger.info('  - Capture Processor (processes saved content)');
     logger.info('  - Reminder Sender (sends scheduled reminders)');
     logger.info('  - Proactive Agent (finds opportunities to help)');
+    logger.info('  - Calendar Sync (syncs Google Calendar events to reminders)');
     logger.info('');
   } catch (error) {
     logger.error('❌ Failed to start workers:', error);

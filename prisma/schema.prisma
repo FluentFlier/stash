@@ -185,12 +185,18 @@ model Reminder {
   recurring         Boolean   @default(false)
   recurringRule     Json?     // cron-like rule
 
+  // Calendar sync fields
+  calendarEventId   String?   // Google Calendar event ID
+  calendarProvider  String?   // 'google' (for future multi-provider support)
+  syncedAt          DateTime? // Last sync timestamp
+
   createdAt         DateTime  @default(now())
   sentAt            DateTime?
   completedAt       DateTime?
 
   @@index([userId, scheduledAt])
   @@index([status, scheduledAt])
+  @@index([calendarEventId])
   @@map("reminders")
 }
 

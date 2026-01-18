@@ -3,6 +3,12 @@ import { prisma } from '../config/database.js';
 import { logger } from '../utils/logger.js';
 import { createReminderSchema, updateReminderSchema } from '../utils/validators.js';
 import { addReminderJob } from '../services/queue.js';
+import {
+  hasCalendarConnected,
+  createCalendarEvent,
+  updateCalendarEvent,
+  deleteCalendarEvent,
+} from '../services/calendar.js';
 
 export async function reminderRoutes(fastify: FastifyInstance) {
   // CREATE REMINDER
@@ -18,6 +24,10 @@ export async function reminderRoutes(fastify: FastifyInstance) {
         const body = createReminderSchema.parse(request.body);
         const scheduledAt = new Date(body.scheduledAt);
 
+        // Calculate end time (default 1 hour after start)
+        const endTime = new Date(scheduledAt.getTime() + 3600000);
+
+        // Create reminder first
         const reminder = await prisma.reminder.create({
           data: {
             userId,
@@ -30,6 +40,37 @@ export async function reminderRoutes(fastify: FastifyInstance) {
           },
         });
 
+        // Try to create calendar event if user has calendar connected
+        let calendarEventId: string | null = null;
+        try {
+          const hasCalendar = await hasCalendarConnected(userId);
+          if (hasCalendar) {
+            const calendarEvent = await createCalendarEvent(userId, {
+              title: body.message,
+              description: body.captureId ? `Reminder linked to capture ${body.captureId}` : undefined,
+              startTime: scheduledAt.toISOString(),
+              endTime: endTime.toISOString(),
+            });
+
+            calendarEventId = calendarEvent.id;
+
+            // Update reminder with calendar event ID
+            await prisma.reminder.update({
+              where: { id: reminder.id },
+              data: {
+                calendarEventId,
+                calendarProvider: 'google',
+                syncedAt: new Date(),
+              },
+            });
+
+            logger.info(`[API] Created calendar event ${calendarEventId} for reminder ${reminder.id}`);
+          }
+        } catch (calendarError: any) {
+          // Log error but don't fail reminder creation
+          logger.warn(`[API] Failed to create calendar event for reminder ${reminder.id}:`, calendarError);
+        }
+
         // Add to reminder queue
         await addReminderJob(reminder.id, scheduledAt);
 
@@ -37,7 +78,10 @@ export async function reminderRoutes(fastify: FastifyInstance) {
 
         return {
           success: true,
-          data: reminder,
+          data: {
+            ...reminder,
+            calendarEventId,
+          },
         };
       } catch (error: any) {
         logger.error('[API] Error creating reminder:', error);
@@ -125,14 +169,70 @@ export async function reminderRoutes(fastify: FastifyInstance) {
           });
         }
 
+        // Prepare update data
+        const updateData: any = {
+          ...(body.message && { message: body.message }),
+          ...(body.scheduledAt && { scheduledAt: new Date(body.scheduledAt) }),
+          ...(body.status && { status: body.status }),
+        };
+
+        // Update reminder
         const reminder = await prisma.reminder.update({
           where: { id },
-          data: {
-            ...(body.message && { message: body.message }),
-            ...(body.scheduledAt && { scheduledAt: new Date(body.scheduledAt) }),
-            ...(body.status && { status: body.status }),
-          },
+          data: updateData,
         });
+
+        // Sync to calendar if reminder has calendar event or user has calendar connected
+        try {
+          const hasCalendar = await hasCalendarConnected(userId);
+          if (hasCalendar && (existing.calendarEventId || body.scheduledAt || body.message)) {
+            if (existing.calendarEventId) {
+              // Update existing calendar event
+              const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : existing.scheduledAt;
+              const endTime = new Date(scheduledAt.getTime() + 3600000);
+
+              await updateCalendarEvent(userId, existing.calendarEventId, {
+                title: body.message || existing.message,
+                startTime: scheduledAt.toISOString(),
+                endTime: endTime.toISOString(),
+              });
+
+              // Update synced timestamp
+              await prisma.reminder.update({
+                where: { id },
+                data: { syncedAt: new Date() },
+              });
+
+              logger.info(`[API] Updated calendar event ${existing.calendarEventId} for reminder ${id}`);
+            } else if (body.scheduledAt || body.message) {
+              // Create new calendar event if reminder doesn't have one
+              const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : existing.scheduledAt;
+              const endTime = new Date(scheduledAt.getTime() + 3600000);
+
+              const calendarEvent = await createCalendarEvent(userId, {
+                title: body.message || existing.message,
+                description: existing.captureId ? `Reminder linked to capture ${existing.captureId}` : undefined,
+                startTime: scheduledAt.toISOString(),
+                endTime: endTime.toISOString(),
+              });
+
+              // Update reminder with calendar event ID
+              await prisma.reminder.update({
+                where: { id },
+                data: {
+                  calendarEventId: calendarEvent.id,
+                  calendarProvider: 'google',
+                  syncedAt: new Date(),
+                },
+              });
+
+              logger.info(`[API] Created calendar event ${calendarEvent.id} for reminder ${id}`);
+            }
+          }
+        } catch (calendarError: any) {
+          // Log error but don't fail reminder update
+          logger.warn(`[API] Failed to sync reminder ${id} to calendar:`, calendarError);
+        }
 
         logger.info(`[API] Updated reminder ${id}`);
 
@@ -168,6 +268,17 @@ export async function reminderRoutes(fastify: FastifyInstance) {
             success: false,
             error: 'Reminder not found',
           });
+        }
+
+        // Delete associated calendar event if it exists
+        if (existing.calendarEventId) {
+          try {
+            await deleteCalendarEvent(userId, existing.calendarEventId);
+            logger.info(`[API] Deleted calendar event ${existing.calendarEventId} for reminder ${id}`);
+          } catch (calendarError: any) {
+            // Log error but don't fail reminder deletion
+            logger.warn(`[API] Failed to delete calendar event ${existing.calendarEventId} for reminder ${id}:`, calendarError);
+          }
         }
 
         await prisma.reminder.delete({
