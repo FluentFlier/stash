@@ -2,7 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import Constants from 'expo-constants';
 
-const API_URL = 'https://liz-ostracizable-candis.ngrok-free.dev';
+// Get API URL from app.json extra config, fallback to dev ngrok URL
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://liz-ostracizable-candis.ngrok-free.dev';
 
 
 interface ApiResponse<T> {

@@ -49,6 +49,12 @@
     ],
     "eas": {
       "projectId": "6877b4f8-d3b6-4696-a605-05035345153f"
+    },
+    "extra": {
+      "apiUrl": "https://stash-backend-XXXX.run.app",
+      "eas": {
+        "projectId": "6877b4f8-d3b6-4696-a605-05035345153f"
+      }
     }
   }
 }
