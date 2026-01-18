@@ -12,7 +12,6 @@ env:
   PROJECT_ID: ${{ secrets.GCLOUD_PROJECT_ID }}
   REGION: us-central1
   SERVICE_NAME: stash-backend
-  REPOSITORY: stash-repo
 
 jobs:
   deploy:
@@ -34,42 +33,26 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+      - name: Configure Docker
+        run: gcloud auth configure-docker
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./backend/Dockerfile
-          push: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+      - name: Build and Push Docker Image
+        run: |
+          cd backend
+          IMAGE_URI="gcr.io/${{ env.PROJECT_ID }}/stash-backend:${{ github.sha }}"
+          docker build -t $IMAGE_URI -f Dockerfile ..
+          docker push $IMAGE_URI
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            --image ${{ env.IMAGE_URI }} \
+            --project ${{ env.PROJECT_ID }} \
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --port 3000 \
-            --memory 512Mi \
-            --cpu 1 \
-            --min-instances 0 \
-            --max-instances 10 \
-            --set-env-vars "NODE_ENV=production" \
-            --set-secrets "SUPABASE_URL=SUPABASE_URL:latest" \
-            --set-secrets "SUPABASE_ANON_KEY=SUPABASE_ANON_KEY:latest" \
-            --set-secrets "SUPABASE_SERVICE_KEY=SUPABASE_SERVICE_KEY:latest" \
-            --set-secrets "SUPABASE_JWT_SECRET=SUPABASE_JWT_SECRET:latest" \
-            --set-secrets "REDIS_URL=REDIS_URL:latest" \
-            --set-secrets "OPENAI_API_KEY=OPENAI_API_KEY:latest" \
-            --set-secrets "SUPERMEMORY_API_KEY=SUPERMEMORY_API_KEY:latest" \
-            --set-secrets "JINA_API_KEY=JINA_API_KEY:latest" \
-            --set-secrets "GEMINI_API_KEY=GEMINI_API_KEY:latest"
+            --set-env-vars "NODE_ENV=production,SUPABASE_URL=${{ secrets.SUPABASE_URL }},SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }},SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }},SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }},REDIS_URL=${{ secrets.REDIS_URL }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }},SUPERMEMORY_API_KEY=${{ secrets.SUPERMEMORY_API_KEY }},JINA_API_KEY=${{ secrets.JINA_API_KEY }},GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
 
       - name: Show deployed URL
         run: |
