@@ -23,7 +23,6 @@
     "autonomous",
     "fastify",
     "prisma",
-    "openai",
     "supermemory"
   ],
   "author": "Stash Team",

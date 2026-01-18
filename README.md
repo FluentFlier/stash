@@ -49,7 +49,7 @@ This isn't a typical CRUD API. When you save content, the system:
 - **Framework**: Fastify (TypeScript)
 - **Database**: Supabase (PostgreSQL) + Prisma ORM
 - **Queue**: Redis + Bull
-- **AI**: GPT-4 via OpenAI/Supermemory
+- **AI**: GPT-4 via Supermemory
 - **Content Analysis**: Jina AI Reader API
 - **Notifications**: Firebase Cloud Messaging (FCM) - **NO SMS**
 - **Calendar**: Google Calendar API
@@ -87,7 +87,10 @@ cp .env.example .env
 Required keys:
 - `DATABASE_URL` - Supabase PostgreSQL connection string
 - `REDIS_URL` - Redis connection string
-- `OPENAI_API_KEY` - OpenAI API key
+- `OPENAI_API_KEY` - OpenAI API key (used by Supermemory proxy)
+- `OPENAI_BASE_URL` - OpenAI-compatible base URL (optional, e.g. Cerebras)
+- `OPENAI_MODEL` - Default chat model (optional, overrides built-in default)
+- `SUPERMEMORY_API_KEY` - Supermemory API key
 - `JINA_API_KEY` - Jina AI API key
 - `JWT_SECRET` - Secret for JWT tokens (min 32 chars)
 
@@ -95,7 +98,6 @@ Optional but recommended:
 - `FIREBASE_*` - For push notifications
 - `GOOGLE_*` - For calendar integration
 - `LIVEKIT_*` - For voice features
-- `SUPERMEMORY_API_KEY` - For enhanced context
 
 ### 4. Database Setup
 
