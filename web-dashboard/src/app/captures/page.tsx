@@ -78,12 +78,15 @@ export default function CapturesPage() {
   return (
     <div className="space-y-6 h-full flex flex-col">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Captures</h2>
+        <h2 className="text-3xl font-bold text-[#1c2433]">Captures</h2>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2" onClick={loadCaptures}>
+          <button
+            onClick={loadCaptures}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#55607a] hover:bg-[#f1f5fb] rounded-xl transition-colors border border-[#e6ebf4]"
+          >
             <RefreshCw className="h-4 w-4" />
             Refresh
-          </Button>
+          </button>
           <QuickCaptureDialog onCreated={loadCaptures} triggerLabel="Add Capture" />
         </div>
       </div>

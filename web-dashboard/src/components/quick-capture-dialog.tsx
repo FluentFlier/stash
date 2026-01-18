@@ -55,10 +55,10 @@ export function QuickCaptureDialog({ onCreated, triggerLabel = "New Capture" }: 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2 shadow-lg shadow-primary/20">
+        <button className="flex items-center gap-2 px-4 py-2 bg-[#000000] text-white text-sm font-medium rounded-xl hover:bg-[#1c2433] transition-colors shadow-sm">
           <Sparkles className="h-4 w-4" />
           {triggerLabel}
-        </Button>
+        </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
