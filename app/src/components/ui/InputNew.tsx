@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TextInputProps, KeyboardTypeOptions } from 'react-native';
+import { theme } from '../../theme';
 
 interface InputProps extends Omit<TextInputProps, 'style'> {
     label?: string;
@@ -45,9 +46,11 @@ export const InputNew: React.FC<InputProps> = ({
                 )}
                 <TextInput
                     className="flex-1 text-base text-neutral-50"
-                    placeholderTextColor="#a3a3a3"
+                    placeholderTextColor={theme.textSubtle}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
+                    accessibilityLabel={label}
+                    accessibilityHint={error}
                     {...props}
                 />
                 {rightIcon && (

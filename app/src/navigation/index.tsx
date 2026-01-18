@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
-import { NavigationContainer, useNavigationContainerRef, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef, DarkTheme } from '@react-navigation/native';
 import { useShareIntent } from 'expo-share-intent';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MessageCircle, Plus, User } from 'lucide-react-native';
+import { createBottomTabNavigator, BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
+import { Pressable, View, Text, GestureResponderEvent } from 'react-native';
+import { MessageCircle, Plus, User, LayoutDashboard, Brain } from 'lucide-react-native';
 import type { RootStackParamList, MainTabParamList } from '../types';
+import { theme } from '../theme';
 
 // Import screens
 import { LandingScreen } from '../screens/LandingScreen';
@@ -14,23 +16,56 @@ import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { ChatScreen } from '../screens/ChatScreen';
 import { AddContextScreen } from '../screens/AddContextScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { DashboardScreen } from '../screens/DashboardScreen';
+import { MemoryScreen } from '../screens/MemoryScreen';
 
-// Custom dark theme to prevent white flash
-const CustomDarkTheme = {
+// Custom theme using shared colors
+const CustomTheme = {
     ...DarkTheme,
+    dark: false, // Light theme
     colors: {
         ...DarkTheme.colors,
-        primary: '#7c6ff0',
-        background: '#0a0a0a', // neutral-950
-        card: '#171717', // neutral-900
-        text: '#fafafa', // neutral-50
-        border: '#404040', // neutral-700
-        notification: '#7c6ff0',
+        primary: theme.primary,
+        background: theme.bg,
+        card: theme.bgSecondary,
+        text: theme.text,
+        border: theme.borderLight,
+        notification: theme.primary,
     },
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
+
+// Custom tab button component with full touch area
+const CustomTabButton = (props: BottomTabBarButtonProps) => {
+    const { children, onPress, accessibilityState, style } = props;
+    const focused = accessibilityState?.selected || false;
+
+    return (
+        <Pressable
+            onPress={onPress}
+            style={[
+                style,
+                {
+                    flex: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: 6,
+                    backgroundColor: focused ? theme.primaryMuted : 'transparent',
+                    borderRadius: 8,
+                    marginHorizontal: 4,
+                },
+            ]}
+            android_ripple={{ color: theme.primaryMuted, borderless: false }}
+            accessibilityState={accessibilityState}
+        >
+            <View style={{ alignItems: 'center', width: '100%' }} pointerEvents="none">
+                {children}
+            </View>
+        </Pressable>
+    );
+};
 
 function MainTabs() {
     return (
@@ -38,31 +73,42 @@ function MainTabs() {
             screenOptions={{
                 headerShown: false,
                 tabBarStyle: {
-                    backgroundColor: '#171717', // neutral-900
-                    borderTopColor: '#404040', // neutral-700
+                    backgroundColor: theme.bg,
+                    borderTopColor: theme.borderLight,
                     borderTopWidth: 1,
-                    paddingBottom: 8,
-                    paddingTop: 12,
-                    height: 70,
+                    paddingBottom: 24,
+                    paddingTop: 8,
+                    paddingHorizontal: 8,
+                    height: 80,
+                    elevation: 0,
+                    shadowOpacity: 0,
                 },
-                tabBarActiveTintColor: '#7c6ff0', // primary-500
-                tabBarInactiveTintColor: '#a3a3a3', // neutral-400
+                tabBarActiveTintColor: theme.primary,
+                tabBarInactiveTintColor: theme.textSubtle,
                 tabBarLabelStyle: {
-                    fontSize: 12,
-                    fontWeight: '600' as '600',
-                    marginTop: 4,
+                    fontSize: 10,
+                    fontWeight: '500',
+                    marginTop: 2,
                 },
-                tabBarIconStyle: {
-                    marginTop: 4,
-                },
+                tabBarButton: (props) => <CustomTabButton {...props} />,
             }}
         >
             <Tab.Screen
-                name="Chat"
-                component={ChatScreen}
+                name="Dashboard"
+                component={DashboardScreen}
+                options={{
+                    tabBarLabel: 'Home',
+                    tabBarIcon: ({ color, size }) => (
+                        <LayoutDashboard size={size - 2} color={color} />
+                    ),
+                }}
+            />
+            <Tab.Screen
+                name="Memory"
+                component={MemoryScreen}
                 options={{
                     tabBarIcon: ({ color, size }) => (
-                        <MessageCircle color={color} size={size} />
+                        <Brain size={size - 2} color={color} />
                     ),
                 }}
             />
@@ -72,7 +118,16 @@ function MainTabs() {
                 options={{
                     tabBarLabel: 'Add',
                     tabBarIcon: ({ color, size }) => (
-                        <Plus color={color} size={size} />
+                        <Plus size={size - 2} color={color} />
+                    ),
+                }}
+            />
+            <Tab.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <MessageCircle size={size - 2} color={color} />
                     ),
                 }}
             />
@@ -81,7 +136,7 @@ function MainTabs() {
                 component={ProfileScreen}
                 options={{
                     tabBarIcon: ({ color, size }) => (
-                        <User color={color} size={size} />
+                        <User size={size - 2} color={color} />
                     ),
                 }}
             />
@@ -95,7 +150,6 @@ export function Navigation() {
 
     useEffect(() => {
         if (hasShareIntent && navigationRef.isReady()) {
-            // Use setTimeout to avoid state update during render
             setTimeout(() => {
                 if (navigationRef.current) {
                     navigationRef.navigate('Main', {
@@ -107,23 +161,23 @@ export function Navigation() {
     }, [hasShareIntent, navigationRef]);
 
     return (
-        <NavigationContainer ref={navigationRef} theme={CustomDarkTheme}>
+        <NavigationContainer ref={navigationRef} theme={CustomTheme}>
             <Stack.Navigator
                 screenOptions={{
                     headerShown: false,
-                    contentStyle: { backgroundColor: '#0a0a0a' }, // neutral-950
-                    animation: 'fade', // Use fade animation to reduce flash
+                    contentStyle: { backgroundColor: theme.bg },
+                    animation: 'fade',
                 }}
             >
                 <Stack.Screen name="Landing" component={LandingScreen} />
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="SignUp" component={SignUpScreen} />
                 <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-                <Stack.Screen 
-                    name="Main" 
+                <Stack.Screen
+                    name="Main"
                     component={MainTabs}
                     options={{
-                        gestureEnabled: false, // Disable swipe back
+                        gestureEnabled: false,
                     }}
                 />
             </Stack.Navigator>

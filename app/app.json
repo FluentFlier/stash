@@ -15,14 +15,17 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.stash.app"
+      "bundleIdentifier": "com.dwseoh.stash",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0A0A0F"
       },
-      "package": "com.stash.app",
+      "package": "com.dwseoh.stash",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
@@ -41,7 +44,16 @@
             "NSExtensionActivationSupportsText": true
           }
         }
-      ]
-    ]
+      ],
+      "expo-font"
+    ],
+    "eas": {
+      "projectId": "6877b4f8-d3b6-4696-a605-05035345153f"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6877b4f8-d3b6-4696-a605-05035345153f"
+      }
+    }
   }
 }

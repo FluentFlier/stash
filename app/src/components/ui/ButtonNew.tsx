@@ -5,8 +5,11 @@ import {
     ActivityIndicator,
     View,
     PressableProps,
+    StyleProp,
+    ViewStyle,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { theme, buttonColors } from '../../theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -19,6 +22,7 @@ interface ButtonProps extends Omit<PressableProps, 'style'> {
     rightIcon?: React.ReactNode;
     children: React.ReactNode;
     className?: string;
+    style?: StyleProp<ViewStyle>;
 }
 
 export const ButtonNew: React.FC<ButtonProps> = ({
@@ -31,6 +35,7 @@ export const ButtonNew: React.FC<ButtonProps> = ({
     children,
     onPress,
     className = '',
+    style,
     ...props
 }) => {
     const handlePressIn = () => {
@@ -50,78 +55,118 @@ export const ButtonNew: React.FC<ButtonProps> = ({
         onPress?.(e);
     };
 
-    // Variant styles
-    const variantClasses = {
-        primary: 'bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500 shadow-lg shadow-primary-500/40',
-        secondary: 'bg-primary-600 shadow-md',
-        outline: 'bg-transparent border-2 border-primary-500',
-        ghost: 'bg-transparent',
-        destructive: 'bg-error shadow-md',
+    // Get background style based on variant
+    const getBackgroundStyle = () => {
+        switch (variant) {
+            case 'primary':
+                return { backgroundColor: buttonColors.primary };
+            case 'secondary':
+                return { backgroundColor: buttonColors.secondary };
+            case 'outline':
+                return {
+                    backgroundColor: 'transparent',
+                    borderWidth: 1,
+                    borderColor: buttonColors.outline.border
+                };
+            case 'ghost':
+                return { backgroundColor: 'transparent' };
+            case 'destructive':
+                return { backgroundColor: buttonColors.error };
+            default:
+                return { backgroundColor: buttonColors.primary };
+        }
     };
 
     // Size styles
-    const sizeClasses = {
-        sm: 'px-4 py-2 min-h-[40px]',
-        md: 'px-6 py-3 min-h-[48px]',
-        lg: 'px-8 py-4 min-h-[56px]',
+    const getSizeStyle = () => {
+        switch (size) {
+            case 'sm':
+                return { paddingHorizontal: 12, paddingVertical: 6, minHeight: 32 };
+            case 'md':
+                return { paddingHorizontal: 16, paddingVertical: 10, minHeight: 40 };
+            case 'lg':
+                return { paddingHorizontal: 20, paddingVertical: 12, minHeight: 48 };
+            default:
+                return { paddingHorizontal: 16, paddingVertical: 10, minHeight: 40 };
+        }
     };
 
-    // Text variant styles
-    const textVariantClasses = {
-        primary: 'text-white',
-        secondary: 'text-white',
-        outline: 'text-primary-500',
-        ghost: 'text-primary-500',
-        destructive: 'text-white',
+    // Text color based on variant
+    const getTextColor = () => {
+        switch (variant) {
+            case 'primary':
+            case 'destructive':
+                return buttonColors.primaryContent;
+            case 'secondary':
+                return buttonColors.secondaryContent;
+            case 'outline':
+                return buttonColors.outline.text;
+            case 'ghost':
+                return buttonColors.ghost.text;
+            default:
+                return buttonColors.primaryContent;
+        }
     };
 
-    // Text size styles
-    const textSizeClasses = {
-        sm: 'text-sm',
-        md: 'text-base',
-        lg: 'text-lg',
+    // Text size
+    const getTextSize = () => {
+        switch (size) {
+            case 'sm':
+                return 12;
+            case 'md':
+                return 13;
+            case 'lg':
+                return 14;
+            default:
+                return 13;
+        }
     };
-
-    const buttonClasses = `
-        items-center justify-center flex-row
-        ${variantClasses[variant]}
-        ${sizeClasses[size]}
-        ${disabled || loading ? 'opacity-50' : ''}
-        ${className}
-    `.trim().replace(/\s+/g, ' ');
-
-    const buttonStyle = {
-        borderRadius: 20, // Force 20px border radius (xl)
-    };
-
-    const textClasses = `
-        font-semibold
-        ${textVariantClasses[variant]}
-        ${textSizeClasses[size]}
-    `.trim().replace(/\s+/g, ' ');
 
     return (
         <Pressable
             onPress={handlePress}
             onPressIn={handlePressIn}
             disabled={disabled || loading}
-            className={buttonClasses}
-            style={buttonStyle}
+            className={className}
+            style={[
+                {
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'row',
+                    borderRadius: 8,
+                    opacity: disabled || loading ? 0.5 : 1,
+                },
+                getBackgroundStyle(),
+                getSizeStyle(),
+                style,
+            ]}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: disabled || loading }}
             {...props}
         >
             {loading ? (
                 <ActivityIndicator
                     color={
-                        variant === 'primary' || variant === 'destructive'
-                            ? '#ffffff'
-                            : '#7c6ff0'
+                        variant === 'outline' || variant === 'ghost'
+                            ? theme.textMuted
+                            : buttonColors.primaryContent
                     }
+                    size="small"
                 />
             ) : (
-                <View className="flex-row items-center justify-center">
-                    {leftIcon && <View className="mr-2">{leftIcon}</View>}
-                    <Text className={textClasses}>{children}</Text>
-                    {rightIcon && <View className="ml-2">{rightIcon}</View>}
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                    {leftIcon && <View style={{ marginRight: 6 }}>{leftIcon}</View>}
+                    <Text
+                        style={{
+                            color: getTextColor(),
+                            fontSize: getTextSize(),
+                            fontWeight: '500',
+                            letterSpacing: 0.2,
+                        }}
+                    >
+                        {children}
+                    </Text>
+                    {rightIcon && <View style={{ marginLeft: 6 }}>{rightIcon}</View>}
                 </View>
             )}
         </Pressable>
