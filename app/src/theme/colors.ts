@@ -9,22 +9,22 @@ const twColors = tailwindConfig.colors;
 // All values come from tailwind.config.js - DO NOT HARDCODE HERE
 export const theme = {
   // Pure white for text on colored backgrounds
-  white: twColors.neutral[50], // #fafafa
+  white: '#ffffff',
 
-  // Primary accent (cyan)
+  // Primary accent (ink/black)
   primary: twColors.primary[500],
   primaryLight: twColors.primary[400],
   primaryDark: twColors.primary[600],
-  primaryMuted: `rgba(6, 182, 212, 0.12)`,
+  primaryMuted: 'rgba(0, 0, 0, 0.08)',
 
-  // App backgrounds
+  // App backgrounds (light, blue-tinted)
   bg: twColors.app.bg,
   bgSecondary: twColors.app.surface,
   bgTertiary: twColors.app.elevated,
 
-  // Text colors
-  text: twColors.neutral[50],
-  textMuted: twColors.neutral[400],
+  // Text colors (dark on light background)
+  text: twColors.neutral[900],
+  textMuted: twColors.neutral[600],
   textSubtle: twColors.neutral[500],
 
   // Borders
@@ -46,10 +46,10 @@ export const theme = {
 export const buttonColors = {
   primary: theme.primary,
   primaryContent: theme.white,
-  secondary: twColors.neutral[600],
-  secondaryContent: twColors.neutral[50],
-  neutral: twColors.neutral[800],
-  neutralContent: twColors.neutral[50],
+  secondary: twColors.secondary[500],
+  secondaryContent: theme.white,
+  neutral: twColors.neutral[700],
+  neutralContent: theme.white,
   error: theme.error,
   errorContent: theme.white,
   outline: {
