@@ -140,8 +140,8 @@ export class LearnerAgent {
         where: {
           userId,
           processingStatus: 'COMPLETED',
-          analysis: {
-            not: null,
+          actionOutcomes: {
+            some: {},
           },
         },
         select: {

@@ -1,6 +1,10 @@
 import { YoutubeTranscript } from 'youtube-transcript';
+import ffmpeg from 'fluent-ffmpeg';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 import { logger } from '../utils/logger.js';
-import { generateStructuredResponse } from './ai.js';
+import { generateStructuredResponse, analyzeFrames } from './ai.js';
 import { DeepAnalysis } from '../types/agents.js';
 
 /**
@@ -25,9 +29,9 @@ function extractVideoId(url: string): string | null {
 /**
  * Analyze YouTube video using transcript extraction and GPT-4 analysis
  */
-export async function analyzeVideo(url: string, userId: string): Promise<DeepAnalysis> {
+export async function analyzeYouTubeVideo(url: string, userId: string): Promise<DeepAnalysis> {
   try {
-    logger.info(`[VideoAnalyzer] Analyzing video: ${url}`);
+    logger.info(`[VideoAnalyzer] Analyzing YouTube video: ${url}`);
 
     const videoId = extractVideoId(url);
     if (!videoId) {
@@ -78,8 +82,8 @@ export async function analyzeVideo(url: string, userId: string): Promise<DeepAna
       estimatedReadTime: number;
     }>(analysisPrompt, systemPrompt, userId);
 
-    // Step 3: Extract key moments with timestamps
-    const keyMoments = extractKeyMoments(transcriptData);
+    // Step 3: Extract key moments (unused for now but good for future)
+    // const keyMoments = extractKeyMoments(transcriptData);
 
     logger.info(`[VideoAnalyzer] Analysis complete for video ${videoId}`);
 
@@ -98,7 +102,7 @@ export async function analyzeVideo(url: string, userId: string): Promise<DeepAna
       difficulty: analysis.difficulty,
     };
   } catch (error: any) {
-    logger.error(`[VideoAnalyzer] Error analyzing video ${url}:`, error);
+    logger.error(`[VideoAnalyzer] Error analyzing YouTube video ${url}:`, error);
 
     // Return fallback
     return {
@@ -123,37 +127,154 @@ export async function analyzeVideo(url: string, userId: string): Promise<DeepAna
 }
 
 /**
- * Extract key moments from transcript (timestamps with important content)
+ * Extract frames from a video file using ffmpeg
  */
-function extractKeyMoments(transcript: any[]): Array<{ time: number; text: string }> {
-  // Simple heuristic: extract every 10th segment or important keywords
-  const keyMoments: Array<{ time: number; text: string }> = [];
-  const importantKeywords = [
-    'important',
-    'key',
-    'remember',
-    'conclusion',
-    'summary',
-    'main',
-    'first',
-    'second',
-    'finally',
-  ];
+async function extractFrames(videoPath: string, count: number = 8): Promise<string[]> {
+  const tempDir = path.join(os.tmpdir(), `frames-${Date.now()}`);
+  await fs.promises.mkdir(tempDir, { recursive: true });
 
-  transcript.forEach((item, index) => {
-    const text = item.text.toLowerCase();
-    const hasKeyword = importantKeywords.some((keyword) => text.includes(keyword));
+  logger.info(`[VideoAnalyzer] Extracting ${count} frames from ${videoPath} to ${tempDir}`);
 
-    if (hasKeyword || index % 10 === 0) {
-      keyMoments.push({
-        time: item.offset / 1000, // Convert ms to seconds
-        text: item.text,
+  return new Promise((resolve, reject) => {
+    ffmpeg(videoPath)
+      .screenshots({
+        count: count,
+        folder: tempDir,
+        filename: 'frame-%i.jpg',
+        size: '1280x720' // Resize to reasonable size for GPT-4V
+      })
+      .on('end', async () => {
+        try {
+          const files = await fs.promises.readdir(tempDir);
+          const frames: string[] = [];
+
+          for (const file of files) {
+            if (file.endsWith('.jpg')) {
+              const filePath = path.join(tempDir, file);
+              const buffer = await fs.promises.readFile(filePath);
+              frames.push(buffer.toString('base64'));
+              // Clean up individual frame file
+              await fs.promises.unlink(filePath);
+            }
+          }
+          
+          // Clean up temp dir
+          await fs.promises.rmdir(tempDir);
+          
+          resolve(frames);
+        } catch (err) {
+          reject(err);
+        }
+      })
+      .on('error', (err) => {
+        logger.error('[VideoAnalyzer] ffmpeg error:', err);
+        reject(err);
       });
-    }
   });
-
-  return keyMoments.slice(0, 10); // Return max 10 key moments
 }
+
+/**
+ * Analyze a video file (uploaded) using Frame Extraction + GPT-4 Vision
+ */
+export async function analyzeVideoFile(videoPath: string, userId: string): Promise<DeepAnalysis> {
+  try {
+    logger.info(`[VideoAnalyzer] Analyzing video file: ${videoPath}`);
+
+    // Step 1: Extract frames
+    const frames = await extractFrames(videoPath, 8);
+    logger.info(`[VideoAnalyzer] Extracted ${frames.length} frames`);
+
+    // Step 2: Analyze frames with GPT-4 Vision
+    const prompt = `Analyze this video by examining these frames. Provide:
+1. Overall video summary and narrative
+2. Key scenes and transitions
+3. All visible text across frames (OCR)
+4. Objects and people throughout
+5. Actions and events happening
+6. Suggested tags
+7. Actionable items (dates, tasks, etc.)
+
+Return ONLY valid JSON:
+{
+  "title": "Video title (infer from content)",
+  "description": "Comprehensive summary",
+  "topics": string[],
+  "entities": {
+    "people": string[],
+    "organizations": string[],
+    "technologies": string[],
+    "locations": string[]
+  },
+  "keyTakeaways": string[],
+  "actionItems": string[],
+  "dates": string[],
+  "difficulty": "beginner" | "intermediate" | "advanced"
+}`;
+
+    const analysisJson = await analyzeFrames(
+      frames.map(f => ({ type: 'base64', data: f })),
+      prompt,
+      userId
+    );
+
+    // Parse JSON response (it might be wrapped in markdown code blocks)
+    const cleanJson = analysisJson.replace(/```json\n|\n```/g, '');
+    let analysis: any;
+    try {
+        analysis = JSON.parse(cleanJson);
+    } catch (e) {
+        // Retry parsing or fallback
+        logger.warn('[VideoAnalyzer] Failed to parse JSON from vision analysis, trying loose parse');
+        // Simple fallback
+        analysis = {
+            title: "Video Analysis",
+            description: analysisJson.slice(0, 200),
+            topics: [],
+            entities: { people: [], organizations: [], technologies: [], locations: [] },
+            keyTakeaways: [],
+            actionItems: [],
+            dates: [],
+            difficulty: "intermediate"
+        };
+    }
+
+    return {
+      title: analysis.title || "Video Capture",
+      description: analysis.description || "No description available",
+      fullContent: analysis.description || "", // Video doesn't have text content like article
+      contentType: 'video',
+      topics: analysis.topics || [],
+      entities: analysis.entities || { people: [], organizations: [], technologies: [], locations: [] },
+      keyTakeaways: analysis.keyTakeaways || [],
+      actionItems: analysis.actionItems || [],
+      dates: analysis.dates || [],
+      difficulty: analysis.difficulty || 'intermediate',
+      estimatedReadTime: 5 // Default
+    };
+
+  } catch (error: any) {
+    logger.error(`[VideoAnalyzer] Error analyzing video file:`, error);
+     return {
+      title: 'Video Capture',
+      description: 'Video analysis unavailable',
+      fullContent: '',
+      contentType: 'video',
+      topics: [],
+      entities: {
+        people: [],
+        organizations: [],
+        technologies: [],
+        locations: [],
+      },
+      keyTakeaways: [],
+      actionItems: [],
+      dates: [],
+      difficulty: 'intermediate',
+    };
+  }
+}
+
+
 
 /**
  * Check if URL is a YouTube video
