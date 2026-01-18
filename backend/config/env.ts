@@ -19,11 +19,11 @@ const envSchema = z.object({
   PORT: z.string().default('3000'),
   API_URL: z.string().url().default('http://localhost:3000'),
 
-  // Supabase
-  SUPABASE_URL: z.string().url(),
-  SUPABASE_SERVICE_KEY: z.string().min(1),
+  // Supabase (optional at startup, required for auth features)
+  SUPABASE_URL: z.string().url().optional(),
+  SUPABASE_SERVICE_KEY: z.string().optional(),
   SUPABASE_ANON_KEY: z.string().optional(),
-  SUPABASE_JWT_SECRET: z.string().min(1),
+  SUPABASE_JWT_SECRET: z.string().optional(),
 
   // Redis (Optional for now)
   REDIS_URL: z.string().optional(),
