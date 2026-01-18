@@ -46,6 +46,7 @@ jobs:
 
       - name: Deploy to Cloud Run
         env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -64,8 +65,8 @@ jobs:
             --allow-unauthenticated \
             --port 8080 \
             --timeout=300 \
-            --clear-secrets \
             --set-env-vars NODE_ENV=production \
+            --set-env-vars DATABASE_URL=$DATABASE_URL \
             --set-env-vars SUPABASE_URL=$SUPABASE_URL \
             --set-env-vars SUPABASE_SERVICE_KEY=$SUPABASE_SERVICE_KEY \
             --set-env-vars SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
