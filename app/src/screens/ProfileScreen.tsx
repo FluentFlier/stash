@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Switch, Modal, Alert, Pressable } from 'react-native';
+import { View, Text, ScrollView, Switch, Modal, Alert, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import {
     Edit2,
     Calendar,
@@ -14,8 +13,7 @@ import {
     Settings,
     ChevronRight,
 } from 'lucide-react-native';
-import { Avatar, Card, Button, Input } from '../components/ui';
-import { theme } from '../theme';
+import { AvatarNew, CardNew, ButtonNew, InputNew } from '../components/ui';
 
 export const ProfileScreen: React.FC = () => {
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -51,154 +49,198 @@ export const ProfileScreen: React.FC = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <LinearGradient
-                colors={[
-                    theme.colors.dark.background,
-                    theme.colors.primary[900],
-                    theme.colors.dark.background,
-                ]}
-                locations={[0, 0.2, 1]}
-                style={styles.gradient}
-            />
-            <SafeAreaView style={styles.safeArea}>
-                <ScrollView contentContainerStyle={styles.content}>
+        <View className="flex-1 bg-neutral-950">
+            {/* Gradient Background */}
+            <View className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-primary-900/20 to-neutral-950" />
+            
+            <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
+                <ScrollView className="flex-1" contentContainerClassName="p-6 gap-4">
                     {/* Profile Header */}
-                    <Card variant="glass">
-                        <Card.Content>
-                            <View style={styles.header}>
-                                <Avatar size="lg" fallback="JS" />
-                                <View style={styles.headerInfo}>
-                                    <Text style={styles.name}>{name}</Text>
-                                    <Text style={styles.email}>john@example.com</Text>
+                    <CardNew variant="glass">
+                        <CardNew.Content>
+                            <View className="flex-row items-center gap-4">
+                                <AvatarNew size="lg" fallback="JS" />
+                                <View className="flex-1 gap-1">
+                                    <Text className="text-2xl font-bold text-neutral-50">
+                                        {name}
+                                    </Text>
+                                    <Text className="text-base text-neutral-400">
+                                        john@example.com
+                                    </Text>
                                 </View>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
+                                <Pressable
                                     onPress={() => handleEdit('name')}
+                                    className="w-10 h-10 items-center justify-center"
                                 >
-                                    <Edit2 size={20} color={theme.colors.primary[400]} />
-                                </Button>
+                                    <Edit2 size={20} color="#7c6ff0" />
+                                </Pressable>
                             </View>
-                        </Card.Content>
-                    </Card>
+                        </CardNew.Content>
+                    </CardNew>
 
                     {/* Stats Cards */}
-                    <View style={styles.statsGrid}>
-                        <Card variant="elevated" style={styles.statCard}>
-                            <Card.Content>
-                                <View style={styles.statContent}>
-                                    <Package size={24} color={theme.colors.primary[400]} />
-                                    <Text style={styles.statValue}>127</Text>
-                                    <Text style={styles.statLabel}>Items Saved</Text>
+                    <View className="flex-row gap-3">
+                        <CardNew variant="elevated" className="flex-1">
+                            <CardNew.Content>
+                                <View className="items-center gap-2">
+                                    <Package size={24} color="#7c6ff0" />
+                                    <Text className="text-2xl font-bold text-neutral-50">
+                                        127
+                                    </Text>
+                                    <Text className="text-xs text-neutral-400 text-center">
+                                        Items Saved
+                                    </Text>
                                 </View>
-                            </Card.Content>
-                        </Card>
+                            </CardNew.Content>
+                        </CardNew>
 
-                        <Card variant="elevated" style={styles.statCard}>
-                            <Card.Content>
-                                <View style={styles.statContent}>
-                                    <MessageCircle size={24} color={theme.colors.accent[400]} />
-                                    <Text style={styles.statValue}>43</Text>
-                                    <Text style={styles.statLabel}>Conversations</Text>
+                        <CardNew variant="elevated" className="flex-1">
+                            <CardNew.Content>
+                                <View className="items-center gap-2">
+                                    <MessageCircle size={24} color="#22d3ee" />
+                                    <Text className="text-2xl font-bold text-neutral-50">
+                                        43
+                                    </Text>
+                                    <Text className="text-xs text-neutral-400 text-center">
+                                        Conversations
+                                    </Text>
                                 </View>
-                            </Card.Content>
-                        </Card>
+                            </CardNew.Content>
+                        </CardNew>
 
-                        <Card variant="elevated" style={styles.statCard}>
-                            <Card.Content>
-                                <View style={styles.statContent}>
-                                    <TrendingUp size={24} color={theme.colors.success[400]} />
-                                    <Text style={styles.statValue}>+24%</Text>
-                                    <Text style={styles.statLabel}>This Week</Text>
+                        <CardNew variant="elevated" className="flex-1">
+                            <CardNew.Content>
+                                <View className="items-center gap-2">
+                                    <TrendingUp size={24} color="#10b981" />
+                                    <Text className="text-2xl font-bold text-neutral-50">
+                                        +24%
+                                    </Text>
+                                    <Text className="text-xs text-neutral-400 text-center">
+                                        This Week
+                                    </Text>
                                 </View>
-                            </Card.Content>
-                        </Card>
+                            </CardNew.Content>
+                        </CardNew>
                     </View>
 
                     {/* Personal Information */}
-                    <Card variant="glass">
-                        <Card.Content>
-                            <Text style={styles.sectionTitle}>Personal Information</Text>
+                    <CardNew variant="glass">
+                        <CardNew.Content>
+                            <Text className="text-sm font-semibold text-neutral-50 mb-3">
+                                Personal Information
+                            </Text>
 
-                            <Pressable style={styles.infoRow} onPress={() => handleEdit('name')}>
-                                <User size={20} color={theme.colors.text.tertiary} />
-                                <View style={styles.infoContent}>
-                                    <Text style={styles.infoLabel}>Name</Text>
-                                    <Text style={styles.infoValue}>{name}</Text>
+                            <Pressable
+                                onPress={() => handleEdit('name')}
+                                className="flex-row items-center py-3 gap-3 border-b border-neutral-800"
+                            >
+                                <User size={20} color="#a3a3a3" />
+                                <View className="flex-1 gap-1">
+                                    <Text className="text-base font-medium text-neutral-50">
+                                        Name
+                                    </Text>
+                                    <Text className="text-base text-neutral-400">
+                                        {name}
+                                    </Text>
                                 </View>
-                                <ChevronRight size={20} color={theme.colors.text.tertiary} />
+                                <ChevronRight size={20} color="#a3a3a3" />
                             </Pressable>
 
-                            <Pressable style={styles.infoRow} onPress={() => handleEdit('role')}>
-                                <Settings size={20} color={theme.colors.text.tertiary} />
-                                <View style={styles.infoContent}>
-                                    <Text style={styles.infoLabel}>Role</Text>
-                                    <Text style={styles.infoValue}>{role}</Text>
+                            <Pressable
+                                onPress={() => handleEdit('role')}
+                                className="flex-row items-center py-3 gap-3 border-b border-neutral-800"
+                            >
+                                <Settings size={20} color="#a3a3a3" />
+                                <View className="flex-1 gap-1">
+                                    <Text className="text-base font-medium text-neutral-50">
+                                        Role
+                                    </Text>
+                                    <Text className="text-base text-neutral-400">
+                                        {role}
+                                    </Text>
                                 </View>
-                                <ChevronRight size={20} color={theme.colors.text.tertiary} />
+                                <ChevronRight size={20} color="#a3a3a3" />
                             </Pressable>
 
-                            <Pressable style={styles.infoRow} onPress={() => handleEdit('age')}>
-                                <User size={20} color={theme.colors.text.tertiary} />
-                                <View style={styles.infoContent}>
-                                    <Text style={styles.infoLabel}>Age</Text>
-                                    <Text style={styles.infoValue}>{age}</Text>
+                            <Pressable
+                                onPress={() => handleEdit('age')}
+                                className="flex-row items-center py-3 gap-3"
+                            >
+                                <User size={20} color="#a3a3a3" />
+                                <View className="flex-1 gap-1">
+                                    <Text className="text-base font-medium text-neutral-50">
+                                        Age
+                                    </Text>
+                                    <Text className="text-base text-neutral-400">
+                                        {age}
+                                    </Text>
                                 </View>
-                                <ChevronRight size={20} color={theme.colors.text.tertiary} />
+                                <ChevronRight size={20} color="#a3a3a3" />
                             </Pressable>
-                        </Card.Content>
-                    </Card>
+                        </CardNew.Content>
+                    </CardNew>
 
                     {/* Integrations */}
-                    <Card variant="glass">
-                        <Card.Content>
-                            <Text style={styles.sectionTitle}>Integrations</Text>
-                            <View style={styles.infoRow}>
-                                <Calendar size={20} color={theme.colors.primary[400]} />
-                                <View style={styles.infoContent}>
-                                    <Text style={styles.infoLabel}>Google Calendar</Text>
-                                    <Text style={styles.connectedText}>Connected</Text>
+                    <CardNew variant="glass">
+                        <CardNew.Content>
+                            <Text className="text-sm font-semibold text-neutral-50 mb-3">
+                                Integrations
+                            </Text>
+                            <View className="flex-row items-center py-3 gap-3">
+                                <Calendar size={20} color="#7c6ff0" />
+                                <View className="flex-1 gap-1">
+                                    <Text className="text-base font-medium text-neutral-50">
+                                        Google Calendar
+                                    </Text>
+                                    <Text className="text-sm font-semibold text-success">
+                                        Connected
+                                    </Text>
                                 </View>
-                                <Button variant="outline" size="sm">
+                                <ButtonNew variant="outline" size="sm">
                                     Manage
-                                </Button>
+                                </ButtonNew>
                             </View>
-                        </Card.Content>
-                    </Card>
+                        </CardNew.Content>
+                    </CardNew>
 
                     {/* Settings */}
-                    <Card variant="glass">
-                        <Card.Content>
-                            <Text style={styles.sectionTitle}>Settings</Text>
-                            <View style={styles.infoRow}>
-                                <Bell size={20} color={theme.colors.text.tertiary} />
-                                <View style={styles.infoContent}>
-                                    <Text style={styles.infoLabel}>Push Notifications</Text>
-                                    <Text style={styles.infoSubtext}>Get reminders and updates</Text>
+                    <CardNew variant="glass">
+                        <CardNew.Content>
+                            <Text className="text-sm font-semibold text-neutral-50 mb-3">
+                                Settings
+                            </Text>
+                            <View className="flex-row items-center py-3 gap-3">
+                                <Bell size={20} color="#a3a3a3" />
+                                <View className="flex-1 gap-1">
+                                    <Text className="text-base font-medium text-neutral-50">
+                                        Push Notifications
+                                    </Text>
+                                    <Text className="text-sm text-neutral-400">
+                                        Get reminders and updates
+                                    </Text>
                                 </View>
                                 <Switch
                                     value={notificationsEnabled}
                                     onValueChange={setNotificationsEnabled}
                                     trackColor={{
-                                        false: theme.colors.gray[700],
-                                        true: theme.colors.primary[600],
+                                        false: '#404040',
+                                        true: '#6d4ee3',
                                     }}
-                                    thumbColor={theme.colors.text.inverse}
+                                    thumbColor="#ffffff"
                                 />
                             </View>
-                        </Card.Content>
-                    </Card>
+                        </CardNew.Content>
+                    </CardNew>
 
                     {/* Sign Out Button */}
-                    <Button
+                    <ButtonNew
                         variant="destructive"
                         size="lg"
-                        leftIcon={<LogOut size={20} color={theme.colors.text.inverse} />}
+                        leftIcon={<LogOut size={20} color="#ffffff" />}
                         onPress={handleSignOut}
                     >
                         Sign Out
-                    </Button>
+                    </ButtonNew>
                 </ScrollView>
 
                 {/* Edit Modal */}
@@ -208,13 +250,13 @@ export const ProfileScreen: React.FC = () => {
                     animationType="fade"
                     onRequestClose={() => setEditModalVisible(false)}
                 >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>
+                    <View className="flex-1 bg-black/80 justify-center items-center p-6">
+                        <View className="bg-neutral-800 rounded-2xl p-6 w-full max-w-[400px] gap-4">
+                            <Text className="text-2xl font-bold text-neutral-50">
                                 Edit {editField ? editField.charAt(0).toUpperCase() + editField.slice(1) : ''}
                             </Text>
                             {editField === 'name' && (
-                                <Input
+                                <InputNew
                                     label="Name"
                                     value={name}
                                     onChangeText={setName}
@@ -222,7 +264,7 @@ export const ProfileScreen: React.FC = () => {
                                 />
                             )}
                             {editField === 'role' && (
-                                <Input
+                                <InputNew
                                     label="Role"
                                     value={role}
                                     onChangeText={setRole}
@@ -230,7 +272,7 @@ export const ProfileScreen: React.FC = () => {
                                 />
                             )}
                             {editField === 'age' && (
-                                <Input
+                                <InputNew
                                     label="Age"
                                     value={age}
                                     onChangeText={setAge}
@@ -238,21 +280,21 @@ export const ProfileScreen: React.FC = () => {
                                     keyboardType="number-pad"
                                 />
                             )}
-                            <View style={styles.modalButtons}>
-                                <Button
+                            <View className="flex-row gap-3">
+                                <ButtonNew
                                     variant="outline"
                                     onPress={() => setEditModalVisible(false)}
-                                    style={{ flex: 1 }}
+                                    className="flex-1"
                                 >
                                     Cancel
-                                </Button>
-                                <Button
+                                </ButtonNew>
+                                <ButtonNew
                                     variant="primary"
                                     onPress={handleSave}
-                                    style={{ flex: 1 }}
+                                    className="flex-1"
                                 >
                                     Save
-                                </Button>
+                                </ButtonNew>
                             </View>
                         </View>
                     </View>
@@ -261,118 +303,3 @@ export const ProfileScreen: React.FC = () => {
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.colors.background,
-    },
-    gradient: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-    },
-    safeArea: {
-        flex: 1,
-    },
-    content: {
-        padding: theme.spacing[6],
-        gap: theme.spacing[4],
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: theme.spacing[4],
-    },
-    headerInfo: {
-        flex: 1,
-        gap: theme.spacing[1],
-    },
-    name: {
-        ...theme.typography.styles.h3,
-        color: theme.colors.text.primary,
-    },
-    email: {
-        ...theme.typography.styles.body,
-        color: theme.colors.text.secondary,
-    },
-    statsGrid: {
-        flexDirection: 'row',
-        gap: theme.spacing[3],
-    },
-    statCard: {
-        flex: 1,
-    },
-    statContent: {
-        alignItems: 'center',
-        gap: theme.spacing[2],
-    },
-    statValue: {
-        ...theme.typography.styles.h3,
-        color: theme.colors.text.primary,
-    },
-    statLabel: {
-        ...theme.typography.styles.caption,
-        color: theme.colors.text.tertiary,
-        textAlign: 'center',
-    },
-    sectionTitle: {
-        ...theme.typography.styles.labelLarge,
-        color: theme.colors.text.primary,
-        marginBottom: theme.spacing[3],
-    },
-    infoRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: theme.spacing[3],
-        gap: theme.spacing[3],
-        borderBottomWidth: 1,
-        borderBottomColor: theme.colors.borderLight,
-    },
-    infoContent: {
-        flex: 1,
-        gap: theme.spacing[1],
-    },
-    infoLabel: {
-        ...theme.typography.styles.bodyMedium,
-        color: theme.colors.text.primary,
-    },
-    infoValue: {
-        ...theme.typography.styles.body,
-        color: theme.colors.text.secondary,
-    },
-    infoSubtext: {
-        ...theme.typography.styles.caption,
-        color: theme.colors.text.tertiary,
-    },
-    connectedText: {
-        ...theme.typography.styles.caption,
-        color: theme.colors.success[400],
-        fontWeight: '600',
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: theme.colors.overlay,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: theme.spacing[6],
-    },
-    modalContent: {
-        backgroundColor: theme.colors.surfaceElevated,
-        borderRadius: theme.radius['2xl'],
-        padding: theme.spacing[6],
-        width: '100%',
-        maxWidth: 400,
-        gap: theme.spacing[4],
-    },
-    modalTitle: {
-        ...theme.typography.styles.h3,
-        color: theme.colors.text.primary,
-    },
-    modalButtons: {
-        flexDirection: 'row',
-        gap: theme.spacing[3],
-    },
-});

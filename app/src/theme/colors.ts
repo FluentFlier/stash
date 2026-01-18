@@ -100,8 +100,8 @@ export const colors = {
     overlay: 'rgba(0, 0, 0, 0.7)',
     text: {
       primary: '#FAFAFA',
-      secondary: '#D4D4D8',
-      tertiary: '#A1A1AA',
+      secondary: '#A1A1AA',
+      tertiary: '#71717A',
       inverse: '#18181B',
     },
   },

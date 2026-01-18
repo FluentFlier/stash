@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } fr
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Mail, Lock } from 'lucide-react-native';
+import { ArrowLeft, Mail, Lock, Chrome, AlertCircle } from 'lucide-react-native';
 import { Button, Input, Card } from '../components/ui';
 import { theme } from '../theme';
 import type { RootStackParamList } from '../types';
@@ -13,15 +13,31 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
     const handleLogin = async () => {
+        if (!email || !password) {
+            setError('Please enter both email and password');
+            return;
+        }
+
+        setError(null);
         setLoading(true);
         // TODO: Implement Supabase auth
         setTimeout(() => {
             setLoading(false);
-            navigation.navigate('Main');
-        }, 1000);
+            if (email.includes('error')) {
+                setError('Invalid email or password');
+            } else {
+                navigation.navigate('Main');
+            }
+        }, 1500);
+    };
+
+    const handleGoogleLogin = () => {
+        // TODO: Implement Google Auth
+        console.log('Google login');
     };
 
     return (
@@ -80,12 +96,34 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
                                             leftIcon={<Lock size={20} color={theme.colors.text.tertiary} />}
                                         />
 
+                                        {error && (
+                                            <View style={styles.errorContainer}>
+                                                <AlertCircle size={16} color={theme.colors.error[500]} />
+                                                <Text style={styles.errorText}>{error}</Text>
+                                            </View>
+                                        )}
+
                                         <Button
                                             size="lg"
                                             loading={loading}
                                             onPress={handleLogin}
                                         >
                                             Sign In
+                                        </Button>
+
+                                        <View style={styles.divider}>
+                                            <View style={styles.dividerLine} />
+                                            <Text style={styles.dividerText}>OR</Text>
+                                            <View style={styles.dividerLine} />
+                                        </View>
+
+                                        <Button
+                                            variant="outline"
+                                            size="lg"
+                                            leftIcon={<Chrome size={20} color={theme.colors.text.primary} />}
+                                            onPress={handleGoogleLogin}
+                                        >
+                                            Continue with Google
                                         </Button>
                                     </View>
                                 </Card.Content>
@@ -151,5 +189,33 @@ const styles = StyleSheet.create({
     },
     form: {
         gap: theme.spacing[4],
+    },
+    errorContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: theme.spacing[2],
+        backgroundColor: 'rgba(244, 63, 94, 0.1)',
+        padding: theme.spacing[3],
+        borderRadius: theme.radius.md,
+        borderWidth: 1,
+        borderColor: 'rgba(244, 63, 94, 0.2)',
+    },
+    errorText: {
+        ...theme.typography.styles.caption,
+        color: theme.colors.error[500],
+    },
+    divider: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: theme.spacing[4],
+    },
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: theme.colors.borderLight,
+    },
+    dividerText: {
+        ...theme.typography.styles.caption,
+        color: theme.colors.text.tertiary,
     },
 });

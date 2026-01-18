@@ -1,12 +1,12 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect } from 'react';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import { useShareIntent } from 'expo-share-intent';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MessageCircle, Plus, User } from 'lucide-react-native';
-import { theme } from '../theme';
 import type { RootStackParamList, MainTabParamList } from '../types';
 
-// Import screens (we'll create these next)
+// Import screens
 import { LandingScreen } from '../screens/LandingScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { SignUpScreen } from '../screens/SignUpScreen';
@@ -24,18 +24,18 @@ function MainTabs() {
             screenOptions={{
                 headerShown: false,
                 tabBarStyle: {
-                    backgroundColor: theme.colors.surface,
-                    borderTopColor: theme.colors.border,
+                    backgroundColor: '#262626', // neutral-800
+                    borderTopColor: '#404040', // neutral-700
                     borderTopWidth: 1,
                     paddingBottom: 8,
                     paddingTop: 8,
                     height: 60,
                 },
-                tabBarActiveTintColor: theme.colors.primary,
-                tabBarInactiveTintColor: theme.colors.text.tertiary,
+                tabBarActiveTintColor: '#7c6ff0', // primary-500
+                tabBarInactiveTintColor: '#a3a3a3', // neutral-400
                 tabBarLabelStyle: {
-                    fontSize: theme.typography.fontSize.xs,
-                    fontWeight: '500' as '500',
+                    fontSize: 12,
+                    fontWeight: '600' as '600',
                 },
             }}
         >
@@ -72,12 +72,26 @@ function MainTabs() {
 }
 
 export function Navigation() {
+    const navigationRef = useNavigationContainerRef<RootStackParamList>();
+    const { hasShareIntent } = useShareIntent();
+
+    useEffect(() => {
+        if (hasShareIntent && navigationRef.isReady()) {
+            // Use setTimeout to avoid state update during render
+            setTimeout(() => {
+                navigationRef.navigate('Main', {
+                    screen: 'AddContext',
+                } as any);
+            }, 0);
+        }
+    }, [hasShareIntent, navigationRef]);
+
     return (
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
             <Stack.Navigator
                 screenOptions={{
                     headerShown: false,
-                    contentStyle: { backgroundColor: theme.colors.background },
+                    contentStyle: { backgroundColor: '#0a0a0a' }, // neutral-950
                 }}
             >
                 <Stack.Screen name="Landing" component={LandingScreen} />

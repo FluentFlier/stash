@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useShareIntent } from 'expo-share-intent';
 import {
     Camera,
@@ -13,8 +12,7 @@ import {
     CheckCircle,
     Share2,
 } from 'lucide-react-native';
-import { Card, Button, Input } from '../components/ui';
-import { theme } from '../theme';
+import { CardNew, ButtonNew, InputNew } from '../components/ui';
 
 export const AddContextScreen: React.FC = () => {
     const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
@@ -32,7 +30,6 @@ export const AddContextScreen: React.FC = () => {
                 setSelectedType('text');
                 setTextNote(shareIntent.text);
             } else if (shareIntent.type === 'media' && shareIntent.files) {
-                // Handle images/videos
                 const file = shareIntent.files[0];
                 if (file.mimeType?.startsWith('image/')) {
                     setSelectedType('image');
@@ -44,12 +41,10 @@ export const AddContextScreen: React.FC = () => {
     }, [hasShareIntent, shareIntent]);
 
     const handleSave = async () => {
-        // TODO: Implement save to Supabase
         Alert.alert('Success', 'Content saved to Stash!', [
             {
                 text: 'OK',
                 onPress: () => {
-                    // Reset form
                     setSelectedType(null);
                     setLinkUrl('');
                     setTextNote('');
@@ -68,232 +63,263 @@ export const AddContextScreen: React.FC = () => {
     ];
 
     return (
-        <View style={styles.container}>
-            <LinearGradient
-                colors={[
-                    theme.colors.dark.background,
-                    theme.colors.accent[900],
-                    theme.colors.dark.background,
-                ]}
-                locations={[0, 0.2, 1]}
-                style={styles.gradient}
-            />
-            <SafeAreaView style={styles.safeArea}>
-                <View style={styles.header}>
+        <View className="flex-1 bg-neutral-950">
+            {/* Gradient Background */}
+            <View className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-accent-900/20 to-neutral-950" />
+            
+            <SafeAreaView className="flex-1" edges={['top', 'left', 'right']}>
+                <View className="flex-row justify-between items-center px-6 py-4 border-b border-neutral-800">
                     <View>
-                        <Text style={styles.title}>Add to Stash</Text>
-                        <Text style={styles.subtitle}>Capture anything, remember everything</Text>
+                        <Text className="text-2xl font-bold text-neutral-50 mb-1">
+                            Add to Stash
+                        </Text>
+                        <Text className="text-base text-neutral-400">
+                            Capture anything, remember everything
+                        </Text>
                     </View>
                     {hasShareIntent && (
-                        <View style={styles.shareIndicator}>
-                            <Share2 size={20} color={theme.colors.accent[400]} />
+                        <View className="w-10 h-10 rounded-full bg-neutral-800 items-center justify-center">
+                            <Share2 size={20} color="#22d3ee" />
                         </View>
                     )}
                 </View>
 
-                <ScrollView contentContainerStyle={styles.content}>
+                <ScrollView className="flex-1" contentContainerClassName="p-6 gap-6">
                     {/* Share Intent Alert */}
                     {hasShareIntent && (
-                        <Card variant="glass">
-                            <Card.Content>
-                                <View style={styles.shareAlert}>
-                                    <Share2 size={24} color={theme.colors.accent[400]} />
-                                    <View style={styles.shareAlertText}>
-                                        <Text style={styles.shareAlertTitle}>Shared Content Detected</Text>
-                                        <Text style={styles.shareAlertSubtitle}>
+                        <CardNew variant="glass">
+                            <CardNew.Content>
+                                <View className="flex-row items-center gap-3">
+                                    <Share2 size={24} color="#22d3ee" />
+                                    <View className="flex-1 gap-1">
+                                        <Text className="text-base font-medium text-neutral-50">
+                                            Shared Content Detected
+                                        </Text>
+                                        <Text className="text-sm text-neutral-400">
                                             Content from another app is ready to save
                                         </Text>
                                     </View>
                                 </View>
-                            </Card.Content>
-                        </Card>
+                            </CardNew.Content>
+                        </CardNew>
                     )}
 
                     {/* Input Type Selection */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>What do you want to save?</Text>
-                        <View style={styles.typeGrid}>
-                            <Card
+                    <View className="gap-3">
+                        <Text className="text-sm font-semibold text-neutral-50">
+                            What do you want to save?
+                        </Text>
+                        <View className="flex-row flex-wrap gap-3">
+                            <CardNew
                                 variant={selectedType === 'image' ? 'glass' : 'elevated'}
                                 onPress={() => setSelectedType('image')}
+                                className="flex-1 min-w-[80px]"
                             >
-                                <Card.Content>
-                                    <View style={styles.typeCard}>
-                                        <View style={styles.typeIcon}>
-                                            <Camera size={28} color={theme.colors.primary[400]} />
+                                <CardNew.Content>
+                                    <View className="items-center gap-2">
+                                        <View className="w-14 h-14 rounded-xl bg-neutral-800 items-center justify-center">
+                                            <Camera size={28} color="#7c6ff0" />
                                         </View>
-                                        <Text style={styles.typeTitle}>Photo</Text>
+                                        <Text className="text-sm font-medium text-neutral-50">
+                                            Photo
+                                        </Text>
                                     </View>
-                                </Card.Content>
-                            </Card>
+                                </CardNew.Content>
+                            </CardNew>
 
-                            <Card
+                            <CardNew
                                 variant={selectedType === 'video' ? 'glass' : 'elevated'}
                                 onPress={() => setSelectedType('video')}
+                                className="flex-1 min-w-[80px]"
                             >
-                                <Card.Content>
-                                    <View style={styles.typeCard}>
-                                        <View style={styles.typeIcon}>
-                                            <Video size={28} color={theme.colors.accent[400]} />
+                                <CardNew.Content>
+                                    <View className="items-center gap-2">
+                                        <View className="w-14 h-14 rounded-xl bg-neutral-800 items-center justify-center">
+                                            <Video size={28} color="#22d3ee" />
                                         </View>
-                                        <Text style={styles.typeTitle}>Video</Text>
+                                        <Text className="text-sm font-medium text-neutral-50">
+                                            Video
+                                        </Text>
                                     </View>
-                                </Card.Content>
-                            </Card>
+                                </CardNew.Content>
+                            </CardNew>
 
-                            <Card
+                            <CardNew
                                 variant={selectedType === 'link' ? 'glass' : 'elevated'}
                                 onPress={() => setSelectedType('link')}
+                                className="flex-1 min-w-[80px]"
                             >
-                                <Card.Content>
-                                    <View style={styles.typeCard}>
-                                        <View style={styles.typeIcon}>
-                                            <LinkIcon size={28} color={theme.colors.success[400]} />
+                                <CardNew.Content>
+                                    <View className="items-center gap-2">
+                                        <View className="w-14 h-14 rounded-xl bg-neutral-800 items-center justify-center">
+                                            <LinkIcon size={28} color="#10b981" />
                                         </View>
-                                        <Text style={styles.typeTitle}>Link</Text>
+                                        <Text className="text-sm font-medium text-neutral-50">
+                                            Link
+                                        </Text>
                                     </View>
-                                </Card.Content>
-                            </Card>
+                                </CardNew.Content>
+                            </CardNew>
 
-                            <Card
+                            <CardNew
                                 variant={selectedType === 'text' ? 'glass' : 'elevated'}
                                 onPress={() => setSelectedType('text')}
+                                className="flex-1 min-w-[80px]"
                             >
-                                <Card.Content>
-                                    <View style={styles.typeCard}>
-                                        <View style={styles.typeIcon}>
-                                            <FileText size={28} color={theme.colors.warning[400]} />
+                                <CardNew.Content>
+                                    <View className="items-center gap-2">
+                                        <View className="w-14 h-14 rounded-xl bg-neutral-800 items-center justify-center">
+                                            <FileText size={28} color="#f59e0b" />
                                         </View>
-                                        <Text style={styles.typeTitle}>Note</Text>
+                                        <Text className="text-sm font-medium text-neutral-50">
+                                            Note
+                                        </Text>
                                     </View>
-                                </Card.Content>
-                            </Card>
+                                </CardNew.Content>
+                            </CardNew>
                         </View>
                     </View>
 
                     {/* Input Form Based on Selected Type */}
                     {selectedType === 'link' && (
-                        <View style={styles.section}>
-                            <Card variant="glass">
-                                <Card.Content>
-                                    <Input
+                        <View className="gap-3">
+                            <CardNew variant="glass">
+                                <CardNew.Content>
+                                    <InputNew
                                         label="URL"
                                         placeholder="https://example.com"
                                         value={linkUrl}
                                         onChangeText={setLinkUrl}
                                         keyboardType="url"
                                         autoCapitalize="none"
-                                        leftIcon={<LinkIcon size={20} color={theme.colors.text.tertiary} />}
+                                        leftIcon={<LinkIcon size={20} color="#a3a3a3" />}
                                     />
-                                    <Button variant="primary" size="lg" onPress={handleSave}>
+                                    <ButtonNew variant="primary" size="lg" onPress={handleSave}>
                                         Save Link
-                                    </Button>
-                                </Card.Content>
-                            </Card>
+                                    </ButtonNew>
+                                </CardNew.Content>
+                            </CardNew>
                         </View>
                     )}
 
                     {selectedType === 'text' && (
-                        <View style={styles.section}>
-                            <Card variant="glass">
-                                <Card.Content>
-                                    <Text style={styles.inputLabel}>Your Note</Text>
+                        <View className="gap-3">
+                            <CardNew variant="glass">
+                                <CardNew.Content>
+                                    <Text className="text-sm font-semibold text-neutral-50 mb-2">
+                                        Your Note
+                                    </Text>
                                     <TextInput
-                                        style={styles.textArea}
+                                        className="bg-neutral-800 rounded-md p-4 text-base text-neutral-50 border border-neutral-700 min-h-[120px]"
                                         placeholder="Write something..."
-                                        placeholderTextColor={theme.colors.text.tertiary}
+                                        placeholderTextColor="#a3a3a3"
                                         value={textNote}
                                         onChangeText={setTextNote}
                                         multiline
                                         numberOfLines={6}
+                                        textAlignVertical="top"
                                     />
-                                    <Button variant="primary" size="lg" onPress={handleSave}>
+                                    <ButtonNew variant="primary" size="lg" onPress={handleSave}>
                                         Save Note
-                                    </Button>
-                                </Card.Content>
-                            </Card>
+                                    </ButtonNew>
+                                </CardNew.Content>
+                            </CardNew>
                         </View>
                     )}
 
                     {selectedType === 'image' && (
-                        <View style={styles.section}>
-                            <Card variant="glass">
-                                <Card.Content>
-                                    <View style={styles.uploadArea}>
-                                        <ImageIcon size={48} color={theme.colors.text.tertiary} />
-                                        <Text style={styles.uploadText}>Tap to select a photo</Text>
-                                        <Text style={styles.uploadSubtext}>or take a new one</Text>
+                        <View className="gap-3">
+                            <CardNew variant="glass">
+                                <CardNew.Content>
+                                    <View className="items-center py-8 gap-2 mb-4">
+                                        <ImageIcon size={48} color="#a3a3a3" />
+                                        <Text className="text-base font-medium text-neutral-50">
+                                            Tap to select a photo
+                                        </Text>
+                                        <Text className="text-sm text-neutral-400">
+                                            or take a new one
+                                        </Text>
                                     </View>
-                                    <View style={styles.buttonRow}>
-                                        <Button variant="outline" style={{ flex: 1 }}>
+                                    <View className="flex-row gap-3">
+                                        <ButtonNew variant="outline" className="flex-1">
                                             Gallery
-                                        </Button>
-                                        <Button variant="primary" style={{ flex: 1 }}>
+                                        </ButtonNew>
+                                        <ButtonNew variant="primary" className="flex-1">
                                             Camera
-                                        </Button>
+                                        </ButtonNew>
                                     </View>
-                                </Card.Content>
-                            </Card>
+                                </CardNew.Content>
+                            </CardNew>
                         </View>
                     )}
 
                     {selectedType === 'video' && (
-                        <View style={styles.section}>
-                            <Card variant="glass">
-                                <Card.Content>
-                                    <View style={styles.uploadArea}>
-                                        <Video size={48} color={theme.colors.text.tertiary} />
-                                        <Text style={styles.uploadText}>Tap to select a video</Text>
-                                        <Text style={styles.uploadSubtext}>or record a new one</Text>
+                        <View className="gap-3">
+                            <CardNew variant="glass">
+                                <CardNew.Content>
+                                    <View className="items-center py-8 gap-2 mb-4">
+                                        <Video size={48} color="#a3a3a3" />
+                                        <Text className="text-base font-medium text-neutral-50">
+                                            Tap to select a video
+                                        </Text>
+                                        <Text className="text-sm text-neutral-400">
+                                            or record a new one
+                                        </Text>
                                     </View>
-                                    <View style={styles.buttonRow}>
-                                        <Button variant="outline" style={{ flex: 1 }}>
+                                    <View className="flex-row gap-3">
+                                        <ButtonNew variant="outline" className="flex-1">
                                             Library
-                                        </Button>
-                                        <Button variant="primary" style={{ flex: 1 }}>
+                                        </ButtonNew>
+                                        <ButtonNew variant="primary" className="flex-1">
                                             Record
-                                        </Button>
+                                        </ButtonNew>
                                     </View>
-                                </Card.Content>
-                            </Card>
+                                </CardNew.Content>
+                            </CardNew>
                         </View>
                     )}
 
                     {/* Recent Captures */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Recent Captures</Text>
+                    <View className="gap-3">
+                        <Text className="text-sm font-semibold text-neutral-50">
+                            Recent Captures
+                        </Text>
                         {recentCaptures.map((item) => (
-                            <Card key={item.id} variant="elevated" onPress={() => console.log(item.id)}>
-                                <Card.Content>
-                                    <View style={styles.recentItem}>
-                                        <View style={styles.recentIcon}>
+                            <CardNew key={item.id} variant="elevated" onPress={() => console.log(item.id)}>
+                                <CardNew.Content>
+                                    <View className="flex-row items-center gap-3">
+                                        <View className="w-10 h-10 rounded-lg bg-neutral-800 items-center justify-center">
                                             {item.type === 'image' && (
-                                                <Camera size={20} color={theme.colors.primary[400]} />
+                                                <Camera size={20} color="#7c6ff0" />
                                             )}
                                             {item.type === 'link' && (
-                                                <LinkIcon size={20} color={theme.colors.success[400]} />
+                                                <LinkIcon size={20} color="#10b981" />
                                             )}
                                             {item.type === 'video' && (
-                                                <Video size={20} color={theme.colors.accent[400]} />
+                                                <Video size={20} color="#22d3ee" />
                                             )}
                                         </View>
-                                        <View style={styles.recentContent}>
-                                            <Text style={styles.recentTitle}>{item.title}</Text>
-                                            <View style={styles.recentMeta}>
-                                                <Clock size={12} color={theme.colors.text.tertiary} />
-                                                <Text style={styles.recentTime}>{item.time}</Text>
+                                        <View className="flex-1 gap-1">
+                                            <Text className="text-base font-medium text-neutral-50">
+                                                {item.title}
+                                            </Text>
+                                            <View className="flex-row items-center gap-1">
+                                                <Clock size={12} color="#a3a3a3" />
+                                                <Text className="text-sm text-neutral-400">
+                                                    {item.time}
+                                                </Text>
                                             </View>
                                         </View>
-                                        <View style={styles.recentStatus}>
+                                        <View className="w-6 h-6 items-center justify-center">
                                             {item.status === 'ready' ? (
-                                                <CheckCircle size={20} color={theme.colors.success[400]} />
+                                                <CheckCircle size={20} color="#10b981" />
                                             ) : (
-                                                <View style={styles.processingDot} />
+                                                <View className="w-2 h-2 rounded-full bg-warning" />
                                             )}
                                         </View>
                                     </View>
-                                </Card.Content>
-                            </Card>
+                                </CardNew.Content>
+                            </CardNew>
                         ))}
                     </View>
                 </ScrollView>
@@ -301,173 +327,3 @@ export const AddContextScreen: React.FC = () => {
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.colors.background,
-    },
-    gradient: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-    },
-    safeArea: {
-        flex: 1,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: theme.spacing[6],
-        paddingVertical: theme.spacing[4],
-        borderBottomWidth: 1,
-        borderBottomColor: theme.colors.borderLight,
-    },
-    title: {
-        ...theme.typography.styles.h3,
-        color: theme.colors.text.primary,
-        marginBottom: theme.spacing[1],
-    },
-    subtitle: {
-        ...theme.typography.styles.body,
-        color: theme.colors.text.secondary,
-    },
-    shareIndicator: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: theme.colors.surfaceElevated,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    content: {
-        padding: theme.spacing[6],
-        gap: theme.spacing[6],
-    },
-    shareAlert: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: theme.spacing[3],
-    },
-    shareAlertText: {
-        flex: 1,
-        gap: theme.spacing[1],
-    },
-    shareAlertTitle: {
-        ...theme.typography.styles.bodyMedium,
-        color: theme.colors.text.primary,
-    },
-    shareAlertSubtitle: {
-        ...theme.typography.styles.caption,
-        color: theme.colors.text.tertiary,
-    },
-    section: {
-        gap: theme.spacing[3],
-    },
-    sectionTitle: {
-        ...theme.typography.styles.labelLarge,
-        color: theme.colors.text.primary,
-    },
-    typeGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: theme.spacing[3],
-    },
-    typeCard: {
-        alignItems: 'center',
-        gap: theme.spacing[2],
-        minWidth: 80,
-    },
-    typeIcon: {
-        width: 56,
-        height: 56,
-        borderRadius: theme.radius.xl,
-        backgroundColor: theme.colors.surfaceElevated,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    typeTitle: {
-        ...theme.typography.styles.label,
-        color: theme.colors.text.primary,
-    },
-    inputLabel: {
-        ...theme.typography.styles.label,
-        color: theme.colors.text.primary,
-        marginBottom: theme.spacing[2],
-    },
-    textArea: {
-        backgroundColor: theme.colors.surfaceElevated,
-        borderRadius: theme.radius.xl,
-        padding: theme.spacing[4],
-        fontSize: theme.typography.fontSize.base,
-        color: theme.colors.text.primary,
-        borderWidth: 1,
-        borderColor: theme.colors.borderLight,
-        minHeight: 120,
-        textAlignVertical: 'top',
-        marginBottom: theme.spacing[4],
-    },
-    uploadArea: {
-        alignItems: 'center',
-        paddingVertical: theme.spacing[8],
-        gap: theme.spacing[2],
-        marginBottom: theme.spacing[4],
-    },
-    uploadText: {
-        ...theme.typography.styles.bodyMedium,
-        color: theme.colors.text.primary,
-    },
-    uploadSubtext: {
-        ...theme.typography.styles.caption,
-        color: theme.colors.text.tertiary,
-    },
-    buttonRow: {
-        flexDirection: 'row',
-        gap: theme.spacing[3],
-    },
-    recentItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: theme.spacing[3],
-    },
-    recentIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: theme.radius.lg,
-        backgroundColor: theme.colors.surfaceElevated,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    recentContent: {
-        flex: 1,
-        gap: theme.spacing[1],
-    },
-    recentTitle: {
-        ...theme.typography.styles.bodyMedium,
-        color: theme.colors.text.primary,
-    },
-    recentMeta: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: theme.spacing[1],
-    },
-    recentTime: {
-        ...theme.typography.styles.caption,
-        color: theme.colors.text.tertiary,
-    },
-    recentStatus: {
-        width: 24,
-        height: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    processingDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: theme.colors.warning[400],
-    },
-});

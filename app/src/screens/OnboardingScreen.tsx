@@ -50,7 +50,7 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
                 useNativeDriver: true,
             }),
         ]).start(() => {
-            if (step < 3) {
+            if (step < 4) {
                 setStep(step + 1);
             } else {
                 // Complete onboarding
@@ -68,41 +68,79 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
             case 1:
                 return (
                     <View style={styles.stepContent}>
-                        <View style={styles.iconContainer}>
-                            <LinearGradient
-                                colors={theme.colors.gradients.primary}
-                                style={styles.iconGradient}
-                            >
-                                <Sparkles size={64} color={theme.colors.text.inverse} strokeWidth={1.5} />
-                            </LinearGradient>
-                        </View>
-                        <Text style={styles.title}>Welcome to Stash!</Text>
+                        <Text style={styles.title}>What's your name?</Text>
                         <Text style={styles.description}>
-                            Your AI-powered memory assistant. Capture anything, organize everything, and chat with your personal knowledge base.
+                            This helps us personalize your experience.
                         </Text>
-                        <View style={styles.features}>
-                            <View style={styles.feature}>
-                                <View style={styles.featureDot} />
-                                <Text style={styles.featureText}>Save images, videos, links, and notes</Text>
-                            </View>
-                            <View style={styles.feature}>
-                                <View style={styles.featureDot} />
-                                <Text style={styles.featureText}>AI-powered search and insights</Text>
-                            </View>
-                            <View style={styles.feature}>
-                                <View style={styles.featureDot} />
-                                <Text style={styles.featureText}>Chat with your saved content</Text>
-                            </View>
-                        </View>
+                        <Card variant="glass" style={styles.stepCard}>
+                            <Card.Content>
+                                <Input
+                                    label="Name"
+                                    placeholder="Enter your name"
+                                    value={name}
+                                    onChangeText={setName}
+                                    leftIcon={<User size={20} color={theme.colors.text.tertiary} />}
+                                />
+                            </Card.Content>
+                        </Card>
                     </View>
                 );
 
             case 2:
+                const roles = ['Student', 'Professional', 'Creative', 'Other'];
+                return (
+                    <View style={styles.stepContent}>
+                        <Text style={styles.title}>What do you do?</Text>
+                        <Text style={styles.description}>
+                            We'll tailor Stash to fit your workflow.
+                        </Text>
+                        <Card variant="glass" style={styles.stepCard}>
+                            <Card.Content>
+                                <View style={styles.roleGrid}>
+                                    {roles.map((r) => (
+                                        <Button
+                                            key={r}
+                                            variant={role === r ? 'primary' : 'outline'}
+                                            onPress={() => setRole(r)}
+                                            style={styles.roleButton}
+                                        >
+                                            {r}
+                                        </Button>
+                                    ))}
+                                </View>
+                            </Card.Content>
+                        </Card>
+                    </View>
+                );
+
+            case 3:
+                return (
+                    <View style={styles.stepContent}>
+                        <Text style={styles.title}>How old are you?</Text>
+                        <Text style={styles.description}>
+                            Helping us provide age-appropriate content.
+                        </Text>
+                        <Card variant="glass" style={styles.stepCard}>
+                            <Card.Content>
+                                <Input
+                                    label="Age"
+                                    placeholder="Enter your age"
+                                    value={age}
+                                    onChangeText={setAge}
+                                    keyboardType="number-pad"
+                                    leftIcon={<Calendar size={20} color={theme.colors.text.tertiary} />}
+                                />
+                            </Card.Content>
+                        </Card>
+                    </View>
+                );
+
+            case 4:
                 return (
                     <View style={styles.stepContent}>
                         <View style={styles.iconContainer}>
                             <LinearGradient
-                                colors={theme.colors.gradients.accent}
+                                colors={theme.colors.gradients.accent as any}
                                 style={styles.iconGradient}
                             >
                                 <Calendar size={64} color={theme.colors.text.inverse} strokeWidth={1.5} />
@@ -110,7 +148,7 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
                         </View>
                         <Text style={styles.title}>Connect Google Calendar</Text>
                         <Text style={styles.description}>
-                            Automatically create calendar events from your saved content. Never miss an important date or deadline.
+                            Automatically create events from your saved content.
                         </Text>
                         <Card variant="glass">
                             <Card.Content>
@@ -122,53 +160,9 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
                                 </View>
                             </Card.Content>
                         </Card>
-                        <View style={styles.buttonGroup}>
-                            <Button size="lg" onPress={handleNext}>
-                                Connect Calendar
-                            </Button>
-                            <Button variant="ghost" onPress={handleSkip}>
-                                Skip for now
-                            </Button>
-                        </View>
-                    </View>
-                );
-
-            case 3:
-                return (
-                    <View style={styles.stepContent}>
-                        <View style={styles.iconContainer}>
-                            <LinearGradient
-                                colors={theme.colors.gradients.aurora}
-                                style={styles.iconGradient}
-                            >
-                                <User size={64} color={theme.colors.text.inverse} strokeWidth={1.5} />
-                            </LinearGradient>
-                        </View>
-                        <Text style={styles.title}>Personalize Your Experience</Text>
-                        <Text style={styles.description}>
-                            Help us tailor Stash to your needs
-                        </Text>
-                        <View style={styles.form}>
-                            <Input
-                                label="Name"
-                                placeholder="Enter your name"
-                                value={name}
-                                onChangeText={setName}
-                            />
-                            <Input
-                                label="Role"
-                                placeholder="e.g., Student, Developer, Designer"
-                                value={role}
-                                onChangeText={setRole}
-                            />
-                            <Input
-                                label="Age"
-                                placeholder="Enter your age"
-                                value={age}
-                                onChangeText={setAge}
-                                keyboardType="number-pad"
-                            />
-                        </View>
+                        <Button size="lg" onPress={handleNext} style={{ width: '100%', marginTop: theme.spacing[4] }}>
+                            Connect Calendar
+                        </Button>
                     </View>
                 );
 
@@ -191,16 +185,15 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
             <SafeAreaView style={styles.safeArea}>
                 {/* Progress Indicator */}
                 <View style={styles.progressContainer}>
-                    {[1, 2, 3].map((i) => (
-                        <View
-                            key={i}
+                    <View style={styles.progressBar}>
+                        <Animated.View
                             style={[
-                                styles.progressDot,
-                                i === step && styles.progressDotActive,
-                                i < step && styles.progressDotComplete,
+                                styles.progressFill,
+                                { width: `${(step / 4) * 100}%` }
                             ]}
                         />
-                    ))}
+                    </View>
+                    <Text style={styles.stepText}>Step {step} of 4</Text>
                 </View>
 
                 {/* Animated Content */}
@@ -218,18 +211,18 @@ export const OnboardingScreen: React.FC<Props> = ({ navigation }) => {
 
                 {/* Bottom Actions */}
                 <View style={styles.bottomActions}>
-                    {step !== 2 && (
+                    {step < 4 && (
                         <Button
                             size="lg"
                             onPress={handleNext}
-                            rightIcon={step < 3 ? <ChevronRight size={20} color={theme.colors.text.inverse} /> : undefined}
+                            rightIcon={<ChevronRight size={20} color={theme.colors.text.inverse} />}
                         >
-                            {step === 3 ? 'Get Started' : 'Continue'}
+                            Continue
                         </Button>
                     )}
-                    {step === 1 && (
+                    {step === 4 && (
                         <Button variant="ghost" onPress={handleSkip}>
-                            Skip Onboarding
+                            Skip for now
                         </Button>
                     )}
                 </View>
@@ -254,24 +247,25 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     progressContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
+        paddingHorizontal: theme.spacing[6],
+        paddingVertical: theme.spacing[4],
         gap: theme.spacing[2],
-        paddingVertical: theme.spacing[6],
     },
-    progressDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: theme.colors.gray[700],
+    progressBar: {
+        height: 6,
+        backgroundColor: theme.colors.surfaceElevated,
+        borderRadius: 3,
+        overflow: 'hidden',
     },
-    progressDotActive: {
-        width: 24,
+    progressFill: {
+        height: '100%',
         backgroundColor: theme.colors.primary[500],
+        borderRadius: 3,
     },
-    progressDotComplete: {
-        backgroundColor: theme.colors.primary[600],
+    stepText: {
+        ...theme.typography.styles.caption,
+        color: theme.colors.text.tertiary,
+        textAlign: 'right',
     },
     content: {
         flex: 1,
@@ -281,6 +275,18 @@ const styles = StyleSheet.create({
         flex: 1,
         gap: theme.spacing[6],
         alignItems: 'center',
+    },
+    stepCard: {
+        width: '100%',
+        marginTop: theme.spacing[4],
+    },
+    roleGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: theme.spacing[3],
+    },
+    roleButton: {
+        flexGrow: 1,
     },
     iconContainer: {
         marginTop: theme.spacing[8],
@@ -305,26 +311,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         maxWidth: width * 0.8,
     },
-    features: {
-        width: '100%',
-        gap: theme.spacing[3],
-        marginTop: theme.spacing[4],
-    },
-    feature: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: theme.spacing[3],
-    },
-    featureDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: theme.colors.primary[400],
-    },
-    featureText: {
-        ...theme.typography.styles.body,
-        color: theme.colors.text.primary,
-    },
     calendarInfo: {
         gap: theme.spacing[2],
     },
@@ -336,10 +322,6 @@ const styles = StyleSheet.create({
     calendarItem: {
         ...theme.typography.styles.body,
         color: theme.colors.text.secondary,
-    },
-    buttonGroup: {
-        width: '100%',
-        gap: theme.spacing[3],
     },
     form: {
         width: '100%',
